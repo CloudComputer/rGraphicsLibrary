@@ -10,7 +10,7 @@ public:
 	BoundingVolume(void);
 	virtual ~BoundingVolume(void);
 
-	virtual bool inside(glm::vec3 pos) = 0;
+	virtual bool inside(glm::vec3 pos)const = 0;
 	virtual void extend(glm::vec3 pos) = 0;
 };
 
@@ -30,7 +30,7 @@ public:
 		}
 	}
 
-	virtual bool inside(glm::vec3 pos){
+	virtual bool inside(glm::vec3 pos)const{
 		return glm::distance(pos,_center) <= _radius;
 	}
 };
@@ -55,16 +55,16 @@ public:
 		_maxPos = glm::max(_maxPos,pos);
 	}
 
-	virtual bool inside(glm::vec3 pos){
+	virtual bool inside(glm::vec3 pos)const{
 		return within(pos.x,_minPos.x,_maxPos.x) && within(pos.y,_minPos.y,_maxPos.y) && within(pos.z,_minPos.z,_maxPos.z);
 	}
 	
-	glm::vec3 getInternalPosition(glm::vec3 worldPos);
-	glm::vec3 getPosition( glm::vec3 t );
-	glm::vec3 getDiscretePosition( glm::vec3 pos, glm::ivec3 dim );
+	glm::vec3 getInternalPosition(glm::vec3 worldPos)const;
+	glm::vec3 getPosition( glm::vec3 t )const;
+	glm::vec3 getDiscretePosition( glm::vec3 pos, glm::ivec3 dim )const;
 
 #ifdef GL_VERSION_1_1
-	void draw(){
+	void draw()const{
 		glPushAttrib(GL_LIGHTING_BIT);
 		glPushAttrib(GL_CURRENT_BIT);
 		glColor3f(1,1,1);

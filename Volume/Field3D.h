@@ -19,23 +19,24 @@ public:
 	void foreach(void (*funcPtr)(T&,glm::vec3));
 
 	void set(glm::ivec3 pos,T value);
-	T get(glm::ivec3 pos);
-	T getFromWorldPos(glm::vec3 worldPos);
-	glm::ivec3 getDimensions();
-	BoundingAABB getBoundingAABB();
+	T get(glm::ivec3 pos)const;
+	T getFromWorldPos(glm::vec3 worldPos)const;
+	glm::ivec3 getDimensions()const;
+	BoundingAABB getBoundingAABB()const;
 
 	void setZero();
 
-	T getMin();
-	T getMax();
+	T getMin()const;
+	T getMax()const;
 	void normalize();
 
-	T* getData();
-	unsigned int getMemSize();
+	T* getData()const;
+	unsigned int getMemSize()const;
 protected:
-	unsigned int _index(glm::ivec3 pos,bool clamp = true);
-	glm::vec3 _getWorldPos(glm::ivec3 pos);
+	unsigned int _index(glm::ivec3 pos,bool clamp = true)const;
+	glm::vec3 _getWorldPos(glm::ivec3 pos)const;
 
+	glm::vec3 _delta;
 	glm::ivec3 _dimensions;
 	BoundingAABB _boundingAABB;
 	T *_data;

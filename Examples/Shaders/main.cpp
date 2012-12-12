@@ -5,7 +5,7 @@
 #include <OpenGLHelpers/OpenGLInfo.h>
 #include <Util/StopClock.h>
 
-#include <gl/glut.h>
+#include <gl/glfw.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -15,15 +15,9 @@
 
 ShaderProgram *p;
 
-StopClock s;
+StopClock s(true);
 
 
-void idle(){
-	chkGLErr();
-
-	glutPostRedisplay();
-	chkGLErr();
-}
 void draw(){
 	chkGLErr();
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -49,7 +43,7 @@ void draw(){
 
 	p->unbind();
 
-	glutSwapBuffers();
+	glfwSwapBuffers();
 	chkGLErr();
 }
 
@@ -68,14 +62,10 @@ void resize(int width,int height){
 	glViewport(0,0,width,height);
 	chkGLErr();
 }
-void keyDown(unsigned char key,int x,int y){}
-void keyUp(unsigned char key,int x,int y){}
-void mouseButton(int button,int state,int x,int y){}
-void mouseMotion(int x,int y){}
 
 void init(){
 	chkGLErr();
-	p = ShaderProgram::CreateShaderProgramFromSources("glsl/shaders.vert","glsl/shaders.frag");
+	p = ShaderProgram::CreateShaderProgramFromSources( GLSL_DIR "/shaders.vert",GLSL_DIR "/shaders.frag");
 
 	glClearColor(0,0,0,0);
 	chkGLErr();
@@ -83,10 +73,16 @@ void init(){
 
 int main( int argc, char* argv[] )
 {
-	glutInit (&argc, argv);
-	glutInitWindowSize (600, 400);
-	glutInitDisplayMode ( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-	glutCreateWindow ("rGraphicsLibrary - Shaders Example");
+	if (glfwInit() != GL_TRUE){
+		std::cout << "Could not init glfw"<< std::endl;
+		return 2;
+	}
+
+	if (glfwOpenWindow(600, 400, 8, 8, 8, 8, 32, 0, GLFW_WINDOW) != GL_TRUE){
+		std::cout << "Could not create window"<< std::endl;
+		return 3;
+	}
+	glfwSetWindowTitle ("rGraphicsLibrary - Shader Example");
 
 	if(glewInit() != GLEW_OK)
 	{
@@ -103,19 +99,14 @@ int main( int argc, char* argv[] )
 
 	init();
 
-	glutReshapeFunc(resize);
-	glutKeyboardFunc(keyDown);
-	glutKeyboardUpFunc(keyUp);
-	glutMouseFunc(mouseButton);
-	glutMotionFunc(mouseMotion);
-	glutPassiveMotionFunc(mouseMotion);
+	glfwSetWindowSizeCallback(GLFWwindowsizefun(resize));
 
-	glutIdleFunc(idle);
-	glutDisplayFunc(draw);
+	while(true){
+		if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS)
+			break;
 
-	chkGLErr();
-	s.start();
-	glutMainLoop();
+		draw();
+	}
 	return 0;
 }
 

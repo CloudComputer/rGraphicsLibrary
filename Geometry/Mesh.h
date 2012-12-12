@@ -48,6 +48,8 @@ public:
 	Vertex* addVertex(const Vertex v);
 	unsigned int addTriangle(const Vertex v0,const Vertex v1,const Vertex v2);
 
+	std::vector<Triangle> getFaces(){return _triangles;}
+
 	void calculateNormals();
 
 	BoundingAABB getBoundingAABB()const{return _boundingAABB;}

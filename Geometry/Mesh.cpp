@@ -42,7 +42,6 @@ float Triangle::distance(const glm::vec3 position,bool signedDistance)const {
 		if(s<0) region = t<0 ? 4 : 3;
 		else if(t < 0) region = 5;
 		else region = 0;
-		
 	}else{
 		if(s<0) region = 2;
 		else if (t<0) region = 6;
@@ -52,9 +51,6 @@ float Triangle::distance(const glm::vec3 position,bool signedDistance)const {
 	if(signedDistance){
 		sign = glm::dot(normal,D) >= 0 ? 1:-1;
 	}
-
-	
-
 
 	if(region == 0){
 		glm::vec3 tp = v0->position + s*e0 + t*e1;
@@ -208,7 +204,7 @@ Mesh* Mesh::LoadWavefront(const char* filename){
 			std::cout << line << std::endl;
 		}
 	}
-
+	mesh->calculateNormals();
 	return mesh;
 }
 

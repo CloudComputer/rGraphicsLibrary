@@ -14,6 +14,8 @@ Field3D<T>::Field3D(glm::ivec3 dimensions,BoundingAABB boundingAABB):
 _dimensions(dimensions),
 _boundingAABB(boundingAABB)
 {
+	_delta =_boundingAABB.getPosition(glm::vec3(1,1,1)) - _boundingAABB.getPosition(glm::vec3(0,0,0));
+	_delta /= _dimensions;
 	_data = 0;
 	_allocate();
 }
@@ -30,7 +32,7 @@ void Field3D<T>::setZero(){
 	memset(_data,0,getMemSize());
 }
 template<typename T>
-T Field3D<T>::getMin(){
+T Field3D<T>::getMin()const{
 	T v = _data[0];
 	FOR(_dimensions){
 		int i = _index(glm::ivec3(x,y,z));
@@ -40,7 +42,7 @@ T Field3D<T>::getMin(){
 }
 
 template<typename T>
-T Field3D<T>::getMax(){
+T Field3D<T>::getMax()const{
 	T v = _data[0];
 	FOR(_dimensions){
 		int i = _index(glm::ivec3(x,y,z));
@@ -93,12 +95,12 @@ void Field3D<T>::set(glm::ivec3 pos,T value){
 }
 
 template<typename T>
-T Field3D<T>::get(glm::ivec3 pos){
+T Field3D<T>::get(glm::ivec3 pos)const{
 	return _data[_index(pos)];
 }
 
 template<typename T>
-T Field3D<T>::getFromWorldPos(glm::vec3 worldPos){
+T Field3D<T>::getFromWorldPos(glm::vec3 worldPos)const{
 	glm::vec3 internalPosition = (glm::vec3)_boundingAABB.getDiscretePosition(worldPos,_dimensions);
 	glm::ivec3 dPos =  (glm::ivec3)internalPosition;
 	glm::vec3 t = internalPosition - (glm::vec3)dPos;
@@ -116,29 +118,29 @@ T Field3D<T>::getFromWorldPos(glm::vec3 worldPos){
 }
 
 template<typename T>
-glm::ivec3 Field3D<T>::getDimensions(){
+glm::ivec3 Field3D<T>::getDimensions()const{
 	return _dimensions;
 }
 
 template<typename T>
-BoundingAABB Field3D<T>::getBoundingAABB(){
+BoundingAABB Field3D<T>::getBoundingAABB()const{
 	return _boundingAABB;
 
 }
 
 
 template<typename T>
-T* Field3D<T>::getData(){
+T* Field3D<T>::getData()const{
 	return _data;
 }
 
 template<typename T>
-unsigned int Field3D<T>::getMemSize(){
+unsigned int Field3D<T>::getMemSize()const{
 	return sizeof(T)*_dimensions.x*_dimensions.y*_dimensions.z;
 }
 
 template<typename T>
-unsigned int Field3D<T>::_index(glm::ivec3 pos,bool clamp)
+unsigned int Field3D<T>::_index(glm::ivec3 pos,bool clamp)const
 {
 	if(pos.x>=_dimensions.x){
 		if(clamp) pos.x=_dimensions.x-1;
@@ -171,7 +173,7 @@ unsigned int Field3D<T>::_index(glm::ivec3 pos,bool clamp)
 }
 
 template<typename T>
-glm::vec3 Field3D<T>::_getWorldPos(glm::ivec3 pos){
+glm::vec3 Field3D<T>::_getWorldPos(glm::ivec3 pos)const{
 	glm::vec3 t = (glm::vec3)pos;
 	t /= _dimensions;
 	return _boundingAABB.getPosition(t);

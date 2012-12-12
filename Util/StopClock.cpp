@@ -3,6 +3,7 @@
 #include <iostream>
 
 StopClock::StopClock(bool start){
+	_running = false;
 	if(start)
 		this->start();
 }
