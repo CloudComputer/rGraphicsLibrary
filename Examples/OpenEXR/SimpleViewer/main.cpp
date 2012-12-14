@@ -9,6 +9,8 @@
 
 #include <gl/glfw.h>
 
+#include <OpenEXRHelpers/OpenEXRIncludes.h>
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -18,46 +20,60 @@
 StopClock s(true);
 ShaderProgram *pgm;
 
-#include <OpenEXRHelpers/OpenEXRIncludes.h>
 
+std::string filename;
 
+float expCenter = 0.5;
+float expWidth = 1;
+float gamma = 1.0;
 
 RGBABuffer buffer;
 GLuint tex;
 
+bool flip = true;
 
 bool mouse0State = false;
-float rx = 0,ry = 0,scale = 1;
+
+void setTitle(){
+	std::stringstream s;
+	s << "rGraphicsLibrary - OpenEXR SimpleViewer Example - ";
+	s << "Gamma: " << gamma;
+	s << "expCenter: " << expCenter;
+	s << "expWidth: " << expWidth;
+	s << "minExp: " << expCenter - expWidth/2;
+	s << "maxExp: " << expCenter + expWidth/2;
+
+	glfwSetWindowTitle (s.str().c_str());
+
+}
 
 void draw(){
 	chkGLErr();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(glm::value_ptr(glm::lookAt(glm::vec3(0,0,2),glm::vec3(0,0,0),glm::vec3(0,1,0))));
-	glRotatef(ry,1,0,0);
-	glRotatef(rx,0,1,0);
-	glScalef(scale,scale,scale);
 
 	pgm->bind();
-
+	pgm->setUniform("gamma",gamma);
+	pgm->setUniform("minExp",expCenter - expWidth/2);
+	pgm->setUniform("maxExp",expCenter + expWidth/2);
 	glBindTexture(GL_TEXTURE_RECTANGLE_NV,tex);
 
 	glColor3f(1,1,1);
 	glBegin(GL_QUADS);
 	//glColor3f(1,1,1);
-	glTexCoord2f(0,0);
+	glTexCoord2f(0,flip ? buffer.dim.y : 0);
 	glVertex2f(0,0);
 
 	//glColor3f(1,0,0);
-	glTexCoord2f(buffer.dim.x,0);
+	glTexCoord2f(buffer.dim.x,flip ? buffer.dim.y : 0);
 	glVertex2f(1,0);
 
 	//glColor3f(0,0,1);
-	glTexCoord2f(buffer.dim.x,buffer.dim.y);
+	glTexCoord2f(buffer.dim.x,!flip ? buffer.dim.y : 0);
 	glVertex2f(1,1);
 
 	//glColor3f(0,1,0);
-	glTexCoord2f(0,buffer.dim.y);
+	glTexCoord2f(0,!flip ? buffer.dim.y : 0);
 	glVertex2f(0,1);
 
 	glEnd();
@@ -70,8 +86,10 @@ void draw(){
 
 int prevScroll = 0;
 void wheel(int i){
-	scale *= 1+((i-prevScroll)*0.01);
+	gamma *= 1+((i-prevScroll)*0.01);
 	prevScroll = i;
+
+	setTitle();
 }
 
 void mouseButton(int button,int state,int x,int y){
@@ -81,19 +99,20 @@ if(button == 0)
 
 int mouseX = -1,mouseY;
 void mouseMotion(int x,int y){
-int dx,dy;
-if(mouseX == -1){
+	int dx,dy;
+	if(mouseX == -1){
+		mouseX = x;
+		mouseY = y;
+	}
+	dx = x - mouseX;
+	dy = y - mouseY;
 	mouseX = x;
 	mouseY = y;
-}
-dx = x - mouseX;
-dy = y - mouseY;
-mouseX = x;
-mouseY = y;
-if(mouse0State){
-	rx += dx * 1;
-	ry += dy * 1;
-}
+	if(mouse0State){
+		expWidth += dx*0.001;
+		expCenter += dy*0.001;
+	}
+	setTitle();
 }
 
 
@@ -118,13 +137,23 @@ void init(){
 	glEnable(GL_TEXTURE_RECTANGLE_NV);
 	glEnable(GL_TEXTURE_2D);
 	chkGLErr();
-	buffer = OpenEXRReader::readRGBA(EXR_IMAGES_DIR "/uffizi-large.exr");
+	buffer = OpenEXRReader::readRGBA(filename);
 	tex = OpenEXRTexture::getAsTexture(buffer);
 	chkGLErr();
 	
 	pgm = ShaderProgram::CreateShaderProgramFromSources(GLSL_DIR "/simpleOEXRViewer.vert",GLSL_DIR "/simpleOEXRViewer.frag");
 	chkGLErr();
 }
+
+void key(int button, int state){
+	if(button == 'F' && state){
+		flip = !flip;
+	}
+
+	setTitle();
+}
+
+
 
 int main( int argc, char* argv[] )
 {
@@ -137,7 +166,8 @@ int main( int argc, char* argv[] )
 		std::cout << "Could not create window"<< std::endl;
 		return 3;
 	}
-	glfwSetWindowTitle ("rGraphicsLibrary - OpenEXR SimpleViewer Example");
+	
+	setTitle();
 
 	if(glewInit() != GLEW_OK)
 	{
@@ -152,9 +182,16 @@ int main( int argc, char* argv[] )
 	std::cout << "OpenGL Renderer: "<< OpenGLInfo::getOpenGLRenderer()   << std::endl;
 	chkGLErr();
 
+	if(argc > 1){
+		filename = argv[1];
+	}else{
+		filename = EXR_IMAGES_DIR "/uffizi-large.exr";
+	}
+
 	init();
 
 	glfwSetWindowSizeCallback(GLFWwindowsizefun(resize));
+	glfwSetKeyCallback(GLFWkeyfun(key));
 
 	glfwSetMouseButtonCallback(GLFWmousebuttonfun(mouseButton));
 	glfwSetMousePosCallback(GLFWmouseposfun(mouseMotion));

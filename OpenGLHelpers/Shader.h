@@ -18,6 +18,7 @@ protected:
 	GLuint _type,_shader;
 	std::string _source;
 	Shader();
+
 public:
 	virtual ~Shader();
 	void setSourceFromFile(std::string filename);
@@ -51,11 +52,17 @@ public:
 
 
 class ShaderProgram{
+	friend class Shader;
 	std::map<std::string,GLint> _locations;
 
 	GLuint _programID;
 	VertexShader *_vertexShader;
 	FragmentShader *_fragmentShader;
+
+	static bool __isInit;
+	static std::map<std::string,std::string> __stubbs;
+	static void staticInit();
+	static void readFunctionSubbs();
 public:
 	void init();
 	void setShader(VertexShader *v);

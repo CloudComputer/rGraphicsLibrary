@@ -1,10 +1,7 @@
 cmake_minimum_required (VERSION 2.6) 
 
-include_directories(${PROJECT_SOURCE_DIR}"/ext/")
-include_directories(${PROJECT_SOURCE_DIR} )
-
-set(Util_SRC StopClock.cpp)
-set(Util_H   StopClock.h)
+set(Util_SRC StopClock.cpp Directory.cpp)
+set(Util_H   StopClock.h   Directory.h)
 
 add_library(Util ${Util_SRC} ${Util_H})
 

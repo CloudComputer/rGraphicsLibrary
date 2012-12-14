@@ -4,8 +4,14 @@ project (rGraphicsLibrary)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 
+SET(OUTDIR "${CMAKE_BINARY_DIR}/bin")
+SET(EXECUTABLE_OUTPUT_PATH ${OUTDIR})
+SET(LIBRARY_OUTPUT_PATH ${OUTDIR})
+
 SET(EXR_IMAGES_FOLDER "${PROJECT_SOURCE_DIR}/EXR_Images" CACHE PATH "EXR_IMAGES_FOLDER")
 SET(GLSL_FOLDER "${PROJECT_SOURCE_DIR}/glsl" CACHE PATH "GLSL_FOLDER")
+SET(MODELS_FOLDER "${PROJECT_SOURCE_DIR}/models" CACHE PATH "MODELS_FOLDER")
+
 option(BUILD_EXAMPLES "Build Examples" ON)
 option(BUILD_OPENGL_HELPERS "Build Classes to handle some opengl features" ON)
 option(BUILD_UNIT_TEST "Build tests" ON)
@@ -20,7 +26,15 @@ include_directories(${PROJECT_SOURCE_DIR} )
 link_directories("${PROJECT_SOURCE_DIR}/ext/openEXR/msvc10/" )
 
 add_definitions(-DGLSL_DIR="${GLSL_FOLDER}")
+add_definitions(-DMODELS_DIR="${MODELS_FOLDER}")
 add_definitions(-DEXR_IMAGES_DIR="${EXR_IMAGES_FOLDER}")
+
+FIND_PACKAGE(Boost REQUIRED)
+IF (Boost_FOUND)
+	include_directories(${Boost_INCLUDE_DIR})
+	link_directories(${Boost_LIBRARY_DIRS})
+	add_definitions( "-DHAS_BOOST" )
+ENDIF()
 
 
 add_subdirectory(glsl)

@@ -2,11 +2,45 @@
 #include "Shader.h"
 #include "OpenGLInfo.h"
 
+#include <Util/Directory.h>
+
 #include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
 #include <fstream>
 #include <sstream>
+
+bool ShaderProgram::__isInit = false;
+std::map<std::string,std::string> ShaderProgram::__stubbs;
+
+void ShaderProgram::staticInit(){
+	readFunctionSubbs();
+
+	__isInit = true;
+}
+void ShaderProgram::readFunctionSubbs(){
+	std::vector<std::string> files = Directory::getAllFilesInFolder(GLSL_DIR,"\.rgl$");
+
+	std::vector<std::string>::iterator file;
+	for(file = files.begin();file != files.end();++file){
+		std::ifstream f(file->c_str());
+		
+		std::stringstream s;
+		s << f.rdbuf();
+		std::cout << s << std::endl;
+		std::string source = s.str(),name;
+		if(source.substr(0,4).compare("#RGL")!=0){
+			std::cerr << "Error loading " << file->c_str() << "" << std::endl;
+			std::cerr << '\t' << "Must start with #RGL [TEMPLATE NAME]" << std::endl;
+			continue;
+		}
+		int i = source.find("\n");
+		name = source.substr(0,i);
+		source = source.substr(i);
+		__stubbs[name] = source;
+	}
+
+}
 
 Shader::Shader(){
 	_shader = -1;
@@ -16,6 +50,7 @@ Shader::~Shader(){
 	if(_shader != -1)
 		glDeleteShader(_shader);
 }
+
 
 
 GLuint Shader::getShader(){
@@ -29,11 +64,24 @@ void Shader::setSourceFromFile(std::string filename){
 	std::stringstream s;
 	s << f.rdbuf();
 	std::cout << s << std::endl;
-	_source = s.str();
+	setSouce(s.str());
 }
 
 void Shader::setSouce(std::string source){
 	_source  = source;
+	static std::map<std::string,std::string>::iterator itr;
+	int changes = 0;
+	do{
+		changes = 0;
+		for(itr = ShaderProgram::__stubbs.begin();itr!=ShaderProgram::__stubbs.end();++itr){
+			int pos = _source.find(itr->first);
+			if(pos != -1){
+				_source.replace(pos, itr->first.length(), itr->second);
+				changes++;
+			}
+		}
+	}while(changes);
+
 }
 
 void VertexShader::init(){
@@ -79,6 +127,9 @@ FragmentShader* FragmentShader::CreateNewFromFile(std::string filename){
 }
 
 void ShaderProgram::init(){
+	if(!ShaderProgram::__isInit){
+		ShaderProgram::staticInit();
+	}
 	_programID = glCreateProgram();
 }
 
