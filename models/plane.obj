@@ -1,0 +1,12 @@
+# Blender v2.55 (sub 0) OBJ File: 'untitled.blend'
+# www.blender.org
+mtllib plane.mtl
+o Plane_Plane.001
+v 1.413128 -0.000002 -1.413124
+v 1.413128 0.000002 1.413128
+v -1.413132 0.000002 1.413120
+v -1.413116 -0.000002 -1.413139
+usemtl (null)
+s off
+f 1 4 3
+f 1 3 2

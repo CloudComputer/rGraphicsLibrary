@@ -1,0 +1,33 @@
+#RGL CRT2SPH
+
+/*
+*
+* cartesian = [x,y,z]
+* sphere    = [r,u,v]
+* u = azimuth 
+* v = inclination 
+*
+* u = arctan(y/x)
+* v = arccos(z/r)
+*/
+
+
+//vec3 cart2sph(vec3 cart){
+//	vec3 sph;
+	
+//	sph.x = length(cart);
+//	sph.y = atan(cart.y,cart.x); //azimuth angle
+//	sph.z = acos(cart.z/sph.x); //inclination angle
+	
+//	return sph;
+//}
+
+vec3 sph2cart(vec3 sph){
+	vec3 cart;
+	float  a = sph.r * sin(sph.z);
+	cart.x = a * cos(sph.y);
+	cart.z = a * sin(sph.y);
+	cart.y =  sph.r * cos(sph.z);
+	
+	return cart;
+}

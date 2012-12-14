@@ -1,0 +1,88 @@
+#RGL ENV_LIGHT
+
+#extension GL_ARB_texture_rectangle : enable
+
+#RGL PI
+#RGL CRT2SPH
+
+
+uniform sampler2DRect env_light_tex; 
+uniform ivec2 env_light_tex_size; 
+uniform float env_gamma = 1.0; 
+uniform float env_minExp = 0.0; 
+uniform float env_maxExp = 1.0; 
+uniform float env_diffuse = 1.0; 
+uniform int env_number_of_samples;
+
+
+
+vec3 Gamma(vec3 col,float g){
+	return pow(col,g);
+}
+
+
+vec3 exposure(vec3 col,float minExp,float maxExp){
+	col -= minExp;
+	col /= (maxExp - minExp);
+	col = clamp(col,0.0,1.0);
+	return col;
+}
+
+vec3 exposure(vec3 col,float g,float minExp,float maxExp){
+	return Gamma(exposure(col,minExp,maxExp),g);
+}
+
+vec3 sample_environment_map(vec3 __N){
+	float u = 0.5 * (1.0 + atan(__N.x, __N.z) / pi);
+	float v = acos(__N.y) / pi;
+	u *= env_light_tex_size.x;
+	v *= env_light_tex_size.y;
+	
+	return texture2DRect(env_light_tex,vec2(u,v)).xyz;
+}
+
+vec3 getHemiSphereSample(vec3 __N,float u,float v){
+	vec3 t0,t1;
+	if(dot(__N,vec3(0,1,0))!=1){
+		t0 = cross(__N,vec3(0,1,0));
+	}else{
+		t0 = cross(__N,vec3(sqrt(2.0),sqrt(2.0),0));
+	}
+	t1 = cross(__N,t0);
+	
+	mat3 m;
+	m[0] = t0;
+	m[2] = t1;
+	m[1] = __N;
+
+	return normalize(m*sph2cart(vec3(1,u,v)));
+}
+
+vec3 diffuseSampling(vec3 __N){
+	vec3 col = vec3(0.0);
+	int _w = max(1.0,sqrt(float(env_number_of_samples)));
+	float u = 0.0;
+	float v = 0.0;
+	for(int y = 0;y<_w;y++){
+		u = 2 * pi * (float(y)/float(_w)); //azimuth
+		for(int x = 0;x<_w;x++){
+			v = 0.5*pi - acos(sqrt(float(x)/float(_w))); //incalination
+
+			vec3 dir = getHemiSphereSample(__N,u,v);
+			float i = abs(dot(dir,__N));
+			col += vec3(i) * sample_environment_map(dir);
+		}
+	}
+
+	return col/float(env_number_of_samples);
+}
+
+
+vec3 sample_environment_map(vec3 normal,vec3 view){
+	vec3 R = reflect(-view,normal);
+	vec3 col = diffuseSampling(normal)*env_diffuse;
+	col += sample_environment_map(R)*(1.0-env_diffuse);
+	col = exposure(col,env_gamma,env_minExp,env_maxExp);
+	return col;
+
+}
