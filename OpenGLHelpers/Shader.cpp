@@ -18,6 +18,12 @@ void ShaderProgram::staticInit(){
 
 	__isInit = true;
 }
+
+void ShaderProgram::reReadFunctionSubbs(){
+	__stubbs.clear();
+	readFunctionSubbs();
+}
+
 void ShaderProgram::readFunctionSubbs(){
 	std::vector<std::string> files = Directory::getAllFilesInFolder(GLSL_DIR,"\.rgl$");
 
@@ -105,6 +111,7 @@ void Shader::compile(){
 	if(mL != 1){
 		char * log = new char[mL];
 		glGetShaderInfoLog(_shader, mL, &mL, log);
+		//TODO write out the line with error (maybe plusminus 1 row)
 		std::cout << log << std::endl;
 		delete [] log;
 	}
@@ -126,6 +133,18 @@ FragmentShader* FragmentShader::CreateNewFromFile(std::string filename){
 	return f;
 }
 
+ShaderProgram::ShaderProgram(){
+	_programID =  -1;
+}
+
+ShaderProgram::~ShaderProgram(){
+	if(_programID != -1){
+		glDeleteProgram(_programID);
+	}
+	delete _vertexShader;
+	delete _fragmentShader;
+}
+
 void ShaderProgram::init(){
 	if(!ShaderProgram::__isInit){
 		ShaderProgram::staticInit();
@@ -142,18 +161,34 @@ void ShaderProgram::setShader(FragmentShader *f){
 }
 
 void ShaderProgram::link(){
+	chkGLErr();
 	glAttachShader(_programID,_vertexShader->getShader());
 	glAttachShader(_programID,_fragmentShader->getShader());
 	glLinkProgram(_programID);
+	chkGLErr();
+	GLint err;
+	glGetProgramiv(_programID, GL_LINK_STATUS, &err);
+	if(!err){
+		int mL;
+        glGetProgramiv(_programID, GL_INFO_LOG_LENGTH, &mL);
+        char * log = new char[mL];
+        glGetProgramInfoLog(_programID, mL, &mL, log);
+        std::cout << "Could not Link shaders: " << std::endl;
+        std::cout << log << std::endl;
+        delete [] log;
+		chkGLErr();
+	}
+	chkGLErr();
 }
 
 
 void ShaderProgram::loadLocations(){
+	chkGLErr();
 	GLint activeUniforms,activeAttributes;
 	bind();
 	glGetProgramiv(_programID,GL_ACTIVE_UNIFORMS,&activeUniforms);
 	glGetProgramiv(_programID,GL_ACTIVE_ATTRIBUTES,&activeAttributes);
-
+	chkGLErr();
 	for(int i = 0;i<activeUniforms;i++){
 		GLsizei l;
 		GLint s;
@@ -161,9 +196,10 @@ void ShaderProgram::loadLocations(){
 		GLchar n[256];
 		glGetActiveUniform(_programID,i,256,&l,&s,&t,n);
 		_locations[n] = glGetUniformLocation(_programID,n);
-		std::cout << n << " " << _locations[n] << std::endl;
+		//std::cout << n << " " << _locations[n] << std::endl;
+		chkGLErr();
 	}
-
+	chkGLErr();
 	for(int i = 0;i<activeAttributes;i++){
 		GLsizei l;
 		GLint s;
@@ -171,18 +207,21 @@ void ShaderProgram::loadLocations(){
 		GLchar n[256];
 		glGetActiveAttrib(_programID,i,256,&l,&s,&t,n);
 		_locations[n] = glGetAttribLocation(_programID,n);
-		std::cout << n << " " << _locations[n] << std::endl;
+		//std::cout << n << " " << _locations[n] << std::endl;
+		chkGLErr();
 	}
+	chkGLErr();
 	unbind();
+	chkGLErr();
 }
 
 ShaderProgram *ShaderProgram::CreateShaderProgramFromSources(std::string vertexShader,std::string fragmentShader){
-	ShaderProgram *p = new ShaderProgram();
-	p->init();
-	p->setShader(VertexShader::CreateNewFromFile(vertexShader));
-	p->setShader(FragmentShader::CreateNewFromFile(fragmentShader));
-	p->link();
-	p->loadLocations();
+	ShaderProgram *p = new ShaderProgram();chkGLErr();
+	p->init();chkGLErr();
+	p->setShader(VertexShader::CreateNewFromFile(vertexShader));chkGLErr();
+	p->setShader(FragmentShader::CreateNewFromFile(fragmentShader));chkGLErr();
+	p->link();chkGLErr();
+	p->loadLocations();chkGLErr();
 	return p;
 }
 

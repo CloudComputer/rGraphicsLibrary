@@ -2,6 +2,7 @@
 
 #include <OpenGLHelpers/FBO.h>
 #include <OpenGLHelpers/OpenGLInfo.h>
+#include <OpenGLHelpers/AttribPusher.h>
 #include <Util/StopClock.h>
 
 #include <Geometry/Mesh.h>
@@ -31,13 +32,15 @@ float rx = 0,ry = 0,scale = 1;
 int samples = 1;
 
 
+std::vector<Light> lights;
+
 
 float minExp = 0.0;
 float maxExp = 0.4;
 float gamma = 0.4;
 float diffusion = 0.5;
 
-void draw(){
+void draw2(){
 	chkGLErr();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
@@ -76,13 +79,114 @@ void draw(){
 }
 
 
+void draw(){
+	chkGLErr();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadMatrixf(glm::value_ptr(glm::lookAt(glm::vec3(2,1,1.8),glm::vec3(0,0,0),glm::vec3(0,1,0))));
+	glRotatef(ry,1,0,0);
+	glRotatef(rx,0,1,0);
+	
+	chkGLErr();
+	/*for(int i = 0;i<lights.size();i++){
+		lights[i].set();
+	}*/
+	glScalef(scale,scale,scale);
+	
+	float lum = 0;
+	chkGLErr();
+	{
+		AttribPusher ___a(GL_LIGHTING_BIT);
+		glPointSize(4.0f);
+		chkGLErr();
+		glDisable(GL_LIGHTING);
+		chkGLErr();
+		glBegin(GL_POINTS);
+		for(int i = 0;i<lights.size();i++){
+			/*glColor4fv(glm::value_ptr(glm::normalize(lights[i].getDiffuseColor())));
+			glVertex3fv(glm::value_ptr(lights[i].getPosition()));
+			*/
+			if(i<64)
+				lum += lights[i].getDiffuseColor().x * 0.2125 +lights[i].getDiffuseColor().y * 0.7454 +lights[i].getDiffuseColor().z * 0.0721;
+			//std::cout << lights[i].getPosition().x << " " << lights[i].getPosition().y << " " << lights[i].getPosition().z << std::endl;
+		}
+
+		//std::cout << std::endl << std::endl;
+		glEnd();
+	}
+	
+	chkGLErr();
+
+	pgm->bind();
+	pgm->setUniform("num_lights",glm::min(64,(int)lights.size()));chkGLErr();
+	pgm->setUniform("material.ambient",glm::vec4(0,0,0,1));chkGLErr();
+	pgm->setUniform("material.diffuse",glm::vec4(1,1,1,1));chkGLErr();
+	pgm->setUniform("material.specular",glm::vec4(1,1,1,1));chkGLErr();
+	pgm->setUniform("material.shininess",20.0f);chkGLErr();
+	pgm->setUniform("lum",lum);chkGLErr();
+	chkGLErr();
+
+	for(int i = 0;i<lights.size()&&i<64;i++){
+		char name[256];
+		sprintf(name,"lights[%d].ambient",i);
+		pgm->setUniform(name,lights[i].getAmbientColor());
+		sprintf(name,"lights[%d].diffuse",i);
+		pgm->setUniform(name,lights[i].getDiffuseColor());
+		sprintf(name,"lights[%d].specular",i);
+		pgm->setUniform(name,lights[i].getSpecularColor());
+		sprintf(name,"lights[%d].constantAtt",i);
+		pgm->setUniform(name,lights[i].getConstantAttenuation());
+		sprintf(name,"lights[%d].linearAtt",i);
+		pgm->setUniform(name,lights[i].getLinearAttenuation());
+		sprintf(name,"lights[%d].quadraticAtt",i);
+		pgm->setUniform(name,lights[i].getQuadraticAttenuation());
+		sprintf(name,"lights[%d].position",i);
+		pgm->setUniform(name,lights[i].getPosition());
+		chkGLErr();
+	}
+
+
+	
+	float y = m->getBoundingAABB().getPosition(glm::vec3(0,0,0)).y;
+	glColor3f(1,1,1);
+	//glBegin(GL_QUADS);
+	//glNormal3f(0,1,0);
+	//glVertex3f(-5,y,-5);
+	//glVertex3f(+5,y,-5);
+	//glVertex3f(+5,y,+5);
+	//glVertex3f(-5,y,+5);
+
+	//glEnd();
+
+	std::vector<Triangle> faces = m->getFaces();
+	std::vector<Triangle>::iterator face;
+	glColor3f(1,1,1);
+	glBegin(GL_TRIANGLES);
+	for(face = faces.begin();face != faces.end();++face){
+		glNormal3fv(glm::value_ptr(face->v0->normal));
+		glVertex3fv(glm::value_ptr(face->v0->position));
+
+		glNormal3fv(glm::value_ptr(face->v1->normal));
+		glVertex3fv(glm::value_ptr(face->v1->position));
+
+		glNormal3fv(glm::value_ptr(face->v2->normal));
+		glVertex3fv(glm::value_ptr(face->v2->position));
+	}
+	glEnd();
+	pgm->unbind();
+
+	chkGLErr();
+	glfwSwapBuffers();
+}
+
+
 int prevScroll = 0;
 void wheel(int i){
 	if(glfwGetKey(GLFW_KEY_LCTRL) == GLFW_PRESS){
 		gamma += (i-prevScroll)*0.1;
 		gamma = glm::clamp(gamma,0.0f,1.0f);
 	}else if(glfwGetKey(GLFW_KEY_LSHIFT) == GLFW_PRESS){
-		minExp += (i-prevScroll)*0.1;
+		minExp += (i-prevScroll)*0.1; 
 		minExp = glm::clamp(minExp,0.0f,1.0f);
 	}else if(glfwGetKey(GLFW_KEY_LALT) == GLFW_PRESS){
 		maxExp += (i-prevScroll)*0.1;
@@ -148,6 +252,10 @@ void key(int button, int state){
 	if(button == '8' && state){samples = 24;}
 	if(button == 'E' && state){diffusion += 0.05;}
 	if(button == 'D' && state){diffusion -= 0.05;}
+	if(button == 'R' && state){
+		ShaderProgram::reReadFunctionSubbs();
+		pgm = ShaderProgram::CreateShaderProgramFromSources(GLSL_DIR "/EnvironmentLighting.vert" ,GLSL_DIR "/EnvironmentLighting.frag");
+	}
 	diffusion = glm::clamp(diffusion,0.0f,1.0f);
 	std::cout << "Number of samples: " << samples * samples << std::endl;
 	std::cout << "Diffusion: " << diffusion  << std::endl;
@@ -165,16 +273,21 @@ void init(){
 
 	m = Mesh::LoadWavefront( MODELS_DIR "/cow.obj");
 	//m = Mesh::LoadWavefront( MODELS_DIR "/ico_sphere1.obj");
-	//m = Mesh::LoadWavefront("C:/Users/rickard/Dropbox/LIU/år 1/2011 VY P2 - Animation and Modeling/Objs/cow.obj");
-	//m = Mesh::LoadWavefront("C:/Users/rickard/Dropbox/LIU/år 1/2011 VY P2 - Animation and Modeling/Objs/sphere1.0.obj");
-
+	
 	pgm = ShaderProgram::CreateShaderProgramFromSources(GLSL_DIR "/EnvironmentLighting.vert" ,GLSL_DIR "/EnvironmentLighting.frag");
 
 
 	chkGLErr();
 	buffer = OpenEXRReader::readRGBA(env_map_filename);
+
+	lights =  LightExtractor::ExtractLights(buffer,6,false,2.3);
+	/*Light l(0);
+	l.setPosition(glm::vec3(0,0,-1));
+	lights.push_back(l);
+*/
 	chkGLErr();
-	tex = OpenEXRTexture::getAsTexture(buffer);
+	//tex = OpenEXRTexture::getAsTexture(buffer);
+
 	chkGLErr();
 
 
@@ -219,17 +332,14 @@ int main( int argc, char* argv[] )
 		exit(1);
 	}
 	chkGLErr();
-	std::cout << "OpenGL Version: " << OpenGLInfo::getOpenGLVersion() << std::endl;
-	std::cout << "Glew   Version: " << OpenGLInfo::getGlewVersion()   << std::endl;
-	std::cout << "GLSL   Version: " << OpenGLInfo::getGLSLVersion()   << std::endl;
-	std::cout << "OpenGL Vendor: "  << OpenGLInfo::getOpenGLVendor()   << std::endl;
-	std::cout << "OpenGL Renderer: "<< OpenGLInfo::getOpenGLRenderer()   << std::endl;
+	OpenGLInfo::printOGLInformation(std::cout);
+	
 	chkGLErr();
 
 	if(argc > 1){
 		env_map_filename = argv[1];
 	}else{
-		env_map_filename = EXR_IMAGES_DIR "/uffizi-large.exr";
+		env_map_filename = EXR_IMAGES_DIR "/grace-new.exr";
 	}
 
 	init();

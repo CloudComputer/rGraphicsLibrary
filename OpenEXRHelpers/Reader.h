@@ -3,10 +3,7 @@
 
 #include "OpenEXRIncludes.h"
 
-struct RGBABuffer{
-	Imf::Rgba *buffer;
-	Imath::V2i dim;
-};
+
 
 
 class OpenEXRReader{

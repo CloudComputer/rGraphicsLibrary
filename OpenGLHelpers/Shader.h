@@ -64,6 +64,11 @@ class ShaderProgram{
 	static void staticInit();
 	static void readFunctionSubbs();
 public:
+	ShaderProgram();
+	~ShaderProgram();
+
+
+	static void reReadFunctionSubbs();
 	void init();
 	void setShader(VertexShader *v);
 	void setShader(FragmentShader *f);

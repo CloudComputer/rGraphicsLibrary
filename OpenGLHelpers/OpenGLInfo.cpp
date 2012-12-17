@@ -7,6 +7,7 @@
 #include <glew/gl/glew.h>
 #include <gl/GL.h>
 
+
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -29,6 +30,14 @@ std::string OpenGLInfo::getOpenGLVersion(){
 	return s.str();
 }
 
+std::string OpenGLInfo::getOpenGLMaxLights(){
+	int param;
+	glGetIntegerv(GL_MAX_LIGHTS, &param);
+	std::stringstream s;
+	s << param;
+	return s.str();
+}
+
 std::string OpenGLInfo::getGLSLVersion(){
 	std::stringstream s;
 	s << glGetString(GL_SHADING_LANGUAGE_VERSION);
@@ -39,8 +48,41 @@ std::string OpenGLInfo::getGlewVersion(){
 	std::stringstream s;
 	s << glewGetString(GLEW_VERSION);
 	return s.str();
+
 }
 
+int OpenGLInfo::getMaxUniforms(){
+	int i;
+	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE,&i);
+	return i;
+}
+
+glm::ivec3 OpenGLInfo::getMaxUniformsPerStage(){
+	glm::ivec3 i;
+	glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS,&i[0]);
+	glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS,&i[1]);
+	glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS,&i[2]);
+	return i;
+}
+
+
+int OpenGLInfo::getMaxAttribs(){
+	int i;
+	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS,&i);
+	return i;
+}
+
+void OpenGLInfo::printOGLInformation(std::ostream &stream){
+	glm::ivec3 maxUnif = getMaxUniformsPerStage();
+
+	stream << "OpenGL Version :" << getOpenGLVersion() << std::endl;
+	stream << "Glew   Version :" << getGlewVersion()   << std::endl;
+	stream << "GLSL   Version :" << getGLSLVersion()   << std::endl;
+	stream << "OpenGL Vendor  :" << getOpenGLVendor()   << std::endl;
+	stream << "OpenGL Renderer:" << getOpenGLRenderer()   << std::endl;
+	stream << "Max Attribs    :" << getMaxAttribs() << std::endl;
+	stream << "Max Uniforms   :" << getMaxUniforms()  << "( " << maxUnif.x << " " << maxUnif.y << " " << maxUnif.z << ")" << std::endl;
+}
 
 void OpenGLInfo::checkGLErrors(std::string file, int line){
 	int i = 0;

@@ -1,9 +1,16 @@
 varying vec3 N;
 varying vec3 V;
+varying vec3 P;
 
-#RGL ENV_LIGHT
+varying mat4 M;
+
+uniform float lum;
+
+#RGL LIGHTING
 
 void main(){
-	gl_FragColor = vec4(0.6,0.324,0.167,1)*vec4(sample_environment_map(normalize(N),normalize(V)),1);
-	//gl_FragColor = vec4(sample_environment_map(normalize(N),normalize(V)),1);
+	float s = 1.0/(lum);
+	vec3 col = vec3(s,s,s)*calcLight(P,normalize(N),normalize(V));
+
+	gl_FragColor = vec4(col,1.0);
 }

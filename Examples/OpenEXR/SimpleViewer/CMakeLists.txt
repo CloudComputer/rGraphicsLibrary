@@ -10,7 +10,7 @@ INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
 add_executable(SimpleViwer main.cpp)
 
 
-target_link_libraries(SimpleViwer GLFW glew OpenGLHelpers Util Geometry OpenEXRHelpers)
+target_link_libraries(SimpleViwer GLFW glew OpenGLHelpers Util Geometry OpenEXRHelpers  Half Iex IlmImf IlmThread Imath zlib)
 
 set_target_properties(SimpleViwer
   PROPERTIES

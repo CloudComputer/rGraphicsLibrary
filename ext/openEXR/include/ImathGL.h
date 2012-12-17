@@ -36,8 +36,6 @@
 #ifndef INCLUDED_IMATHGL_H
 #define INCLUDED_IMATHGL_H
 
-
-
 #include <GL/gl.h>
 
 #include "ImathVec.h"

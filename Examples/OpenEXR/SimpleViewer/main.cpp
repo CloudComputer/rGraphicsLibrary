@@ -20,7 +20,6 @@
 StopClock s(true);
 ShaderProgram *pgm;
 
-
 std::string filename;
 
 float expCenter = 0.5;
@@ -30,9 +29,11 @@ float gamma = 1.0;
 RGBABuffer buffer;
 GLuint tex;
 
-bool flip = true;
+bool flip = !true;
 
 bool mouse0State = false;
+
+std::vector<glm::vec2> lights;
 
 void setTitle(){
 	std::stringstream s;
@@ -78,6 +79,18 @@ void draw(){
 
 	glEnd();
 	pgm->unbind();
+
+	
+	glBindTexture(GL_TEXTURE_RECTANGLE_NV,0);
+	glPointSize(3.0f);
+	glColor3f(1,0,0);
+	glBegin(GL_POINTS);
+	for(int i = 0;i<lights.size();i++){
+		glVertex2f(lights[i].x,lights[i].y);
+	}
+
+	glEnd();
+
 
 	chkGLErr();
 	glfwSwapBuffers();
@@ -138,6 +151,7 @@ void init(){
 	glEnable(GL_TEXTURE_2D);
 	chkGLErr();
 	buffer = OpenEXRReader::readRGBA(filename);
+	lights = LightExtractor::ExtractLightLocations(buffer,3);
 	tex = OpenEXRTexture::getAsTexture(buffer);
 	chkGLErr();
 	
@@ -180,12 +194,13 @@ int main( int argc, char* argv[] )
 	std::cout << "GLSL   Version: " << OpenGLInfo::getGLSLVersion()   << std::endl;
 	std::cout << "OpenGL Vendor: "  << OpenGLInfo::getOpenGLVendor()   << std::endl;
 	std::cout << "OpenGL Renderer: "<< OpenGLInfo::getOpenGLRenderer()   << std::endl;
+	std::cout << "OpenGL Max Lights: "<< OpenGLInfo::getOpenGLMaxLights()   << std::endl;
 	chkGLErr();
 
 	if(argc > 1){
 		filename = argv[1];
 	}else{
-		filename = EXR_IMAGES_DIR "/uffizi-large.exr";
+		filename = EXR_IMAGES_DIR "/grace-new.exr";
 	}
 
 	init();

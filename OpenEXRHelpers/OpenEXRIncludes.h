@@ -205,6 +205,8 @@
 #include <tmpDir.h>
 //#include <toFloat.h>
 
+#include "TypeBuffer.h"
+#include "LightExtractor.h"
 #include "Reader.h"
 #include "Texture.h"
 
