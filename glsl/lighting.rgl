@@ -1,0 +1,56 @@
+#RGL LIGHTING
+
+struct LightProperties{
+//	int _id;
+	vec4 ambient;
+	vec4 diffuse;
+	vec4 specular;
+
+	float constantAtt;
+	float linearAtt;
+	float quadraticAtt;
+	
+	vec3 position;
+
+//	vec3 spotDirection;
+//	float spotCutOff;
+//	float spotExponent;
+};
+
+struct Material{
+	vec4 ambient;
+	vec4 diffuse;
+	vec4 specular;
+	float shininess;
+};
+
+#define MAX_LIGHTS 64
+
+uniform LightProperties lights[MAX_LIGHTS];
+uniform int num_lights;
+uniform Material material;
+
+
+vec3 calcLight(vec3 P,vec3 N,vec3 V){
+	vec3 R = reflect(-V,N);
+	vec3 col = vec3(0.0);
+	float s,d,a,dist;
+	for(int l = 0;l<num_lights&&l<MAX_LIGHTS;l++){
+		vec3 L = (M * vec4(lights[l].position,1.0)).xyz - P;
+		dist = length(L);
+		L /= dist;
+		a = 1.0;
+		a /= lights[l].constantAtt + 
+			 lights[l].linearAtt * dist +
+			 lights[l].quadraticAtt * lights[l].quadraticAtt * dist;
+		
+		d = clamp(dot(L,N),0.0,1.0);
+		s = pow(clamp(dot(L,R),0.0,1.0),material.shininess);
+		
+		col += (lights[l].ambient * material.ambient   * a    ).xyz;
+		col += (lights[l].diffuse * material.diffuse   * a * d).xyz;
+		col += (lights[l].specular * material.specular * a * s).xyz;
+	}
+	
+	return col;
+}
