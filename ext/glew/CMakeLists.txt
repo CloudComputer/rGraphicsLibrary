@@ -10,7 +10,7 @@ add_library(glew glew.c visualinfo.c)
 target_link_libraries(glew ${OPENGL_LIBRARIES})
 set_target_properties(glew
   PROPERTIES
-  FOLDER "glew")
+  FOLDER "ext/glew")
 
 
 add_definitions( -DGLEW_STATIC)
@@ -23,7 +23,7 @@ target_link_libraries(visualinfo ${OPENGL_LIBRARIES} glew)
 
 set_target_properties(glewinfo
   PROPERTIES
-  FOLDER "glew")
+  FOLDER "ext/glew")
 set_target_properties(visualinfo
   PROPERTIES
-  FOLDER "glew")
+  FOLDER "ext/glew")

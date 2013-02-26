@@ -17,6 +17,7 @@ option(BUILD_OPENGL_HELPERS "Build Classes to handle some opengl features" ON)
 option(BUILD_UNIT_TEST "Build tests" ON)
 option(BUILD_GLEW "Build glew" ON)
 option(BUILD_GLFW "Build glfw" ON)
+option(BUILD_TOOLS "Build tools" ON)
 
 #SET(OPENEXRLIBS "Half Iex IlmImf IlmThread Imath")
 
@@ -42,6 +43,7 @@ ENDIF()
 add_subdirectory(glsl)
 
 
+add_subdirectory(Base)
 add_subdirectory(FluidSimulator)
 add_subdirectory(OpenEXRHelpers)
 add_subdirectory(Geometry)
@@ -55,6 +57,11 @@ endif()
 
 if(BUILD_GLFW)
 	add_subdirectory(ext/glfw)
+endif()
+
+
+if(BUILD_TOOLS)
+	add_subdirectory(Tools)
 endif()
 
 if(BUILD_OPENGL_HELPERS)
