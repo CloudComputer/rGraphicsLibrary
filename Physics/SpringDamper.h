@@ -1,20 +1,8 @@
 #ifndef _SPRINGDAMPER_H_
 #define _SPRINGDAMPER_H_
 
-template<typename T> 
-struct SpringParticle{
-	T F;
-	T V;
-	T P;
-	float m;
-	SpringParticle():F(0),V(0){}
+#include "SpringParticle.h"
 
-	void update(float dt){
-		V += F/m*dt;
-		F = T(0);
-		P += V*dt;
-	}
-};
 
 template<typename T> 
 class SpringDamper{
@@ -23,15 +11,24 @@ class SpringDamper{
 	float d; // damping konstant
 	float l; //resting length
 
-	void evolve(){
+public:
+	SpringDamper(SpringParticle<T>* p0,SpringParticle<T>* p1,float springConstant = 1,float dampingConstant=1,float restLength=-1):
+	p0(p0),p1(p1),k(springConstant),d(dampingConstant),l(restLength){
+		if(l == -1){
+			l = glm::length(p0->P - p1->P);
+		}
+	}
+
+	void evaluate(){
 		float L,f,fs,fd,v0,v1;
 		T dir = p1->P - p0->P;
 		L = glm::length(dir);
 		dir /= L;
-		v0 = glm::dor(dir,p0->V);
-		v1 = glm::dor(dir,p1->V);
+		v0 = glm::dot(dir,p0->V);
+		v1 = glm::dot(dir,p1->V);
 
-		fs = -k * (l - L);
+		//fs = -k * (l - L);
+		fs = -k * (1 - L/l);
 		fd = -d * (v0-v1);
 		f = fs+fd;
 		p0->F += dir * f;

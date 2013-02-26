@@ -27,6 +27,7 @@ include_directories("${PROJECT_SOURCE_DIR}/ext/openEXR/include/")
 include_directories(${PROJECT_SOURCE_DIR} )
 
 link_directories("${PROJECT_SOURCE_DIR}/ext/openEXR/msvc10/" )
+link_directories("${PROJECT_SOURCE_DIR}/ext/lib/msvc10/" )
 
 add_definitions(-DGLSL_DIR="${GLSL_FOLDER}")
 add_definitions(-DMODELS_DIR="${MODELS_FOLDER}")
