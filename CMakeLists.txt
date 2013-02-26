@@ -16,10 +16,12 @@ option(BUILD_EXAMPLES "Build Examples" ON)
 option(BUILD_OPENGL_HELPERS "Build Classes to handle some opengl features" ON)
 option(BUILD_UNIT_TEST "Build tests" ON)
 option(BUILD_GLEW "Build glew" ON)
+option(BUILD_GLFW "Build glfw" ON)
 
 #SET(OPENEXRLIBS "Half Iex IlmImf IlmThread Imath")
 
 include_directories("${PROJECT_SOURCE_DIR}/ext/")
+include_directories("${PROJECT_SOURCE_DIR}/ext/glfw/include")
 include_directories("${PROJECT_SOURCE_DIR}/ext/openEXR/include/")
 include_directories(${PROJECT_SOURCE_DIR} )
 
@@ -48,7 +50,11 @@ add_subdirectory(Volume)
 add_subdirectory(Util)
 
 if(BUILD_GLEW)
-	add_subdirectory(glew)
+	add_subdirectory(ext/glew)
+endif()
+
+if(BUILD_GLFW)
+	add_subdirectory(ext/glfw)
 endif()
 
 if(BUILD_OPENGL_HELPERS)
