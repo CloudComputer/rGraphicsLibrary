@@ -50,6 +50,7 @@ add_subdirectory(Geometry)
 add_subdirectory(Math)
 add_subdirectory(Volume)
 add_subdirectory(Util)
+add_subdirectory(Physics)
 
 if(BUILD_GLEW)
 	add_subdirectory(ext/glew)
