@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <Volume/VectorField.h>
 #include <Geometry/BoundingVolume.h>
+#include <vector>
 
 class ScalarField : public Field3D<float>{
 public:
@@ -30,6 +31,10 @@ public:
 	float DiffYYpm(glm::vec3 worldPos)const;
 	float DiffYZpm(glm::vec3 worldPos)const;
 	float DiffZZpm(glm::vec3 worldPos)const;
+
+	std::vector<glm::vec3> getSurfacePoints()const;
+
+	static ScalarField* ReadFromRawfile(const char *filename,unsigned int width,unsigned int height,unsigned int depth,unsigned int bps = 1);
 
 };
 

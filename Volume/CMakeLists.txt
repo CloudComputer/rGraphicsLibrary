@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6) 
+ cmake_minimum_required (VERSION 2.6) 
 
 
 set(Volume_SRC LevelSet.cpp ScalarField.cpp VectorField.cpp)
@@ -7,6 +7,7 @@ set(Volume_HPP   LevelSet.hpp ScalarField.hpp VectorField.hpp Field3D.hpp)
 
 add_library(Volume ${Volume_SRC} ${Volume_H} ${Volume_HPP})
 
+target_link_libraries(Volume Geometry)
 
 set_target_properties(Volume
   PROPERTIES

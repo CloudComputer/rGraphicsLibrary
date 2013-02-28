@@ -46,6 +46,7 @@ add_subdirectory(glsl)
 
 add_subdirectory(Base)
 add_subdirectory(FluidSimulator)
+add_subdirectory(Image)
 add_subdirectory(OpenEXRHelpers)
 add_subdirectory(Geometry)
 add_subdirectory(Math)
