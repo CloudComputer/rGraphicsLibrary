@@ -47,37 +47,38 @@ VectorField* ScalarField::getGradientField()const{
 	return vf;
 }
 
-std::vector<glm::vec3> ScalarField::getSurfacePoints()const{
+std::vector<glm::vec3> ScalarField::getSurfacePoints(float iso)const{
 	std::vector<glm::vec3> points;
-	FOR(_dimensions)if(!(z == 0||z==_dimensions.z - 1 || y == 0||y==_dimensions.y - 1 || x == 0||x==_dimensions.x - 1)){
-		float s0,s1,s2;
-		s0 = get(glm::ivec3(x,y,z-1));
-		s1 = get(glm::ivec3(x,y,z));
-		s2 = get(glm::ivec3(x,y,z+1));
-		
-		if(s1>0.6){
-			points.push_back(_boundingAABB.getPosition(glm::vec3(x,y,z) / static_cast<glm::vec3>(_dimensions)));
-			
-		}
-		continue;
+	float s,sx,sy,sz;
 
-		if(s1>s0 && s1>s2){
-			points.push_back(_boundingAABB.getPosition(glm::vec3(x,y,z) / static_cast<glm::vec3>(_dimensions)));
+	glm::ivec3 dx(1,0,0),dy(0,1,0),dz(0,0,1);
+
+	FOR(_dimensions){//if(!(z == 0||z==_dimensions.z - 1 || y == 0||y==_dimensions.y - 1 || x == 0||x==_dimensions.x - 1)){
+		if(x == _dimensions.x-1|| y == _dimensions.y-1|| z == _dimensions.z-1){
 			continue;
 		}
-		
-		s0 = get(glm::ivec3(x,y-1,z));
-		s2 = get(glm::ivec3(x,y+1,z));
-		if(s1>s0 && s1>s2){
-			points.push_back(_boundingAABB.getPosition(glm::vec3(x,y,z) / static_cast<glm::vec3>(_dimensions)));
-			continue;
+		glm::ivec3 pos(x,y,z);
+		s = get(pos);
+		sx = get(pos+dx);
+		sy = get(pos+dy);
+		sz = get(pos+dz);
+		glm::vec3 p = _getWorldPos(pos);
+		glm::vec3 px = _getWorldPos(pos+dx);
+		glm::vec3 py = _getWorldPos(pos+dy);
+		glm::vec3 pz = _getWorldPos(pos+dz);
+		if((s>= iso && sx < iso) || (s < iso && sx >= iso)){
+			float t = (iso - s) / (s * sx);
+			points.push_back(px * t + (1-t) * p);
 		}
-		
-		s0 = get(glm::ivec3(x-1,y,z));
-		s2 = get(glm::ivec3(x+1,y,z));
-		if(s1>s0 && s1>s2){
-			points.push_back(_boundingAABB.getPosition(glm::vec3(x,y,z) / static_cast<glm::vec3>(_dimensions)));
-			continue;
+
+		if((s>= iso && sy < iso) || (s < iso && sy >= iso)){
+			float t = (iso - s) / (s * sy);
+			points.push_back(py * t + (1-t) * p);
+		}
+
+		if((s>= iso && sz < iso) || (s < iso && sz >= iso)){
+			float t = (iso - s) / (s * sz);
+			points.push_back(pz * t + (1-t) * p);
 		}
 	}
 	return points;
@@ -148,6 +149,23 @@ float ScalarField::DiffZZpm(glm::vec3 worldPos)const{
 	assert(false && "Not yet implemented");
 	return 0;
 }
+
+float ScalarField::DiffXp(glm::ivec3 pos)const{return DiffXp(_getWorldPos(pos));}
+float ScalarField::DiffXm(glm::ivec3 pos)const{return DiffXm(_getWorldPos(pos));}
+float ScalarField::DiffXpm(glm::ivec3 pos)const{return DiffXpm(_getWorldPos(pos));}
+float ScalarField::DiffYp(glm::ivec3 pos)const{return DiffYp(_getWorldPos(pos));}
+float ScalarField::DiffYm(glm::ivec3 pos)const{return DiffYm(_getWorldPos(pos));}
+float ScalarField::DiffYpm(glm::ivec3 pos)const{return DiffYpm(_getWorldPos(pos));}
+float ScalarField::DiffZp(glm::ivec3 pos)const{return DiffZp(_getWorldPos(pos));}
+float ScalarField::DiffZm(glm::ivec3 pos)const{return DiffZm(_getWorldPos(pos));}
+float ScalarField::DiffZpm(glm::ivec3 pos)const{return DiffZpm(_getWorldPos(pos));}
+
+float ScalarField::DiffXXpm(glm::ivec3 pos)const{return DiffXXpm(_getWorldPos(pos));}
+float ScalarField::DiffXYpm(glm::ivec3 pos)const{return DiffXYpm(_getWorldPos(pos));}
+float ScalarField::DiffXZpm(glm::ivec3 pos)const{return DiffXZpm(_getWorldPos(pos));}
+float ScalarField::DiffYYpm(glm::ivec3 pos)const{return DiffYYpm(_getWorldPos(pos));}
+float ScalarField::DiffYZpm(glm::ivec3 pos)const{return DiffYZpm(_getWorldPos(pos));}
+float ScalarField::DiffZZpm(glm::ivec3 pos)const{return DiffZZpm(_getWorldPos(pos));}
 
 ScalarField* ScalarField::ReadFromRawfile(const char *filename,unsigned int w,unsigned int h,unsigned int d,unsigned int bps){
 	FILE *file = fopen(filename,"r");

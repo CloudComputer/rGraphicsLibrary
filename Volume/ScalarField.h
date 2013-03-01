@@ -32,7 +32,24 @@ public:
 	float DiffYZpm(glm::vec3 worldPos)const;
 	float DiffZZpm(glm::vec3 worldPos)const;
 
-	std::vector<glm::vec3> getSurfacePoints()const;
+	float DiffXp(glm::ivec3 pos)const;
+	float DiffXm(glm::ivec3 pos)const;
+	float DiffXpm(glm::ivec3 pos)const;
+	float DiffYp(glm::ivec3 pos)const;
+	float DiffYm(glm::ivec3 pos)const;
+	float DiffYpm(glm::ivec3 pos)const;
+	float DiffZp(glm::ivec3 pos)const;
+	float DiffZm(glm::ivec3 pos)const;
+	float DiffZpm(glm::ivec3 pos)const;
+
+	float DiffXXpm(glm::ivec3 pos)const;
+	float DiffXYpm(glm::ivec3 pos)const;
+	float DiffXZpm(glm::ivec3 pos)const;
+	float DiffYYpm(glm::ivec3 pos)const;
+	float DiffYZpm(glm::ivec3 pos)const;
+	float DiffZZpm(glm::ivec3 pos)const;
+
+	std::vector<glm::vec3> getSurfacePoints(float threshold)const;
 
 	static ScalarField* ReadFromRawfile(const char *filename,unsigned int width,unsigned int height,unsigned int depth,unsigned int bps = 1);
 
