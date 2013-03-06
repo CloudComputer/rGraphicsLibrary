@@ -2,6 +2,8 @@
 #define _OBJECT_H_
 
 #include <string>
+#include <sstream>
+
 class Object{
 
 	

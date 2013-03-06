@@ -13,6 +13,8 @@ file(GLOB Geometry_SRC
 
 add_library(Geometry ${Geometry_SRC})
 
+target_link_libraries(Geometry Base)
+
 set_target_properties(Geometry
   PROPERTIES
   FOLDER "Libraries")
