@@ -32,6 +32,7 @@ link_directories("${PROJECT_SOURCE_DIR}/ext/lib/msvc10/" )
 add_definitions(-DGLSL_DIR="${GLSL_FOLDER}")
 add_definitions(-DMODELS_DIR="${MODELS_FOLDER}")
 add_definitions(-DEXR_IMAGES_DIR="${EXR_IMAGES_FOLDER}")
+add_definitions(-DNCHOLMOD)
 
 FIND_PACKAGE(Boost REQUIRED)
 IF (Boost_FOUND)
@@ -44,6 +45,8 @@ ENDIF()
 add_subdirectory(glsl)
 
 
+add_subdirectory(ext/UMFPACK)
+
 add_subdirectory(Base)
 add_subdirectory(FluidSimulator)
 add_subdirectory(Image)
@@ -53,6 +56,7 @@ add_subdirectory(Math)
 add_subdirectory(Volume)
 add_subdirectory(Util)
 add_subdirectory(Physics)
+add_subdirectory(RBF)
 
 if(BUILD_GLEW)
 	add_subdirectory(ext/glew)
