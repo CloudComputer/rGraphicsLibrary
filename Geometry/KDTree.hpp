@@ -13,11 +13,27 @@ KD_TEMPLATE KD_TREE::~KDTree(){
 		delete root;
 }
 
-KD_TEMPLATE KD_IT KD_TREE::begin(){
-	return Iterator(root);
+KD_TEMPLATE KD_NODE_IT KD_TREE::begin(){
+	return NodeIterator(root);
 }
-KD_TEMPLATE KD_IT KD_TREE::end(){
-	return Iterator();
+KD_TEMPLATE KD_NODE_IT KD_TREE::end(){
+	return NodeIterator();
+}
+
+KD_TEMPLATE KD_DATA_IT KD_TREE::begin_data(){
+	return DataIterator(root);
+}
+
+KD_TEMPLATE KD_DATA_IT KD_TREE::end_data(){
+	return DataIterator();
+}
+
+KD_TEMPLATE KD_POS_IT KD_TREE::begin_position(){
+	return PositionIterator(root);
+}
+
+KD_TEMPLATE KD_POS_IT KD_TREE::end_position(){
+	return PositionIterator();
 }
 
 KD_TEMPLATE unsigned long KD_TREE::depth()const{
@@ -78,7 +94,10 @@ KD_TEMPLATE void KD_TREE::erase(KD_NODE *node){
 	}
 	if(node->isLeaf()){
 		KD_NODE* parent = node->_parent;
-		if(parent->_left == node){
+		if(parent == 0){ //Root node;
+			root = 0;
+		}
+		else if(parent->_left == node){
 			parent->_left = 0;
 		}else if(parent->_right == node){
 			parent->_right = 0;
@@ -129,7 +148,6 @@ KD_TEMPLATE std::string KD_TREE::toString()const{
 	ss << typeid(*this).name() << " " << ((void *)this);
 	return ss.str();
 }
-//KD_TEMPLATE std::vector<KD_NODE*> KD_TREE::findCloseTo(floatPrecision pos[dimmensions],floatPrecision distance);{}
 
 
 

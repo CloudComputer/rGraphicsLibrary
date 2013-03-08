@@ -368,7 +368,7 @@ KD_TEMPLATE std::string KD_NODE::toString()const{
 	std::stringstream ss;
 	ss << typeid(*this).name() << " " << (void*)this << " ";
 	ss << _tree << " ";
-	ss << _data << " [";
+	//ss << _data << " [";
 	for(int i = 0;i<dimmensions;i++){
 		ss << " "<< _pos[i];
 	}

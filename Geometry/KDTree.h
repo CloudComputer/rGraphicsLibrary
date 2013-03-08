@@ -10,74 +10,25 @@
 
 #define KD_TYPE dataType,dimmensions,floatPrecision
 #define KD_TEMPLATE template <typename dataType,unsigned int dimmensions,typename floatPrecision>
-#define KD_TREE KDTree<KD_TYPE>
-#define KD_NODE KDNode<KD_TYPE>
-#define KD_IT	KDIterator<KD_TYPE>
+#define KD_TREE		KDTree<KD_TYPE>
+#define KD_NODE		KDNode<KD_TYPE>
+#define KD_NODE_IT	KDNodeIterator<KD_TYPE>
+#define KD_DATA_IT	KDDataIterator<KD_TYPE>
+#define KD_POS_IT	KDPositionIterator<KD_TYPE>
 
 KD_TEMPLATE class KDTree;
 KD_TEMPLATE class KDNode;
 
-//KD_TEMPLATE
-//class _KD_NN{
-//	friend class KD_TREE;
-//	friend class KD_NODE;
-//
-//	KD_NODE *nearest;
-//};
 
-KD_TEMPLATE
-class KDIterator : 
-	public boost::iterator_facade< KD_IT, KD_NODE,boost::forward_traversal_tag> , public Object
-{
-	KD_NODE *current;
-public:
-	KDIterator() : current(0) {}
-    explicit KDIterator(KD_NODE* node) : current(node) {}
+#include "KDIterator.hpp"
 
-	void increment(){
-		if(current == 0) //already at end
-			return;
-		if(!current->isLeftLeaf()){
-			current = current->_left;
-			return;
-		}
-		if(!current->isRightLeaf()){
-			current = current->_right;
-			return;
-		}
-
-		if(current->isLeaf()){
-			KD_NODE *p;
-			do{
-				p = current->_parent;
-				if(p->_left == current && !p->isRightLeaf()){
-					current = p->_right;
-					return;
-				}
-				current = p;
-			}while(current->_parent!=0);
-			current = 0;
-		}else{
-			std::cerr << "This should not be runned " << __FILE__ << "@" << __LINE__ << std::endl;
-		}
-
-	}
-	bool equal(const KDIterator &it)const{
-		return it.current == current;
-	}
-
-	KD_NODE& dereference() const{return *current;}
-
-	virtual std::string toString() const{
-		return current->toString();
-	}
-
-};
 
 template <typename dataType,unsigned int dimmensions,typename floatPrecision = double> 
 class KDNode: public Object{
 	friend class KD_TREE;
-	friend class KD_IT;
+	friend class KD_NODE_IT;
+	friend class KD_DATA_IT;
+	friend class KD_POS_IT;
 	KDNode *_parent;
 	KDNode *_left;
 	KDNode *_right;
@@ -126,18 +77,27 @@ public:
 	typedef KDNode<KD_TYPE> Node;
 private:
 	Node *root;
+	KDTree(const KDTree &tree);
+	KDTree& operator=( const KDTree& rhs );
 public:
-	typedef KD_IT Iterator;
+	typedef KD_NODE_IT NodeIterator;
+	typedef KD_DATA_IT DataIterator;
+	typedef KD_POS_IT PositionIterator;
 	
 	KDTree();
 	virtual ~KDTree();
 
 	void erase(Node *node);
 	
-	KD_IT begin();
-	KD_IT end();
+	KD_NODE_IT begin();
+	KD_NODE_IT end();
+	KD_DATA_IT begin_data();
+	KD_DATA_IT end_data();
+	KD_POS_IT begin_position();
+	KD_POS_IT end_position();
 
 	bool isOk()const;
+	bool empty()const{return root==0;}
 
 	unsigned long depth()const;
 	unsigned long size()const;
