@@ -19,6 +19,8 @@
 
 #include <Volume\ScalarField.h>
 
+#include "RBF\RBF.h"
+
 struct SourceFile{
 	char *path;
 	int w,h,d;
@@ -81,6 +83,7 @@ const SourceFile files[] = {
 };
 const unsigned int numDatasets = 44;
 
+PointCluster *cluster;
 
 int niceCases[]= {3,7,11,14,19,25,31,42};
 const int numNiceCases = 8;
@@ -93,7 +96,7 @@ glm::ivec2 winSize;
 float threshold = 128.0/255;
 
 ScalarField *vol = 0;
-KDTree<glm::vec3,3,float>* points;
+KDTree<NormalPoint,3,float>* points;
 std::vector<PointCluster> clusters;
 
 bool mouse0State = false;
@@ -112,10 +115,10 @@ void draw(){
 	vol->getBoundingAABB().draw();
 
 
-	KDTree<glm::vec3,3,float>::NodeIterator point;
-	std::vector<PointCluster>::iterator cluster;
+	KDTree<NormalPoint,3,float>::NodeIterator point;
+	//std::vector<PointCluster>::iterator cluster;
 	srand(0);
-	for(cluster = clusters.begin();cluster != clusters.end();++cluster){
+	//for(cluster = clusters.begin();cluster != clusters.end();++cluster){
 		float r,g,b;
 		r = rand() / float(RAND_MAX);
 		g = rand() / float(RAND_MAX);
@@ -129,8 +132,24 @@ void draw(){
 			glVertex3fv(point->getPosition());
 		}
 		glEnd();
-	}
+	//}
 
+	float s = 1;
+	glBegin(GL_LINES);
+	glColor3f(1,0,0);
+	glVertex3f(0,0,0);
+	glVertex3f(s,0,0);
+	
+	glColor3f(0,1,0);
+	glVertex3f(0,0,0);
+	glVertex3f(0,s,0);
+	
+	glColor3f(0,0,1);
+	glVertex3f(0,0,0);
+	glVertex3f(0,0,s);
+
+
+	glEnd();
 
 
 	glfwSwapBuffers();
@@ -150,10 +169,18 @@ void loadPoints(){
 	dir /= vol->getDimensions();
 	clusters = Clusterer::ClusterPoints(points,glm::length(dir) * 1,50);
 
+	unsigned long _max = 0;
 	std::cout << "Created " << clusters.size() << " clusters" << std::endl;
 	for(int i = 0;i<clusters.size();i++){
-		std::cout << '\t' << "Cluster " << i << ": " << clusters[i].getPoints()->size() << " points" << std::endl;
+		unsigned long size = clusters[i].getPoints()->size();
+		std::cout << '\t' << "Cluster " << i << ": " << size << " points" << std::endl;
+		if(size>_max){
+			_max = size;
+			cluster = &clusters[i];
+		}
 	}
+
+	RBFSystem<Biharmonic<float>,float> *rbf = RBFSystem<Biharmonic<float>,float>::CreateFromPoints(cluster->getPoints()->getAsVector());
 
 }
 
@@ -258,6 +285,11 @@ int main( int argc, char* argv[] )
 	std::cout << "OpenGL Vendor: "  << OpenGLInfo::getOpenGLVendor()   << std::endl;
 	std::cout << "OpenGL Renderer: "<< OpenGLInfo::getOpenGLRenderer()   << std::endl;
 	chkGLErr();
+
+	double f[3] = {2,1,-1};
+	Polynomial<> p(2,f);
+	double d = p.evaluate(1);
+	double d2 = p.evaluate(2);
 
 	init();
 

@@ -10,7 +10,7 @@ INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
 add_executable(UltrasoundSurfaceExtaction UltrasoundSurfaceExtaction.cpp)
 
 
-target_link_libraries(UltrasoundSurfaceExtaction Image GLFW glew OpenGLHelpers Util Volume)
+target_link_libraries(UltrasoundSurfaceExtaction Image GLFW glew OpenGLHelpers Util Volume Geometry UMFPACK)
 
 set_target_properties(UltrasoundSurfaceExtaction
   PROPERTIES

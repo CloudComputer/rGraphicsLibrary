@@ -47,16 +47,16 @@ VectorField* ScalarField::getGradientField()const{
 	return vf;
 }
 
-typedef KDTree<glm::vec3,3,float> Tree;
+typedef KDTree<NormalPoint,3,float> Tree;
 typedef Tree::Node			 Node;
-KDTree<glm::vec3,3,float>* ScalarField::getSurfacePoints(float iso)const{
-	Tree* tree = new KDTree<glm::vec3,3,float>();
+KDTree<NormalPoint,3,float>* ScalarField::getSurfacePoints(float iso)const{
+	Tree* tree = new KDTree<NormalPoint,3,float>();
 	float s,sx,sy,sz;
 
 	glm::ivec3 dx(1,0,0),dy(0,1,0),dz(0,0,1);
 
 	FOR(_dimensions){//if(!(z == 0||z==_dimensions.z - 1 || y == 0||y==_dimensions.y - 1 || x == 0||x==_dimensions.x - 1)){
-		if(z < 4 || z >= _dimensions.z-5){
+		if(y < 4 || y >= _dimensions.y-5){
 			continue;
 		}
 		glm::ivec3 pos(x,y,z);
@@ -64,11 +64,15 @@ KDTree<glm::vec3,3,float>* ScalarField::getSurfacePoints(float iso)const{
 		if(s<0.4) continue;
 		glm::vec3 p = _getWorldPos(pos);
 		bool surface = true;
-		for(int Z = z-4;surface && Z<z+4;Z++)if(Z!=z){
-			surface = surface && s >= get(glm::ivec3(x,y,Z));
+		//for(int Z = z-4;surface && Z<z+4;Z++)if(Z!=z){
+		for(int Y = y-4;surface && Y<y+4;Y++)if(Y!=y){
+			surface = surface && s >= get(glm::ivec3(x,Y,z));
 		}
 		if(surface){
-			tree->insert(glm::value_ptr(p),glm::normalize(glm::vec3(DiffXpm(p),DiffXpm(p),DiffXpm(p))));
+			NormalPoint np;
+			np.P = glm::vec4(p,0);
+			np.N = glm::normalize(glm::vec3(DiffXpm(p),DiffXpm(p),DiffXpm(p)));
+			tree->insert(glm::value_ptr(p),np);
 		}
 	}
 	return tree;
@@ -206,22 +210,31 @@ ScalarField* ScalarField::ReadFromRawfile(const char *filename,unsigned int w,un
 		std::cerr << "Could not open file: " << filename << std::endl;
 		return 0;
 	}
+
+	float x,y,z,m;
+	m = std::max(std::max(w,h),d);
+	x = w / m;
+	y = h / m;
+	z = d / m;
+
+	z *= 2.9;
+
 	if(bps == 1){
-		ScalarField *s = new ScalarField(glm::ivec3(w,h,d),BoundingAABB(glm::vec3(-1,-1,-1),glm::vec3(1,1,1)));
+		ScalarField *s = new ScalarField(glm::ivec3(w,h,d),BoundingAABB(glm::vec3(-x,-y,-z),glm::vec3(x,y,z)));
 		unsigned char *data = new unsigned char[w*h*d];
 		fread(data,1,w*h*d,file);
 		for(int i = 0;i<w*h*d;i++) s->_data[i] = data[i]/float(0xFF);
 		delete data;
 		return s;
 	}else if(bps == 2){
-		ScalarField *s = new ScalarField(glm::ivec3(w,h,d));
+		ScalarField *s = new ScalarField(glm::ivec3(w,h,d),BoundingAABB(glm::vec3(-x,-y,-z),glm::vec3(x,y,z)));
 		unsigned short *data = new unsigned short[w*h*d];
 		fread(data,2,w*h*d,file);
 		for(int i = 0;i<w*h*d;i++) s->_data[i] = data[i]/float(0xFFFF);
 		delete data;
 		return s;
 	}else if(bps == 4){
-		ScalarField *s = new ScalarField(glm::ivec3(w,h,d));
+		ScalarField *s = new ScalarField(glm::ivec3(w,h,d),BoundingAABB(glm::vec3(-x,-y,-z),glm::vec3(x,y,z)));
 		unsigned int *data = new unsigned int[w*h*d];
 		fread(data,4,w*h*d,file);
 		for(int i = 0;i<w*h*d;i++) s->_data[i] = data[i]/float(0xFFFFFFFF);

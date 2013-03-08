@@ -101,6 +101,8 @@ public:
 
 	unsigned long depth()const;
 	unsigned long size()const;
+	
+	std::vector<dataType> getAsVector();
 
 	Node* findMin(unsigned int dimmensions);
 	Node* findMax(unsigned int dimmensions);

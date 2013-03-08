@@ -150,5 +150,16 @@ KD_TEMPLATE std::string KD_TREE::toString()const{
 }
 
 
+KD_TEMPLATE std::vector<dataType> KD_TREE::getAsVector(){
+	std::vector<dataType> v;
+	if(root == 0)
+		return v;
+	NodeIterator node;
+	for(node = begin();node != end();++node){
+		v.push_back((node)->get());
+	}
+	return v;
+}
+
 
 #endif

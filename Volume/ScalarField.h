@@ -3,6 +3,8 @@
 
 #include "Geometry/KDTree.h"
 
+#include "Geometry\SurfacePoint.h"
+
 #include <glm/glm.hpp>
 #include <Volume/VectorField.h>
 #include <Geometry/BoundingVolume.h>
@@ -51,7 +53,7 @@ public:
 	float DiffYZpm(glm::ivec3 pos)const;
 	float DiffZZpm(glm::ivec3 pos)const;
 
-	KDTree<glm::vec3,3,float> *getSurfacePoints(float threshold)const;
+	KDTree<NormalPoint,3,float> *getSurfacePoints(float threshold)const;
 
 	static ScalarField* ReadFromRawfile(const char *filename,unsigned int width,unsigned int height,unsigned int depth,unsigned int bps = 1);
 

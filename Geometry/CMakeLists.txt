@@ -13,7 +13,7 @@ file(GLOB Geometry_SRC
 
 add_library(Geometry ${Geometry_SRC})
 
-target_link_libraries(Geometry Base)
+target_link_libraries(Geometry Base UMFPACK)
 
 set_target_properties(Geometry
   PROPERTIES
