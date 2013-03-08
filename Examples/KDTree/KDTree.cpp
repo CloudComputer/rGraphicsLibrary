@@ -57,7 +57,7 @@ void test1(){
 	}
 	
 	int test = 0;
-	KDTree<int,3>::Iterator tIt;
+	KDTree<int,3>::NodeIterator tIt;
 	for(tIt = tree.begin() ; tIt != tree.end() ;++tIt){
 		tIt->get()++;
 		assert(tIt->get()==1);
