@@ -47,42 +47,75 @@ VectorField* ScalarField::getGradientField()const{
 	return vf;
 }
 
-std::vector<glm::vec3> ScalarField::getSurfacePoints(float iso)const{
-	std::vector<glm::vec3> points;
+typedef KDTree<glm::vec3,3,float> Tree;
+typedef Tree::Node			 Node;
+KDTree<glm::vec3,3,float>* ScalarField::getSurfacePoints(float iso)const{
+	Tree* tree = new KDTree<glm::vec3,3,float>();
 	float s,sx,sy,sz;
 
 	glm::ivec3 dx(1,0,0),dy(0,1,0),dz(0,0,1);
 
 	FOR(_dimensions){//if(!(z == 0||z==_dimensions.z - 1 || y == 0||y==_dimensions.y - 1 || x == 0||x==_dimensions.x - 1)){
-		if(x == _dimensions.x-1|| y == _dimensions.y-1|| z == _dimensions.z-1){
+		if(z < 4 || z >= _dimensions.z-5){
 			continue;
 		}
 		glm::ivec3 pos(x,y,z);
 		s = get(pos);
-		sx = get(pos+dx);
-		sy = get(pos+dy);
-		sz = get(pos+dz);
+		if(s<0.4) continue;
 		glm::vec3 p = _getWorldPos(pos);
-		glm::vec3 px = _getWorldPos(pos+dx);
-		glm::vec3 py = _getWorldPos(pos+dy);
-		glm::vec3 pz = _getWorldPos(pos+dz);
-		if((s>= iso && sx < iso) || (s < iso && sx >= iso)){
-			float t = (iso - s) / (s * sx);
-			points.push_back(px * t + (1-t) * p);
+		bool surface = true;
+		for(int Z = z-4;surface && Z<z+4;Z++)if(Z!=z){
+			surface = surface && s >= get(glm::ivec3(x,y,Z));
 		}
-
-		if((s>= iso && sy < iso) || (s < iso && sy >= iso)){
-			float t = (iso - s) / (s * sy);
-			points.push_back(py * t + (1-t) * p);
-		}
-
-		if((s>= iso && sz < iso) || (s < iso && sz >= iso)){
-			float t = (iso - s) / (s * sz);
-			points.push_back(pz * t + (1-t) * p);
+		if(surface){
+			tree->insert(glm::value_ptr(p),glm::normalize(glm::vec3(DiffXpm(p),DiffXpm(p),DiffXpm(p))));
 		}
 	}
-	return points;
+	return tree;
 }
+
+//
+//typedef KDTree<glm::vec3,3,float> Tree;
+//typedef Tree::Node			 Node;
+//KDTree<glm::vec3,3,float>* ScalarField::getSurfacePoints(float iso)const{
+//	Tree* tree = new KDTree<glm::vec3,3,float>();
+//	float s,sx,sy,sz;
+//
+//	glm::ivec3 dx(1,0,0),dy(0,1,0),dz(0,0,1);
+//
+//	FOR(_dimensions){//if(!(z == 0||z==_dimensions.z - 1 || y == 0||y==_dimensions.y - 1 || x == 0||x==_dimensions.x - 1)){
+//		if(x == _dimensions.x-1|| y == _dimensions.y-1|| z == _dimensions.z-1){
+//			continue;
+//		}
+//		glm::ivec3 pos(x,y,z);
+//		s = get(pos);
+//		sx = get(pos+dx);
+//		sy = get(pos+dy);
+//		sz = get(pos+dz);
+//		glm::vec3 p =  _getWorldPos(pos);
+//		glm::vec3 px = _getWorldPos(pos+dx);
+//		glm::vec3 py = _getWorldPos(pos+dy);
+//		glm::vec3 pz = _getWorldPos(pos+dz);
+//		if((s>= iso && sx < iso) || (s < iso && sx >= iso)){
+//			float t = (iso - s) / (s - sx);
+//			glm::vec3 newPoint = px * t + (1-t) * p;
+//			tree->insert(glm::value_ptr(newPoint),glm::normalize(glm::vec3(DiffXpm(newPoint),DiffXpm(newPoint),DiffXpm(newPoint))));
+//		}
+//
+//		if((s>= iso && sy < iso) || (s < iso && sy >= iso)){
+//			float t = (iso - s) / (s - sy);
+//			glm::vec3 newPoint = py * t + (1-t) * p;
+//			tree->insert(glm::value_ptr(newPoint),glm::normalize(glm::vec3(DiffXpm(newPoint),DiffXpm(newPoint),DiffXpm(newPoint))));
+//		}
+//
+//		if((s>= iso && sz < iso) || (s < iso && sz >= iso)){
+//			float t = (iso - s) / (s - sz);
+//			glm::vec3 newPoint = pz * t + (1-t) * p;
+//			tree->insert(glm::value_ptr(newPoint),glm::normalize(glm::vec3(DiffXpm(newPoint),DiffXpm(newPoint),DiffXpm(newPoint))));
+//		}
+//	}
+//	return tree;
+//}
 
 float ScalarField::DiffXp(glm::vec3 worldPos)const{
 	glm::ivec3 ip = (glm::ivec3)_boundingAABB.getDiscretePosition(worldPos,_dimensions);

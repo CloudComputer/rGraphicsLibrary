@@ -93,7 +93,7 @@ glm::ivec2 winSize;
 float threshold = 128.0/255;
 
 ScalarField *vol = 0;
-std::vector<glm::vec3> points;
+KDTree<glm::vec3,3,float>* points;
 std::vector<PointCluster> clusters;
 
 bool mouse0State = false;
@@ -108,13 +108,13 @@ void draw(){
 	glRotatef(rx,0,1,0);
 	glScalef(scale,scale,scale);
 
+	glColor3f(1,1,1);
 	vol->getBoundingAABB().draw();
 
 
-	std::vector<glm::vec3>::const_iterator point;
-	std::vector<PointCluster>::const_iterator cluster;
-	glBegin(GL_POINTS);
-	
+	KDTree<glm::vec3,3,float>::NodeIterator point;
+	std::vector<PointCluster>::iterator cluster;
+	srand(0);
 	for(cluster = clusters.begin();cluster != clusters.end();++cluster){
 		float r,g,b;
 		r = rand() / float(RAND_MAX);
@@ -124,11 +124,12 @@ void draw(){
 		g = (g + 0.5) / 1.5;
 		b = (b + 0.5) / 1.5;
 		glColor3f(r,g,b);
-		for(point = points.begin();point != points.end();++point){
-			glVertex3fv(glm::value_ptr(*point));
+		glBegin(GL_POINTS);
+		for(point = cluster->getPoints()->begin();point != cluster->getPoints()->end();++point){
+			glVertex3fv(point->getPosition());
 		}
+		glEnd();
 	}
-	glEnd();
 
 
 
@@ -143,13 +144,16 @@ void loadPoints(){
 	std::cout << "Loading dataset " << files[niceCases[_case]].path << std::endl;
 	vol = ScalarField::ReadFromRawfile(files[niceCases[_case]].path,files[niceCases[_case]].w,files[niceCases[_case]].h,files[niceCases[_case]].d);	
 	points = vol->getSurfacePoints(threshold);
-	std::cout << "Threshold: " << threshold << " = " << points.size() << " number of points" << std::endl;
+	std::cout << "Threshold: " << threshold << " = " << points->size() << " number of points" << std::endl;
 
 	glm::vec3 dir = vol->getBoundingAABB().getPosition(glm::vec3(1,1,1)) - vol->getBoundingAABB().getPosition(glm::vec3(0,0,0));
 	dir /= vol->getDimensions();
-	clusters = Clusterer::ClusterPoints(points,glm::length(dir) * 3);
+	clusters = Clusterer::ClusterPoints(points,glm::length(dir) * 1,50);
 
 	std::cout << "Created " << clusters.size() << " clusters" << std::endl;
+	for(int i = 0;i<clusters.size();i++){
+		std::cout << '\t' << "Cluster " << i << ": " << clusters[i].getPoints()->size() << " points" << std::endl;
+	}
 
 }
 
@@ -157,7 +161,8 @@ int prevScroll = 0;
 void wheel(int i){
 	//scale *= 1+((i-prevScroll)*0.01);
 	threshold += i/255.0;
-	loadPoints();
+	//loadPoints();
+
 	prevScroll = i;
 }
 

@@ -1,45 +1,70 @@
 #include "Clusterer.h"
 
-#include "kdtree.h"
 #include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
 
-void PointCluster::addPoint(const glm::vec3 &point){
-	_points.push_back(point);
-}
-void PointCluster::addPoints(const std::vector<glm::vec3> &points){
-	_points.insert(_points.end(),points.begin(),points.end());
-}
-void PointCluster::addPoints(const PointCluster &cluster){
-	addPoints(cluster._points);
+
+PointCluster::PointCluster(){
+	_points = new KDTree<glm::vec3,3,float>();
 }
 
-std::vector<PointCluster> Clusterer::ClusterPoints(const std::vector<glm::vec3> &_points,float d){
-	std::vector<glm::vec3>::const_iterator point;
-	std::vector<glm::vec3> left;
-	for(point = _points.begin(); point != _points.end() ; ++point){
-		left.push_back(*point);
+PointCluster::~PointCluster(){
+	
+}
+
+void PointCluster::addPoint(float point[3],glm::vec3 normal){
+	_points->insert(point,normal);
+}
+//
+//template<unsigned int dimmensions>
+//void PointCluster<dimmensions>::addPoints(const std::vector<glm::vec3> &points){
+//	_points.insert(_points.end(),points.begin(),points.end());
+//}
+
+//template<unsigned int dimmensions>
+//void PointCluster<dimmensions>::addPoints(const PointCluster &cluster){
+//	addPoints(cluster._points);
+//}
+
+
+std::vector<PointCluster> 
+Clusterer::ClusterPoints(KDTree<glm::vec3,3,float> *_points,float d,unsigned int minSize){
+	KDTree<glm::vec3,3,float>::NodeIterator point;
+	std::vector<KDTree<glm::vec3,3,float>::Node*>::iterator it;
+
+	KDTree<glm::vec3,3,float> tree;
+	KDTree<glm::vec3,3,float>::Node* node;
+	std::vector<KDTree<glm::vec3,3,float>::Node*> left;
+
+
+	for(point = _points->begin(); point != _points->end() ; ++point){
+		tree.insert(point->getPosition(),point->get());
 	}
+
+
+	float __p[] = {0.0f,0.0f,0.0f};
 	std::vector<PointCluster> clusters;
-	while(left.size()){
-		PointCluster c; //Create new cluster
-		c.addPoint(left[0]); //add first point to cluster
-		left.erase(left.begin()); //remove it from the list
-		int a = 0;
-		while(a<c._points.size()){
-			for(int i = left.size()-1;i>0;i--){
-				if(glm::distance(c._points[a],left[i])<=d){
-					c.addPoint(left[i]);
-					left.erase(left.begin()+i);
-				}
+	while(!tree.empty()){
+		PointCluster cluster;
+		left.push_back(tree.findNearest(__p));
+		
+		while(!left.empty()){
+			node = left[0];
+			left.erase(left.begin());
+			std::vector<KDTree<glm::vec3,3,float>::Node*> nodes = tree.findCloseTo(node->getPosition(),d);
+			for(it = nodes.begin();it != nodes.end();++it){
+				float pos[3];
+				memcpy(pos,(*it)->getPosition(),sizeof(float)*3);
+				left.push_back(cluster._points->insert(pos,(*it)->get()));
+				tree.erase(*it);
 			}
-			a++;
-		}
-		clusters.push_back(c);
-		std::cout << "cluster created: " << c._points.size() << " " << left.size() << std::endl;
-	}
 
+		}
+		if(cluster._points->size() >= minSize)
+			clusters.push_back(cluster);
+		assert(tree.isOk());
+	}
 
 
 	return clusters;

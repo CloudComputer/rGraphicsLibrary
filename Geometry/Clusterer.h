@@ -1,25 +1,28 @@
 #ifndef _CLUSTERER_H_
 #define _CLUSTERER_H_
 
+#include "KDTree.h"
+
 #include <vector>
 #include <glm/glm.hpp>
 
 
 class PointCluster{
 	friend class Clusterer;
-	std::vector<glm::vec3> _points;
+
+	KDTree<glm::vec3,3,float>* _points;
 public:
-	void addPoint(const glm::vec3 &point); 
-	void addPoints(const std::vector<glm::vec3> &points);
-	void addPoints(const PointCluster &cluster);
+	PointCluster();
+	~PointCluster();
+	void addPoint(float point[3],glm::vec3 normal = glm::vec3(0,0,0)); 
+	//void addPoints(const PointCluster &cluster);
 	
-	glm::vec3 getPoint(unsigned int id){return _points[id];}
-	std::vector<glm::vec3> getPoints(unsigned int id){return _points;}
+	KDTree<glm::vec3,3,float>* getPoints(){return _points;}
 };
 
 class Clusterer{
 public:
-	static std::vector<PointCluster> ClusterPoints(const std::vector<glm::vec3> &_points,float joinDistance);
+	static std::vector<PointCluster> ClusterPoints(KDTree<glm::vec3,3,float> *_points,float joinDistance,unsigned int minSize = 1);
 };
 
 
