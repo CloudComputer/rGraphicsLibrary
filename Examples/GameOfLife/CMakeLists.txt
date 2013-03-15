@@ -7,7 +7,7 @@ add_definitions( -DGLEW_STATIC)
 
 INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
 
-add_executable(GameOfLife main.cpp)
+add_executable(GameOfLife GameOfLife.cpp)
 
 
 target_link_libraries(GameOfLife GLFW glew OpenGLHelpers Util)

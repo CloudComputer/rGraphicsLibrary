@@ -8,7 +8,7 @@
 #include <glew/gl/glew.h>
 #include <gl/GL.h>
 
-#include <Geometry/BoundingVolume.h>
+#include <Geometry/BoundingGeometry/BoundingVolume.h>
 
 class ColorCube{
 	BoundingAABB _boundingAABB;

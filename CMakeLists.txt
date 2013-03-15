@@ -22,6 +22,7 @@ option(BUILD_TOOLS "Build tools" ON)
 #SET(OPENEXRLIBS "Half Iex IlmImf IlmThread Imath")
 
 include_directories("${PROJECT_SOURCE_DIR}/ext/")
+include_directories("${PROJECT_SOURCE_DIR}/ext/eigen")
 include_directories("${PROJECT_SOURCE_DIR}/ext/glfw/include")
 include_directories("${PROJECT_SOURCE_DIR}/ext/openEXR/include/")
 include_directories(${PROJECT_SOURCE_DIR} )
@@ -32,7 +33,9 @@ link_directories("${PROJECT_SOURCE_DIR}/ext/lib/msvc10/" )
 add_definitions(-DGLSL_DIR="${GLSL_FOLDER}")
 add_definitions(-DMODELS_DIR="${MODELS_FOLDER}")
 add_definitions(-DEXR_IMAGES_DIR="${EXR_IMAGES_FOLDER}")
-add_definitions(-DNCHOLMOD)
+
+
+#add_definitions(-DNCHOLMOD)
 
 FIND_PACKAGE(Boost REQUIRED)
 IF (Boost_FOUND)
@@ -45,7 +48,7 @@ ENDIF()
 add_subdirectory(glsl)
 
 
-add_subdirectory(ext/UMFPACK)
+# add_subdirectory(ext/eigen)
 
 add_subdirectory(Base)
 add_subdirectory(FluidSimulator)

@@ -7,12 +7,12 @@ add_definitions( -DGLEW_STATIC)
 
 INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
 
-add_executable(Mesh main.cpp)
+add_executable(MeshExample MeshExample.cpp)
 
 
-target_link_libraries(Mesh GLFW glew OpenGLHelpers Util Geometry)
+target_link_libraries(MeshExample GLFW glew OpenGLHelpers Util Mesh)
 
-set_target_properties(Mesh
+set_target_properties(MeshExample
   PROPERTIES
   FOLDER "Examples")
   

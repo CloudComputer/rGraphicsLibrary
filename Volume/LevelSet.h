@@ -4,7 +4,7 @@
 
 #include <glm/glm.hpp>
 #include <Volume/ScalarField.h>
-#include <Geometry/Mesh.h>
+#include <Geometry/Mesh/Mesh.h>
 
 class LevelSet : public ScalarField{
 public:

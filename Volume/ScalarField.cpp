@@ -47,10 +47,10 @@ VectorField* ScalarField::getGradientField()const{
 	return vf;
 }
 
-typedef KDTree<NormalPoint,3,float> Tree;
+typedef KDTree<Vertex,3,float> Tree;
 typedef Tree::Node			 Node;
-KDTree<NormalPoint,3,float>* ScalarField::getSurfacePoints(float iso)const{
-	Tree* tree = new KDTree<NormalPoint,3,float>();
+KDTree<Vertex,3,float>* ScalarField::getSurfacePoints(float iso)const{
+	Tree* tree = new KDTree<Vertex,3,float>();
 	float s,sx,sy,sz;
 
 	glm::ivec3 dx(1,0,0),dy(0,1,0),dz(0,0,1);
@@ -69,10 +69,10 @@ KDTree<NormalPoint,3,float>* ScalarField::getSurfacePoints(float iso)const{
 			surface = surface && s >= get(glm::ivec3(x,Y,z));
 		}
 		if(surface){
-			NormalPoint np;
-			np.P = glm::vec4(p,0);
-			np.N = glm::normalize(glm::vec3(DiffXpm(p),DiffXpm(p),DiffXpm(p)));
-			tree->insert(glm::value_ptr(p),np);
+			Vertex v;
+			v.getPosition() = glm::vec4(p,0);
+			v.setNormal(glm::normalize(glm::vec3(DiffXpm(p),DiffYpm(p),DiffZpm(p))));
+			tree->insert(glm::value_ptr(p),v);
 		}
 	}
 	return tree;

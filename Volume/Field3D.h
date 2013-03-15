@@ -6,7 +6,7 @@
 
 #include <glm/glm.hpp>
 
-#include <Geometry/BoundingVolume.h>
+#include <Geometry/BoundingGeometry/BoundingVolume.h>
 
 template <typename T>
 class Field3D

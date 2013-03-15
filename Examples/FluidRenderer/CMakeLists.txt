@@ -7,7 +7,7 @@ add_definitions( -DGLEW_STATIC)
 
 INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
 
-add_executable(FluidRenderer main.cpp)
+add_executable(FluidRenderer FluidRenderer.cpp)
 
 
 target_link_libraries(FluidRenderer GLFW glew OpenGLHelpers Util)

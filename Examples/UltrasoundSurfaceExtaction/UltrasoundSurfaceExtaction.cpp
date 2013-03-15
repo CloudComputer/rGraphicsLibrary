@@ -10,12 +10,16 @@
 
 #include <Image\Image.h>
 
-#include <Geometry\Clusterer.h>
+#include <Geometry\Clustering\Clusterer.h>
 
 #include <string>
 #include <iostream>
 
+#include <Geometry\Mesh\IndexedMesh.h>
+
 #include <Physics\SpringDamperSystem.h>
+
+#include <Geometry\CSG\MarchingTetrahedra.h>
 
 #include <Volume\ScalarField.h>
 
@@ -84,27 +88,42 @@ const SourceFile files[] = {
 const unsigned int numDatasets = 44;
 
 PointCluster *cluster;
-
+std::vector<Vertex> surfacePoints;
+	
 int niceCases[]= {3,7,11,14,19,25,31,42};
 const int numNiceCases = 8;
 int _case = 3;
 
 StopClock s(true);
 
+Mesh *m;
+
 glm::ivec2 winSize;
 
 float threshold = 128.0/255;
 
 ScalarField *vol = 0;
-KDTree<NormalPoint,3,float>* points;
+KDTree<Vertex,3,float>* points;
 std::vector<PointCluster> clusters;
 
 bool mouse0State = false;
 float rx = 0,ry = 0,scale = 1;
 
+
+RBFSystem<InverseMultiQuadricRBF> *rbf0;
+RBFSystem<Biharmonic> *rbf1;
+RBFSystem<Triharmonic> *rbf2;
+RBFSystem<MultiQuadricRBF> *rbf3;
+RBFSystem<GausianRBF> *rbf4;
+RBFSystem<ThinPlateSplineRBF> *rbf5;
+
+
+int meshRes = 50;
+float bounds = 1.0;
+
 void draw(){
 	chkGLErr();
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(glm::value_ptr(glm::lookAt(glm::vec3(0,0,3),glm::vec3(0,0,0),glm::vec3(0,1,0))));
 	glRotatef(ry,1,0,0);
@@ -115,7 +134,7 @@ void draw(){
 	vol->getBoundingAABB().draw();
 
 
-	KDTree<NormalPoint,3,float>::NodeIterator point;
+	KDTree<Vertex,3,float>::NodeIterator point;
 	//std::vector<PointCluster>::iterator cluster;
 	srand(0);
 	//for(cluster = clusters.begin();cluster != clusters.end();++cluster){
@@ -128,9 +147,9 @@ void draw(){
 		b = (b + 0.5) / 1.5;
 		glColor3f(r,g,b);
 		glBegin(GL_POINTS);
-		for(point = cluster->getPoints()->begin();point != cluster->getPoints()->end();++point){
+		/*for(point = cluster->getPoints()->begin();point != cluster->getPoints()->end();++point){
 			glVertex3fv(point->getPosition());
-		}
+		}*/
 		glEnd();
 	//}
 
@@ -151,6 +170,24 @@ void draw(){
 
 	glEnd();
 
+	
+	glColor3f(1,1,1);
+	static_cast<IndexedMesh*>(m)->draw();
+
+	glPointSize(3);
+	glDisable(GL_LIGHTING);
+	glBegin(GL_POINTS);
+	for(auto p = surfacePoints.begin();p != surfacePoints.end();++p){
+		glColor3f(0,0,1);
+		if(p->getPosition().w < -0.00001)
+			glColor3f(1,0,0);
+		else if(p->getPosition().w > 0.000001)
+			glColor3f(0,1,0);
+		glVertex3f(p->getPosition().x,p->getPosition().y,p->getPosition().z);
+	}
+	glEnd();
+	glEnable(GL_LIGHTING);
+
 
 	glfwSwapBuffers();
 	chkGLErr();
@@ -160,14 +197,24 @@ void draw(){
 void loadPoints(){
 	if(vol != 0)
 		delete vol;
-	std::cout << "Loading dataset " << files[niceCases[_case]].path << std::endl;
+	StopClock sw;
+	sw.start();
+	
 	vol = ScalarField::ReadFromRawfile(files[niceCases[_case]].path,files[niceCases[_case]].w,files[niceCases[_case]].h,files[niceCases[_case]].d);	
+	
+	std::cout << "Dataset loaded " << files[niceCases[_case]].path << ": " << sw.getFractionElapsedSeconds() << " seconds" << std::endl;
+	sw.restart();
+
 	points = vol->getSurfacePoints(threshold);
-	std::cout << "Threshold: " << threshold << " = " << points->size() << " number of points" << std::endl;
+	std::cout << "Points extracted: " << points->size() << " number of points, " << sw.getFractionElapsedSeconds() << " seconds" << std::endl;
+	sw.restart();
 
 	glm::vec3 dir = vol->getBoundingAABB().getPosition(glm::vec3(1,1,1)) - vol->getBoundingAABB().getPosition(glm::vec3(0,0,0));
 	dir /= vol->getDimensions();
+
 	clusters = Clusterer::ClusterPoints(points,glm::length(dir) * 1,50);
+	std::cout << "Points clustered: " << sw.getFractionElapsedSeconds() << " seconds" << std::endl;
+	sw.restart();
 
 	unsigned long _max = 0;
 	std::cout << "Created " << clusters.size() << " clusters" << std::endl;
@@ -180,7 +227,58 @@ void loadPoints(){
 		}
 	}
 
-	RBFSystem<Biharmonic<float>,float> *rbf = RBFSystem<Biharmonic<float>,float>::CreateFromPoints(cluster->getPoints()->getAsVector());
+	auto points = cluster->getPoints()->getAsVector();
+	int s = points.size();
+	
+	float d = 0.005;
+	int inc = 3*s / 9000;
+	surfacePoints.clear();
+	for(int i = 0;i<s;i += inc){
+		glm::vec4 p0,p1,p2;
+		
+		glm::vec3 n = points[i].getNormal();
+		if(!(n.x == n.x))
+			continue;
+		glm::vec3 p = glm::vec3(points[i].getPosition());
+
+		p0 = glm::vec4(p + n * d, d);
+		p1 = glm::vec4(p - n * d,-d);
+		p2 = glm::vec4(p,0);
+
+		surfacePoints.push_back(Vertex(p0,n));
+		surfacePoints.push_back(Vertex(p1,n));
+		surfacePoints.push_back(Vertex(p2,n));
+	}
+
+	std::cout << surfacePoints.size() << std::endl;
+
+	std::cout << "InverseMultiQuadricRBF" << std::endl;
+	rbf0 = RBFSystem<InverseMultiQuadricRBF>::CreateFromPoints(surfacePoints);
+
+	std::cout<< std::endl << std::endl << "Biharmonic" << std::endl;
+	rbf1 = RBFSystem<Biharmonic>::CreateFromPoints(surfacePoints);
+
+	std::cout<< std::endl << std::endl << "Triharmonic" << std::endl;
+	rbf2 = RBFSystem<Triharmonic>::CreateFromPoints(surfacePoints);
+
+	std::cout<< std::endl << std::endl << "MultiQuadricRBF" << std::endl;
+	rbf3 = RBFSystem<MultiQuadricRBF>::CreateFromPoints(surfacePoints);
+
+	std::cout<< std::endl << std::endl << "GausianRBF" << std::endl;
+ 	rbf4 = RBFSystem<GausianRBF>::CreateFromPoints(surfacePoints);//*/
+
+	/*std::cout<< std::endl << std::endl << "ThinPlateSplineRBF" << std::endl;
+ 	rbf5 = RBFSystem<ThinPlateSplineRBF>::CreateFromPoints(surfacePoints);*/
+
+	
+	std::cout << "RBFs fitted: " << sw.getFractionElapsedSeconds() << " seconds" << std::endl;
+	sw.restart();
+	
+	m = MarchingTetrahedra::March<IndexedMesh>(rbf0,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
+	
+	sw.stop();
+	std::cout << "Surface extracted: " << sw.getFractionElapsedSeconds()  << " seconds" << std::endl;
+
 
 }
 
@@ -230,6 +328,24 @@ void keyboard(int button,int state){
 		}
 		loadPoints();
 	}
+	if(button == '1' && state){
+		m = MarchingTetrahedra::March<IndexedMesh>(rbf0,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
+	}
+	if(button == '2' && state){
+		m = MarchingTetrahedra::March<IndexedMesh>(rbf1,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
+	}
+	if(button == '3' && state){
+		m = MarchingTetrahedra::March<IndexedMesh>(rbf2,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
+	}
+	if(button == '4' && state){
+		m = MarchingTetrahedra::March<IndexedMesh>(rbf3,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
+	}
+	if(button == '5' && state){
+		m = MarchingTetrahedra::March<IndexedMesh>(rbf4,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
+	}
+	if(button == '6' && state){
+		m = MarchingTetrahedra::March<IndexedMesh>(rbf5,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
+	}
 }
 
 void resize(int width,int height){
@@ -254,6 +370,28 @@ void resize(int width,int height){
 void init(){
 	chkGLErr();
 	glClearColor(0,0,0,0);
+
+	
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_NORMALIZE);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+
+
+	GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+	GLfloat mat_shininess[] = { 10.0 };
+	GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
+	GLfloat light_color[] = { 0.8, 0.8, 1.0 , 1.0 };
+	glClearColor (0.0, 0.0, 0.0, 0.0);
+	glShadeModel (GL_SMOOTH);
+
+	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE , light_color);
+	glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE ) ;
+	glEnable ( GL_COLOR_MATERIAL ) ;
+
 	
 	loadPoints();
 	

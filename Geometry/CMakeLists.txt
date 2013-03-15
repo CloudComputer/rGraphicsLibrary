@@ -1,20 +1,8 @@
 cmake_minimum_required (VERSION 2.6) 
 
-include_directories("${PROJECT_SOURCE_DIR}/ext/")
-include_directories(${PROJECT_SOURCE_DIR} )
 
-
-file(GLOB Geometry_SRC
-    "*.h"
-    "*.hpp"
-    "*.cpp"
-)
-
-
-add_library(Geometry ${Geometry_SRC})
-
-target_link_libraries(Geometry Base UMFPACK)
-
-set_target_properties(Geometry
-  PROPERTIES
-  FOLDER "Libraries")
+add_subdirectory(BoundingGeometry)
+add_subdirectory(Clustering)
+add_subdirectory(KDTree)
+add_subdirectory(Mesh)
+add_subdirectory(CSG)

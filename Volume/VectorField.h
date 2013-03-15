@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <Volume/Field3D.h>
-#include <Geometry/BoundingVolume.h>
+#include <Geometry/BoundingGeometry/BoundingVolume.h>
 
 #ifdef GL_VERSION_1_1
 #include <OpenGLHelpers/AttribPusher.h>

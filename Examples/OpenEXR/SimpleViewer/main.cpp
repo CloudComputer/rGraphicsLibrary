@@ -5,7 +5,7 @@
 #include <OpenGLHelpers/OpenGLInfo.h>
 #include <Util/StopClock.h>
 
-#include <Geometry/Mesh.h>
+#include <Geometry/Mesh/Mesh.h>
 
 #include <gl/glfw.h>
 

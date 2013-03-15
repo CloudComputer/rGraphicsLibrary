@@ -5,7 +5,7 @@
 #include <OpenGLHelpers/AttribPusher.h>
 #include <Util/StopClock.h>
 
-#include <Geometry/Mesh.h>
+#include <Geometry/Mesh/IndexedMesh.h>
 
 #include <gl/glfw.h>
 
@@ -57,7 +57,8 @@ void draw2(){
 	pgm->setUniform("env_minExp",minExp);
 	pgm->setUniform("env_maxExp",maxExp);
 	pgm->setUniform("env_diffuse",diffusion);
-	std::vector<Triangle> faces = m->getFaces();
+	
+	/*std::vector<Triangle> faces = m->getFaces();
 	std::vector<Triangle>::iterator face;
 	glColor3f(1,1,1);
 	glBegin(GL_TRIANGLES);
@@ -71,7 +72,8 @@ void draw2(){
 		glNormal3fv(glm::value_ptr(face->v2->normal));
 		glVertex3fv(glm::value_ptr(face->v2->position));
 	}
-	glEnd();
+	glEnd();*/
+	static_cast<IndexedMesh*>(m)->draw();
 	pgm->unbind();
 
 	chkGLErr();
@@ -158,10 +160,12 @@ void draw(){
 
 	//glEnd();
 
-	std::vector<Triangle> faces = m->getFaces();
+	/*std::vector<Triangle> faces = m->getFaces();
 	std::vector<Triangle>::iterator face;
+	*/
 	glColor3f(1,1,1);
-	glBegin(GL_TRIANGLES);
+	static_cast<IndexedMesh*>(m)->draw();
+	/*glBegin(GL_TRIANGLES);
 	for(face = faces.begin();face != faces.end();++face){
 		glNormal3fv(glm::value_ptr(face->v0->normal));
 		glVertex3fv(glm::value_ptr(face->v0->position));
@@ -172,7 +176,7 @@ void draw(){
 		glNormal3fv(glm::value_ptr(face->v2->normal));
 		glVertex3fv(glm::value_ptr(face->v2->position));
 	}
-	glEnd();
+	glEnd();*/
 	pgm->unbind();
 
 	chkGLErr();
@@ -271,8 +275,8 @@ void init(){
 	glEnable(GL_TEXTURE_RECTANGLE_NV);
 	glEnable(GL_TEXTURE_2D);
 
-	m = Mesh::LoadWavefront( MODELS_DIR "/cow.obj");
-	//m = Mesh::LoadWavefront( MODELS_DIR "/ico_sphere1.obj");
+	m = Mesh::LoadWavefront<IndexedMesh>( MODELS_DIR "/cow.obj");
+	//m = Mesh::LoadWavefront<IndexedMesh>( MODELS_DIR "/ico_sphere1.obj");
 	
 	pgm = ShaderProgram::CreateShaderProgramFromSources(GLSL_DIR "/EnvironmentLighting.vert" ,GLSL_DIR "/EnvironmentLighting.frag");
 

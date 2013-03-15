@@ -7,7 +7,7 @@ set(Volume_HPP   LevelSet.hpp ScalarField.hpp VectorField.hpp Field3D.hpp)
 
 add_library(Volume ${Volume_SRC} ${Volume_H} ${Volume_HPP})
 
-target_link_libraries(Volume Geometry)
+target_link_libraries(Volume BoundingGeometry)
 
 set_target_properties(Volume
   PROPERTIES
