@@ -100,7 +100,8 @@ StopClock s(true);
 
 glm::ivec2 winSize;
 
-float threshold = 98.0/255;
+//float threshold = 98.0/255;
+float threshold = 0.6;
 
 ScalarField *vol = 0;
 KDTree<Vertex,3,float>* points;
@@ -231,7 +232,7 @@ void loadPoints(){
 	auto points = cluster->getPoints()->getAsVector();
 
 	points.clear();
-	float dist = 0.04;
+	float dist = 0.029;
 	float p[] = {0,-1,0};
 	while(!cluster->getPoints()->empty()){
 		auto node = cluster->getPoints()->findNearest(p);
@@ -256,7 +257,7 @@ void loadPoints(){
 
 
 	s = points.size();
-	float d = 0.05;
+	float d = 0.025;
 	int inc = 0.5 + (3.0f*s / 4000);
 	std::cout << inc << std::endl;
 	//inc = 1;

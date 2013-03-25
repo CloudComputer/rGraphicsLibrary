@@ -154,7 +154,7 @@ RBFSystem *RBFSystem::CreateFromPoints(std::vector<glm::vec4> &points){
 			float v = rbf->eval(b.x,b.y,b.z);
 			A(i,j) = v;
 		}
-		//A(i,i) += 0.5;
+		A(i,i) -= 0.05;
 		A(i,size+0) = 1;
 		A(i,size+1) = c.x;
 		A(i,size+2) = c.y;
