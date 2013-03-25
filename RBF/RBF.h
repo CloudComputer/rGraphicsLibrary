@@ -104,7 +104,7 @@ public:
 
 
 
-template <typename KernelType>
+
 class RBFSystem : public ImplicitFunction{
 	struct TrendFunction{
 		float _c[4];
@@ -112,52 +112,59 @@ class RBFSystem : public ImplicitFunction{
 		TrendFunction(){_c[0] = _c[1] = _c[2] = _c[3] = 0;}
 		TrendFunction(float c0,float c1,float c2,float c3){_c[0] = c0;_c[1] = c1;_c[2] = c2;_c[3] = c3;}
 	}_trend;
-
-	std::vector<KernelType*> _kernels;
+	
+	glm::vec3 _min,_max;
+	std::vector<RBF*> _kernels;
 public:
 	virtual float eval(glm::vec3 worldPos)const;
 	virtual std::string toString()const{return "RBFSystem";}
 
-
-	static RBFSystem *CreateFromPoints(std::vector<Vertex> &tree);
+	template <typename KernelType> static RBFSystem *CreateFromPoints(std::vector<glm::vec4> &tree);
+	template <typename KernelType> static RBFSystem *FastFitting(std::vector<glm::vec4> &tree);
 };
 
-template <typename KernelType>
-float RBFSystem<KernelType>::eval(glm::vec3 worldPos)const{
-	float v = _trend.eval(worldPos.x,worldPos.y,worldPos.z);
-	for(auto k = _kernels.begin();k!=_kernels.end();++k){
-		v += (*k)->eval(worldPos.x,worldPos.y,worldPos.z);
-	}
-	return v;
-}
 
 template <typename KernelType>
-RBFSystem<KernelType> *RBFSystem<KernelType>::CreateFromPoints(std::vector<Vertex> &points){
-	RBFSystem<KernelType> *rbfs = new RBFSystem<KernelType>();
+RBFSystem *RBFSystem::CreateFromPoints(std::vector<glm::vec4> &points){
+	RBFSystem *rbfs = new RBFSystem();
+	
+	rbfs->_min = glm::vec3(points[0]);
+	rbfs->_max = glm::vec3(points[0]);
+	for(auto _p = points.begin()+1;_p != points.end() ; _p++){
+		rbfs->_min.x = std::min(rbfs->_min.x,_p->x);
+		rbfs->_min.y = std::min(rbfs->_min.y,_p->y);
+		rbfs->_min.z = std::min(rbfs->_min.z,_p->z);
+		rbfs->_max.x = std::max(rbfs->_max.x,_p->x);
+		rbfs->_max.y = std::max(rbfs->_max.y,_p->y);
+		rbfs->_max.z = std::max(rbfs->_max.z,_p->z);
+	}
 
 	unsigned long size = points.size(); 
 	
-	Eigen::MatrixXd A = Eigen::MatrixXd::Zero(size+4,size+4);
-	Eigen::VectorXd p = Eigen::VectorXd::Zero(size+4);
+	Eigen::MatrixXf A = Eigen::MatrixXf::Zero(size+4,size+4);
+	Eigen::VectorXf p = Eigen::VectorXf::Zero(size+4);
 
 	//Build a and p
 	for(int i = 0;i<size;i++){
-		KernelType *rbf= new KernelType(points[i].getPosition().x,points[i].getPosition().y,points[i].getPosition().z);
+		glm::vec3 c = glm::vec3(points[i] - rbfs->_min.x) / (rbfs->_max.x - rbfs->_min.x);
+		KernelType *rbf= new KernelType(c.x,c.y,c.z);
 		rbfs->_kernels.push_back(rbf);
 		for(int j = 0;j<size;j++){
-			float v = rbf->eval(points[j].getPosition().x,points[j].getPosition().y,points[j].getPosition().z);
+			glm::vec3 b = glm::vec3(points[j] - rbfs->_min.x) / (rbfs->_max.x - rbfs->_min.x);
+			float v = rbf->eval(b.x,b.y,b.z);
 			A(i,j) = v;
 		}
+		//A(i,i) += 0.5;
 		A(i,size+0) = 1;
-		A(i,size+1) = points[i].getPosition().x;
-		A(i,size+2) = points[i].getPosition().y;
-		A(i,size+3) = points[i].getPosition().z;
+		A(i,size+1) = c.x;
+		A(i,size+2) = c.y;
+		A(i,size+3) = c.z;
 		A(size+0,i) = 1;
-		A(size+1,i) = points[i].getPosition().x;
-		A(size+2,i) = points[i].getPosition().y;
-		A(size+3,i) = points[i].getPosition().z;
+		A(size+1,i) = c.x;
+		A(size+2,i) = c.y;
+		A(size+3,i) = c.z;
 
-		p(i) = points[i].getPosition().w;
+		p(i) = points[i].w;
 	}
 
 	// Calc Ax = p
@@ -223,10 +230,11 @@ RBFSystem<KernelType> *RBFSystem<KernelType>::CreateFromPoints(std::vector<Verte
 	}//*/
 
 
-	Eigen::VectorXd x = A.colPivHouseholderQr().solve(p);
+	//Eigen::VectorXf x = A.colPivHouseholderQr().solve(p);
+	Eigen::VectorXf x = A.partialPivLu().solve(p);
 	double relative_error = (A*x - p).norm() / p.norm(); // norm() is L2 norm
-	std::cout << A.norm()  << " " << A.determinant() << "" <<  std::endl;
-	std::cout << "\tRelative error is:" << relative_error << " x.norm: " << x.norm() << ", p.norm " << p.norm() << std::endl;
+	//std::cout << A.norm()  << " " << A.determinant() << "" <<  std::endl;
+	std::cout << "\tRelative error is:" << relative_error <<  std::endl;
 	//std::cout << x  << std::endl  << std::endl;
 	for(int i = 0;i<size;i++){
 		rbfs->_kernels[i]->setWeight(x(i));

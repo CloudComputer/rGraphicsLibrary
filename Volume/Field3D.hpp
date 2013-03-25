@@ -171,7 +171,7 @@ unsigned int Field3D<T>::_index(glm::ivec3 pos,bool clamp)const
 	}
 	int id = pos.x + pos.y * _dimensions.x + pos.z * _dimensions.y*_dimensions.x;
 	int id2 = pos.x + _dimensions.x * (pos.y + pos.z*_dimensions.y);
-	if(id != id){
+	if(id != id2){ //TODO remove this
 		std::cout << "crap" << std::endl;
 	}
 	return pos.x + _dimensions.x * (pos.y + pos.z*_dimensions.y);

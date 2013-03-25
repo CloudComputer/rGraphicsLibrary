@@ -18,6 +18,8 @@ public:
 
 	VectorField *getGradientField()const;
 
+	ScalarField *blur()const;
+
 	float DiffXp(glm::vec3 worldPos)const;
 	float DiffXm(glm::vec3 worldPos)const;
 	float DiffXpm(glm::vec3 worldPos)const;

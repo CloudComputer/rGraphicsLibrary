@@ -2,7 +2,7 @@
 #define _KDNODE_HPP_
 #include "KDTree.h"
 
-KD_TEMPLATE KD_NODE::KDNode(KD_TREE *tree,floatPrecision pos[dimmensions],const dataType &data,KD_NODE *parent):
+KD_TEMPLATE KD_NODE::KDNode(KD_TREE *tree,const floatPrecision pos[dimmensions],const dataType &data,KD_NODE *parent):
 _tree(tree),
 _data(data),
 _parent(parent),
@@ -84,7 +84,7 @@ KD_TEMPLATE floatPrecision* KD_NODE::getPosition(){
 }
 
 KD_TEMPLATE
-KD_NODE* KD_NODE::insert(floatPrecision pos[dimmensions], const dataType &data){
+KD_NODE* KD_NODE::insert(const floatPrecision pos[dimmensions], const dataType &data){
 	bool right = _goRight(pos);
 	if(right){
 		if(_right == 0){
@@ -102,11 +102,11 @@ KD_NODE* KD_NODE::insert(floatPrecision pos[dimmensions], const dataType &data){
 	}
 }
 
-KD_TEMPLATE bool KD_NODE::_goRight(floatPrecision pos[dimmensions])const{
+KD_TEMPLATE bool KD_NODE::_goRight(const floatPrecision pos[dimmensions])const{
 	return pos[_dimmension] >= _pos[_dimmension];
 }
 
-KD_TEMPLATE bool KD_NODE::_compare(floatPrecision pos[dimmensions])const{
+KD_TEMPLATE bool KD_NODE::_compare(const floatPrecision pos[dimmensions])const{
 	for(unsigned int i = 0;i<dimmensions;i++){
 		if(pos[i] != _pos[i])
 			return false;
@@ -156,7 +156,7 @@ KD_TEMPLATE KD_NODE* KD_NODE::findMax(unsigned int d){
 	return (maxChild->_pos[d] >= _pos[d]) ? maxChild : this;
 }
 
-KD_TEMPLATE KD_NODE* KD_NODE::find(floatPrecision pos[dimmensions]){
+KD_TEMPLATE KD_NODE* KD_NODE::find(const floatPrecision pos[dimmensions]){
 	if(_compare(pos))
 		return this;
 	if(_goRight(pos)){
@@ -167,10 +167,10 @@ KD_TEMPLATE KD_NODE* KD_NODE::find(floatPrecision pos[dimmensions]){
 }
 
 
-KD_TEMPLATE KD_NODE* __closestTo(floatPrecision pos[dimmensions],KD_NODE *n0,KD_NODE *n1){
+KD_TEMPLATE KD_NODE* __closestTo(const floatPrecision pos[dimmensions],KD_NODE *n0,KD_NODE *n1){
 	if(n0 == 0)
 		return n1;
-	if(n1 == 0)
+	if(n1 == 0 || n0 == n1)
 		return n0;
 	float d0 = 0,d1 = 0,dx;
 	for(int i = 0;i<dimmensions;i++){
@@ -185,11 +185,11 @@ KD_TEMPLATE KD_NODE* __closestTo(floatPrecision pos[dimmensions],KD_NODE *n0,KD_
 	d0 = std::sqrt(d0);
 	d1 = std::sqrt(d1);
 	*/
-	return (d0 < d1) ? n0 : n1;
+	return (d0 <= d1) ? n0 : n1;
 }
 
 
-KD_TEMPLATE KD_NODE* KD_NODE::findNearest(floatPrecision pos[dimmensions],KD_NODE *nearest){
+KD_TEMPLATE KD_NODE* KD_NODE::findNearest(const floatPrecision pos[dimmensions],KD_NODE *nearest){
 	if(isLeaf()){
 		nearest = __closestTo<KD_TYPE>(pos,this,nearest);
 		return nearest;
@@ -210,7 +210,7 @@ KD_TEMPLATE KD_NODE* KD_NODE::findNearest(floatPrecision pos[dimmensions],KD_NOD
 			d0 = d0*d0;
 			d1 = d1*d1;
 
-			if(d0<d1){
+			if(d0<=d1){
 				nearest = __closestTo<KD_TYPE>(pos,nearest,_left->findNearest(pos,nearest));
 			}	
 		}
@@ -237,7 +237,7 @@ KD_TEMPLATE KD_NODE* KD_NODE::findNearest(floatPrecision pos[dimmensions],KD_NOD
 	return nearest;
 }
 
-KD_TEMPLATE floatPrecision __sqDist(floatPrecision p0[dimmensions],floatPrecision p1[dimmensions]){
+KD_TEMPLATE floatPrecision __sqDist(const floatPrecision p0[dimmensions],const floatPrecision p1[dimmensions]){
 	floatPrecision d = 0,a;
 	for(int i = 0;i<dimmensions;i++){
 		a = p0[i] - p1[i];
@@ -246,20 +246,20 @@ KD_TEMPLATE floatPrecision __sqDist(floatPrecision p0[dimmensions],floatPrecisio
 	return d;
 }
 
-KD_TEMPLATE void KD_NODE::findCloseTo(floatPrecision pos[dimmensions],floatPrecision sqDist,std::vector<KDNode*> &nodes){
+KD_TEMPLATE void KD_NODE::findCloseTo(const floatPrecision pos[dimmensions],const floatPrecision sqDist,std::vector<KDNode*> &nodes){
 	if(__sqDist<KD_TYPE>(pos,_pos) < sqDist){
 		nodes.push_back(this);
 	}
 	float d;
 	bool right = false,left = false;
+//BUG ??
 	if(_goRight(pos)){
 		if(!isRightLeaf()){
 			right = true;
 		}
 		if(!isLeftLeaf()){
 			d = _pos[_dimmension] - pos[_dimmension];
-			d *= d;
-			if(d<=sqDist)
+			if(d*d<=sqDist)
 				left = true;
 		}
 	}else{
@@ -268,8 +268,7 @@ KD_TEMPLATE void KD_NODE::findCloseTo(floatPrecision pos[dimmensions],floatPreci
 		}
 		if(!right && !isRightLeaf()){
 			d = _pos[_dimmension] - pos[_dimmension];
-			d *= d;
-			if(d<=sqDist)
+			if(d*d<=sqDist)
 				right = true;
 		}
 	}
@@ -283,7 +282,7 @@ KD_TEMPLATE void KD_NODE::findCloseTo(floatPrecision pos[dimmensions],floatPreci
 
 
 
-#define FF std::cout << "Failed at " << __FILE__ << "@" << __LINE__ << std::endl
+#define __FF__ std::cout << "Failed at " << __FILE__ << "@" << __LINE__ << std::endl
 KD_TEMPLATE void KD_NODE::swap(KD_NODE* n0,KD_NODE* n1){
 	if(n0 == n1  || n0 == 0 || n1 == 0 || n0->_tree != n1->_tree)
 		return;
@@ -341,7 +340,7 @@ KD_TEMPLATE void KD_NODE::swap(KD_NODE* n0,KD_NODE* n1){
 		}else if(p0 != 0 && p0->_right == n0){
 			p0->_right = n1;
 		}else if(p0 != 0){
-			FF;	
+			__FF__;	
 		}
 			
 		if(p1->_left == n1){
@@ -349,18 +348,11 @@ KD_TEMPLATE void KD_NODE::swap(KD_NODE* n0,KD_NODE* n1){
 		}else if(p1->_right == n1){
 			p1->_right = n0;
 		}else{
-			FF;	
+			__FF__;	
 		}
 	}
 
-
-	//std::swap(n0->_data,n1->_data);
 	std::swap(n0->_dimmension,n1->_dimmension);
-	/*for(int i = 0;i<dimmensions;i++){
-		std::swap(n0->_pos[i],n1->_pos[i]);
-	}*/
-
-
 }
 
 

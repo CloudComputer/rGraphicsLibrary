@@ -66,7 +66,7 @@ KD_TEMPLATE KD_NODE* KD_TREE::findMax(unsigned int d){
 	return root->findMax(d);
 }
 
-KD_TEMPLATE KD_NODE* KD_TREE::insert(floatPrecision pos[dimmensions], const dataType &data){
+KD_TEMPLATE KD_NODE* KD_TREE::insert(const floatPrecision pos[dimmensions], const dataType &data){
 	if(root == 0){
 		root = new KD_NODE(this,pos,data);
 		return root;
@@ -75,7 +75,7 @@ KD_TEMPLATE KD_NODE* KD_TREE::insert(floatPrecision pos[dimmensions], const data
 	return root->insert(pos,data);
 }
 
-KD_TEMPLATE KD_NODE* KD_TREE::find(floatPrecision pos[dimmensions]){
+KD_TEMPLATE KD_NODE* KD_TREE::find(const floatPrecision pos[dimmensions]){
 	if(root == 0)
 		return 0;
 	return root->find(pos);
@@ -120,7 +120,6 @@ KD_TEMPLATE void KD_TREE::erase(KD_NODE *node){
 	}
 	else{
 		max = node->_left->findMin(node->_dimmension);
-
 		KD_NODE::swap(node,max);
 		std::swap(max->_right , max->_left);
 		if(root == node) root = max;
@@ -129,13 +128,13 @@ KD_TEMPLATE void KD_TREE::erase(KD_NODE *node){
 	}
 }
 
-KD_TEMPLATE KD_NODE * KD_TREE::findNearest(floatPrecision pos[dimmensions]){
+KD_TEMPLATE KD_NODE * KD_TREE::findNearest(const floatPrecision pos[dimmensions]){
 	if(root == 0)
 		return 0;	
 	return root->findNearest(pos,0);
 }
 
-KD_TEMPLATE std::vector<KD_NODE*> KD_TREE::findCloseTo(floatPrecision pos[dimmensions],floatPrecision distance){
+KD_TEMPLATE std::vector<KD_NODE*> KD_TREE::findCloseTo(const floatPrecision pos[dimmensions],floatPrecision distance){
 	std::vector<KD_NODE*> nodes;
 	if(root == 0)
 		return nodes;

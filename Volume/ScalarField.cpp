@@ -47,6 +47,18 @@ VectorField* ScalarField::getGradientField()const{
 	return vf;
 }
 
+ScalarField *ScalarField::blur()const{
+	ScalarField *s = new ScalarField(_dimensions,_boundingAABB);
+	FOR(_dimensions){
+		float v = 0;
+		for(int i=x-1;i<=x+1;i++)for(int j=y-1;j<=y+1;j++)for(int k=z-1;k<=z+1;k++){
+			v += _data[_index(glm::ivec3(i,j,k))];
+		}
+		s->set(glm::ivec3(x,y,z),v/27.0f);
+	}
+	return s;
+}
+
 typedef KDTree<Vertex,3,float> Tree;
 typedef Tree::Node			 Node;
 KDTree<Vertex,3,float>* ScalarField::getSurfacePoints(float iso)const{
@@ -61,17 +73,16 @@ KDTree<Vertex,3,float>* ScalarField::getSurfacePoints(float iso)const{
 		}
 		glm::ivec3 pos(x,y,z);
 		s = get(pos);
-		if(s<0.4) continue;
+		if(s<iso) continue;
 		glm::vec3 p = _getWorldPos(pos);
 		bool surface = true;
-		//for(int Z = z-4;surface && Z<z+4;Z++)if(Z!=z){
 		for(int Y = y-4;surface && Y<y+4;Y++)if(Y!=y){
 			surface = surface && s >= get(glm::ivec3(x,Y,z));
 		}
 		if(surface){
 			Vertex v;
 			v.getPosition() = glm::vec4(p,0);
-			v.setNormal(glm::normalize(glm::vec3(DiffXpm(p),DiffYpm(p),DiffZpm(p))));
+			v.setNormal(glm::normalize(getGradient(p)));
 			tree->insert(glm::value_ptr(p),v);
 		}
 	}
@@ -135,6 +146,9 @@ float ScalarField::DiffXpm(glm::vec3 worldPos)const{
 	return (_data[_index(ip+glm::ivec3(1,0,0))] - _data[_index(ip-glm::ivec3(1,0,0))])/(2*_delta.x);
 }
 
+
+
+
 float ScalarField::DiffYp(glm::vec3 worldPos)const{
 	glm::ivec3 ip = (glm::ivec3)_boundingAABB.getDiscretePosition(worldPos,_dimensions);
 	return (_data[_index(ip+glm::ivec3(0,1,0))] - _data[_index(ip)])/_delta.y;
@@ -148,6 +162,10 @@ float ScalarField::DiffYpm(glm::vec3 worldPos)const{
 	return (_data[_index(ip+glm::ivec3(0,1,0))] - _data[_index(ip-glm::ivec3(0,1,0))])/(2*_delta.y);
 }
 
+
+
+
+
 float ScalarField::DiffZp(glm::vec3 worldPos)const{
 	glm::ivec3 ip = (glm::ivec3)_boundingAABB.getDiscretePosition(worldPos,_dimensions);
 	return (_data[_index(ip+glm::ivec3(0,0,1))] - _data[_index(ip)])/_delta.z;
@@ -160,6 +178,9 @@ float ScalarField::DiffZpm(glm::vec3 worldPos)const{
 	glm::ivec3 ip = (glm::ivec3)_boundingAABB.getDiscretePosition(worldPos,_dimensions);
 	return (_data[_index(ip+glm::ivec3(0,0,1))] - _data[_index(ip-glm::ivec3(0,0,1))])/(2*_delta.z);
 }
+
+
+
 
 float ScalarField::DiffXXpm(glm::vec3 worldPos)const{
 	assert(false && "Not yet implemented");

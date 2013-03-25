@@ -45,6 +45,7 @@ public:
 		_minPos = minPos;
 		_maxPos = maxPos;
 	}
+
 	BoundingAABB(const BoundingAABB &b){
 		_minPos = b._minPos;
 		_maxPos = b._maxPos;
@@ -59,6 +60,9 @@ public:
 		return within(pos.x,_minPos.x,_maxPos.x) && within(pos.y,_minPos.y,_maxPos.y) && within(pos.z,_minPos.z,_maxPos.z);
 	}
 	
+	glm::vec3 &minPos(){return _minPos;}
+	glm::vec3 &maxPos(){return _maxPos;}
+
 	glm::vec3 getInternalPosition(glm::vec3 worldPos)const;
 	glm::vec3 getPosition( glm::vec3 t )const;
 	glm::vec3 getDiscretePosition( glm::vec3 pos, glm::ivec3 dim )const;

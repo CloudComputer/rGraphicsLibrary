@@ -5,7 +5,9 @@
 #include <Util/StopClock.h>
 
 #include <Geometry/Mesh/IndexedMesh.h>
-#include <RBF/RBF.h>
+
+#include <RBF/FastEvaluationRBF.h>
+
 #include <Geometry/CSG/MarchingTetrahedra.h>
 
 #include <gl/glfw.h>
@@ -22,12 +24,7 @@ std::vector<glm::vec4> _points;
 Mesh *m = 0;
 
 
-RBFSystem *rbf0;
-RBFSystem *rbf1;
-RBFSystem *rbf2;
-RBFSystem *rbf3;
-RBFSystem *rbf4;
-RBFSystem *rbf5;
+FastEvaluationRBFSystem<1> *rbf;
 
 
 int meshRes = 10;
@@ -47,7 +44,8 @@ void draw(){
 	glScalef(scale,scale,scale);
 	
 	glColor3f(1,1,1);
-	if(m!=0)
+	
+	if(m != 0)
 		static_cast<IndexedMesh*>(m)->draw();
 	
 	glPointSize(3);
@@ -59,7 +57,7 @@ void draw(){
 			glColor3f(1,0,0);
 		else if(p->w > 0.001)
 			glColor3f(0,1,0);
-		glVertex3f(p->x,p->y,p->z);
+		glVertex3fv(glm::value_ptr(*p));
 	}
 	glEnd();
 	glEnable(GL_LIGHTING);
@@ -115,24 +113,6 @@ void resize(int width,int height){
 
 
 void keyboard(int button,int state){
-	if(button == '1' && state){
-		m = MarchingTetrahedra::March<IndexedMesh>(rbf0,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
-	}
-	if(button == '2' && state){
-		m = MarchingTetrahedra::March<IndexedMesh>(rbf1,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
-	}
-	if(button == '3' && state){
-		m = MarchingTetrahedra::March<IndexedMesh>(rbf2,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
-	}
-	if(button == '4' && state){
-		m = MarchingTetrahedra::March<IndexedMesh>(rbf3,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
-	}
-	if(button == '5' && state){
-		m = MarchingTetrahedra::March<IndexedMesh>(rbf4,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
-	}
-	if(button == '6' && state){
-		m = MarchingTetrahedra::March<IndexedMesh>(rbf5,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
-	}
 }
 
 
@@ -168,86 +148,27 @@ void init(){
 	sw.start();
 
 	glm::vec3 p;
-	for(int i = 0;i<1000;i++){
-		int side = rand() % 6;
-		float x = rand() / float(RAND_MAX);
-		float y = rand() / float(RAND_MAX);
-		glm::vec4 p;
-		p.w = rand() / float(RAND_MAX);
-		p.w = 2*p.w-1;
-		p.w /= 7;
-		
-		switch(side){
-		case 0:
-			p.x = 1 + p.w;
-			p.y = x*2-1;
-			p.z = y*2-1;
-			break;
-		case 1:
-			p.x = -1 - p.w;
-			p.y = x*2-1;
-			p.z = y*2-1;
-			break;
-		case 2:
-			p.y = 1 + p.w;
-			p.x = x*2-1;
-			p.z = y*2-1;
-			break;
-		case 3:
-			p.y = -1 - p.w;
-			p.x = x*2-1;
-			p.z = y*2-1;
-			break;
-		case 4:
-			p.z = 1 + p.w;
-			p.x = x*2-1;
-			p.y = y*2-1;
-			break;
-		case 5:
-			p.z = -1 - p.w;
-			p.x = x*2-1;
-			p.y = y*2-1;
-			break;
-		}
-
-
-		_points.push_back(p);
-		
-/*
+	for(int i = 0;i<10000;i++){
+		p.x = rand() / float(RAND_MAX);
+		p.y = rand() / float(RAND_MAX);
+		p.z = rand() / float(RAND_MAX);
 		p = glm::normalize((p* 2.0f) - 1.0f);
 
 		_points.push_back(glm::vec4((p*1.1f),0.1f));
 		_points.push_back(glm::vec4((p),0.0f));
-		_points.push_back(glm::vec4((p*0.9f),-0.1f));*/
+		_points.push_back(glm::vec4((p*0.9f),-0.1f));
 	}
 	sw.stop();
 	std::cout << "Points created: " << sw.getFractionElapsedSeconds()  << " seconds" << std::endl;
 	sw.restart();
 	
-	std::cout << "InverseMultiQuadricRBF" << std::endl;
-	rbf0 = RBFSystem::CreateFromPoints<InverseMultiQuadricRBF>(_points);
-
-	std::cout<< std::endl << std::endl << "Biharmonic" << std::endl;
-	rbf1 = RBFSystem::CreateFromPoints<Biharmonic>(_points);
-
-	std::cout<< std::endl << std::endl << "Triharmonic" << std::endl;
-	rbf2 = RBFSystem::CreateFromPoints<Triharmonic>(_points);
-
-	std::cout<< std::endl << std::endl << "MultiQuadricRBF" << std::endl;
-	rbf3 = RBFSystem::CreateFromPoints<MultiQuadricRBF>(_points);
-
-	std::cout<< std::endl << std::endl << "GausianRBF" << std::endl;
- 	rbf4 = RBFSystem::CreateFromPoints<GausianRBF>(_points);//*/
-
-	/*
-	std::cout<< std::endl << std::endl << "ThinPlateSplineRBF" << std::endl;
- 	rbf5 = RBFSystem<ThinPlateSplineRBF>::CreateFromPoints(_points); //*/
+ 	rbf = new FastEvaluationRBFSystem<1>(_points);
 	
 	sw.stop();
 	std::cout << "RBFs fitted: " << sw.getFractionElapsedSeconds()  << " seconds" << std::endl;
 	sw.restart();
 
-	m = MarchingTetrahedra::March<IndexedMesh>(rbf0,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
+	//m = MarchingTetrahedra::March<IndexedMesh>(rbf,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
 	
 	sw.stop();
 	std::cout << "Surface extracted: " << sw.getFractionElapsedSeconds()  << " seconds" << std::endl;

@@ -1,11 +1,12 @@
  cmake_minimum_required (VERSION 2.6) 
 
+ file(GLOB Volume_SRC
+    "*.h"
+    "*.hpp"
+    "*.cpp"
+)
 
-set(Volume_SRC LevelSet.cpp ScalarField.cpp VectorField.cpp)
-set(Volume_H   LevelSet.h ScalarField.h VectorField.h Field3D.h)
-set(Volume_HPP   LevelSet.hpp ScalarField.hpp VectorField.hpp Field3D.hpp)
-
-add_library(Volume ${Volume_SRC} ${Volume_H} ${Volume_HPP})
+add_library(Volume ${Volume_SRC})
 
 target_link_libraries(Volume BoundingGeometry)
 

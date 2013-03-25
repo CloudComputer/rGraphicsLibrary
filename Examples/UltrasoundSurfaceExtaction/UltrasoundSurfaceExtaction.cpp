@@ -1,4 +1,5 @@
 #include <fstream>;
+#include <omp.h>
 
 #include <OpenGLHelpers/OpenGLInfo.h>
 #include <Util/StopClock.h>
@@ -9,6 +10,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <Image\Image.h>
+#include <Image\BMPWriter.h>
 
 #include <Geometry\Clustering\Clusterer.h>
 
@@ -88,7 +90,7 @@ const SourceFile files[] = {
 const unsigned int numDatasets = 44;
 
 PointCluster *cluster;
-std::vector<Vertex> surfacePoints;
+std::vector<glm::vec4> surfacePoints;
 	
 int niceCases[]= {3,7,11,14,19,25,31,42};
 const int numNiceCases = 8;
@@ -96,11 +98,9 @@ int _case = 3;
 
 StopClock s(true);
 
-Mesh *m;
-
 glm::ivec2 winSize;
 
-float threshold = 128.0/255;
+float threshold = 98.0/255;
 
 ScalarField *vol = 0;
 KDTree<Vertex,3,float>* points;
@@ -110,16 +110,12 @@ bool mouse0State = false;
 float rx = 0,ry = 0,scale = 1;
 
 
-RBFSystem<InverseMultiQuadricRBF> *rbf0;
-RBFSystem<Biharmonic> *rbf1;
-RBFSystem<Triharmonic> *rbf2;
-RBFSystem<MultiQuadricRBF> *rbf3;
-RBFSystem<GausianRBF> *rbf4;
-RBFSystem<ThinPlateSplineRBF> *rbf5;
-
-
+RBFSystem *rbfs[6];
+Mesh *meshes[] = {0,0,0,0,0,0};
+unsigned int currentMesh = 0;
 int meshRes = 50;
-float bounds = 1.0;
+
+BoundingAABB aabb(glm::vec3(0,0,0),glm::vec3(0,0,0));
 
 void draw(){
 	chkGLErr();
@@ -131,7 +127,7 @@ void draw(){
 	glScalef(scale,scale,scale);
 
 	glColor3f(1,1,1);
-	vol->getBoundingAABB().draw();
+	aabb.draw();
 
 
 	KDTree<Vertex,3,float>::NodeIterator point;
@@ -172,18 +168,19 @@ void draw(){
 
 	
 	glColor3f(1,1,1);
-	static_cast<IndexedMesh*>(m)->draw();
+	if(meshes[currentMesh]!=0)
+		static_cast<IndexedMesh*>(meshes[currentMesh])->draw();
 
-	glPointSize(3);
+	glPointSize(1);
 	glDisable(GL_LIGHTING);
 	glBegin(GL_POINTS);
 	for(auto p = surfacePoints.begin();p != surfacePoints.end();++p){
 		glColor3f(0,0,1);
-		if(p->getPosition().w < -0.00001)
+		if(p->w < -0.00001)
 			glColor3f(1,0,0);
-		else if(p->getPosition().w > 0.000001)
+		else if(p->w > 0.000001)
 			glColor3f(0,1,0);
-		glVertex3f(p->getPosition().x,p->getPosition().y,p->getPosition().z);
+		glVertex3f(p->x,p->y,p->z);
 	}
 	glEnd();
 	glEnable(GL_LIGHTING);
@@ -193,6 +190,7 @@ void draw(){
 	chkGLErr();
 }
 
+void creatMesh(int );
 
 void loadPoints(){
 	if(vol != 0)
@@ -200,7 +198,11 @@ void loadPoints(){
 	StopClock sw;
 	sw.start();
 	
-	vol = ScalarField::ReadFromRawfile(files[niceCases[_case]].path,files[niceCases[_case]].w,files[niceCases[_case]].h,files[niceCases[_case]].d);	
+	auto tmp = ScalarField::ReadFromRawfile(files[niceCases[_case]].path,files[niceCases[_case]].w,files[niceCases[_case]].h,files[niceCases[_case]].d);
+	auto tm2 = tmp->blur();
+	vol = tm2->blur();	
+	delete tmp;
+	delete tm2;
 	
 	std::cout << "Dataset loaded " << files[niceCases[_case]].path << ": " << sw.getFractionElapsedSeconds() << " seconds" << std::endl;
 	sw.restart();
@@ -212,7 +214,7 @@ void loadPoints(){
 	glm::vec3 dir = vol->getBoundingAABB().getPosition(glm::vec3(1,1,1)) - vol->getBoundingAABB().getPosition(glm::vec3(0,0,0));
 	dir /= vol->getDimensions();
 
-	clusters = Clusterer::ClusterPoints(points,glm::length(dir) * 1,50);
+	clusters = Clusterer::ClusterPoints(points,glm::length(dir) * 1,100);
 	std::cout << "Points clustered: " << sw.getFractionElapsedSeconds() << " seconds" << std::endl;
 	sw.restart();
 
@@ -226,65 +228,116 @@ void loadPoints(){
 			cluster = &clusters[i];
 		}
 	}
-
 	auto points = cluster->getPoints()->getAsVector();
-	int s = points.size();
+
+	points.clear();
+	float dist = 0.04;
+	float p[] = {0,-1,0};
+	while(!cluster->getPoints()->empty()){
+		auto node = cluster->getPoints()->findNearest(p);
+		points.push_back(node->get());
+	//	cluster->getPoints()->erase(node);
+		auto nodes = cluster->getPoints()->findCloseTo(node->getPosition(),dist);
+		for(auto n = nodes.begin();n!=nodes.end();++n){
+			cluster->getPoints()->erase(*n);
+		}
+	}
 	
-	float d = 0.005;
-	int inc = 3*s / 9000;
+	
+	int s = points.size();
+	/*
+	glm::vec3 v(0,-1,0);
+	for(int i = s-1;i>=0;i--){
+		if(std::abs(points[i].getPosition().z) > 0.4 ||  std::abs(points[i].getPosition().x) > 0.1){
+			points.erase(points.begin()+i);
+		}
+	}
+//*/
+
+
+	s = points.size();
+	float d = 0.05;
+	int inc = 0.5 + (3.0f*s / 4000);
+	std::cout << inc << std::endl;
+	//inc = 1;
 	surfacePoints.clear();
-	for(int i = 0;i<s;i += inc){
-		glm::vec4 p0,p1,p2;
+	//for(int i = 0;i<s;i += inc){
+	for(int i = 0;i<points.size() && surfacePoints.size() <= 2500000;i++){
+		glm::vec4 p0,p1,p2,p3,p4;
 		
 		glm::vec3 n = points[i].getNormal();
 		if(!(n.x == n.x))
 			continue;
 		glm::vec3 p = glm::vec3(points[i].getPosition());
-
-		p0 = glm::vec4(p + n * d, d);
-		p1 = glm::vec4(p - n * d,-d);
+		
+		p0 = glm::vec4(p + (n * d), d);
+		p1 = glm::vec4(p - (n * d),-d);
 		p2 = glm::vec4(p,0);
+		p3 = glm::vec4(p + n * (2*d), 2*d);
+		p4 = glm::vec4(p - n * (2*d),-2*d);
 
-		surfacePoints.push_back(Vertex(p0,n));
-		surfacePoints.push_back(Vertex(p1,n));
-		surfacePoints.push_back(Vertex(p2,n));
+
+
+		surfacePoints.push_back(p0);
+		surfacePoints.push_back(p1);
+		surfacePoints.push_back(p2);
+		/*surfacePoints.push_back(p3);
+		surfacePoints.push_back(p4);*/
+		
+		
+		aabb.minPos().x = std::min(aabb.minPos().x,p0.x);
+		aabb.minPos().x = std::min(aabb.minPos().x,p1.x);
+		aabb.minPos().y = std::min(aabb.minPos().y,p0.y);
+		aabb.minPos().y = std::min(aabb.minPos().y,p1.y);
+		aabb.minPos().z = std::min(aabb.minPos().z,p0.z);
+		aabb.minPos().z = std::min(aabb.minPos().z,p1.z);
+		
+		aabb.maxPos().x = std::max(aabb.maxPos().x,p0.x);
+		aabb.maxPos().x = std::max(aabb.maxPos().x,p1.x);
+		aabb.maxPos().y = std::max(aabb.maxPos().y,p0.y);
+		aabb.maxPos().y = std::max(aabb.maxPos().y,p1.y);
+		aabb.maxPos().z = std::max(aabb.maxPos().z,p0.z);
+		aabb.maxPos().z = std::max(aabb.maxPos().z,p1.z);
+
 	}
-
 	std::cout << surfacePoints.size() << std::endl;
 
-	std::cout << "InverseMultiQuadricRBF" << std::endl;
-	rbf0 = RBFSystem<InverseMultiQuadricRBF>::CreateFromPoints(surfacePoints);
+}
 
-	std::cout<< std::endl << std::endl << "Biharmonic" << std::endl;
-	rbf1 = RBFSystem<Biharmonic>::CreateFromPoints(surfacePoints);
+void creatMesh(int id){
+	//return;
+	StopClock s1,s2;
+	s1.start();
+	switch(id){
+	case 0:
+		rbfs[id] =  RBFSystem::CreateFromPoints<InverseMultiQuadricRBF>(surfacePoints);
+		break;
+	case 1:
+		rbfs[id] =  RBFSystem::CreateFromPoints<Biharmonic>(surfacePoints);
+		break;
+	case 2:
+		rbfs[id] =  RBFSystem::CreateFromPoints<Triharmonic>(surfacePoints);
+		break;
+	case 3:
+		rbfs[id] =  RBFSystem::CreateFromPoints<MultiQuadricRBF>(surfacePoints);
+		break;
+	case 4:
+		rbfs[id] =  RBFSystem::CreateFromPoints<GausianRBF>(surfacePoints);
+		break;
+	case 5:
+		rbfs[id] =  RBFSystem::CreateFromPoints<ThinPlateSplineRBF>(surfacePoints);
+		break;
+	}
+	s1.stop();
+	s2.restart();
+	meshes[id] = MarchingTetrahedra::March<IndexedMesh>(rbfs[id],aabb,glm::ivec3(meshRes,meshRes,meshRes));
 
-	std::cout<< std::endl << std::endl << "Triharmonic" << std::endl;
-	rbf2 = RBFSystem<Triharmonic>::CreateFromPoints(surfacePoints);
-
-	std::cout<< std::endl << std::endl << "MultiQuadricRBF" << std::endl;
-	rbf3 = RBFSystem<MultiQuadricRBF>::CreateFromPoints(surfacePoints);
-
-	std::cout<< std::endl << std::endl << "GausianRBF" << std::endl;
- 	rbf4 = RBFSystem<GausianRBF>::CreateFromPoints(surfacePoints);//*/
-
-	/*std::cout<< std::endl << std::endl << "ThinPlateSplineRBF" << std::endl;
- 	rbf5 = RBFSystem<ThinPlateSplineRBF>::CreateFromPoints(surfacePoints);*/
-
-	
-	std::cout << "RBFs fitted: " << sw.getFractionElapsedSeconds() << " seconds" << std::endl;
-	sw.restart();
-	
-	m = MarchingTetrahedra::March<IndexedMesh>(rbf0,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
-	
-	sw.stop();
-	std::cout << "Surface extracted: " << sw.getFractionElapsedSeconds()  << " seconds" << std::endl;
-
-
+	std::cout << "Mesh created: " << id << ", Fitting  time: " << s1.getFractionElapsedSeconds() << " sec, Eval/Surface extract time: " << s2.getFractionElapsedSeconds()   << " sec" << std::endl;
 }
 
 int prevScroll = 0;
 void wheel(int i){
-	//scale *= 1+((i-prevScroll)*0.01);
+	scale *= 1+((i-prevScroll)*0.01);
 	threshold += i/255.0;
 	//loadPoints();
 
@@ -298,19 +351,19 @@ if(button == 0)
 
 int mouseX = -1,mouseY;
 void mouseMotion(int x,int y){
-int dx,dy;
-if(mouseX == -1){
+	int dx,dy;
+	if(mouseX == -1){
+		mouseX = x;
+		mouseY = y;
+	}
+	dx = x - mouseX;
+	dy = y - mouseY;
 	mouseX = x;
 	mouseY = y;
-}
-dx = x - mouseX;
-dy = y - mouseY;
-mouseX = x;
-mouseY = y;
-if(mouse0State){
-	rx += dx * 1;
-	ry += dy * 1;
-}
+	if(mouse0State){
+		rx += dx * 1;
+		ry += dy * 1;
+	}
 }
 
 void keyboard(int button,int state){
@@ -329,22 +382,22 @@ void keyboard(int button,int state){
 		loadPoints();
 	}
 	if(button == '1' && state){
-		m = MarchingTetrahedra::March<IndexedMesh>(rbf0,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
+		currentMesh = 0;
 	}
 	if(button == '2' && state){
-		m = MarchingTetrahedra::March<IndexedMesh>(rbf1,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
+		currentMesh = 1;
 	}
 	if(button == '3' && state){
-		m = MarchingTetrahedra::March<IndexedMesh>(rbf2,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
+		currentMesh = 2;
 	}
 	if(button == '4' && state){
-		m = MarchingTetrahedra::March<IndexedMesh>(rbf3,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
+		currentMesh = 3;
 	}
 	if(button == '5' && state){
-		m = MarchingTetrahedra::March<IndexedMesh>(rbf4,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
+		currentMesh = 4;
 	}
 	if(button == '6' && state){
-		m = MarchingTetrahedra::March<IndexedMesh>(rbf5,BoundingAABB(glm::vec3(-bounds,-bounds,-bounds),glm::vec3(bounds,bounds,bounds)),glm::ivec3(meshRes,meshRes,meshRes));
+		currentMesh = 5;
 	}
 }
 
@@ -398,6 +451,54 @@ void init(){
 	chkGLErr();
 }
 
+glm::vec3 col(float v){
+	if(v<-1) return glm::vec3(1,0,0);
+	if(v>1) return glm::vec3(0,1,0);
+	
+	if(v==0) return glm::vec3(1,1,1);
+	if(v<0) return glm::vec3(1-(1+v),1+v,1+v);
+	return glm::vec3(1-v,v,1-v);
+	
+
+}
+
+void createImages(){
+	return;
+	std::cout << "Creating images" << std::endl;
+	int w = 1024,h;
+	glm::vec3 tmp = aabb.maxPos() - aabb.minPos();
+	float ar = tmp.x / tmp.z;
+	h = w * ar;
+	float y = aabb.maxPos().y + aabb.minPos().y;
+	y *= 0.5;
+	//float *data = new float[w*h];
+	for(int img = 0;img<5;img++){
+		BMPWriter bmp(w,h);
+		float mm = 999999,mx=-999999;
+		for(int a = 0;a<w;a++)for(int b = 0;b<h;b++){
+			float x = a;
+			float z = b;
+			x /= w;
+			z /= h;
+			float v = rbfs[img]->eval(glm::vec3(x,y,z));
+			bmp.setPixel(a,b,col(v));
+			//data[a+b*w] = v;
+			if(v<mm) mm = v;
+			if(v>mx) mx = v;
+		}
+		std::stringstream filename;
+		filename << "img" << img << ".bmp" << " " << mm << " " << mx << std::endl;
+		bmp.save(filename.str().c_str());
+
+		std::cout << "Created bmp " << filename.str() << std::endl;
+	}
+	std::cout << "Images created" << std::endl;
+}
+
+struct __counter{
+	int c;
+};
+
 int main( int argc, char* argv[] )
 {
 	if (glfwInit() != GL_TRUE){
@@ -439,10 +540,28 @@ int main( int argc, char* argv[] )
 	glfwSetMousePosCallback(GLFWmouseposfun(mouseMotion));
 	glfwSetMouseWheelCallback(GLFWmousewheelfun(wheel));
 
-	while(true){
-		if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS)
-			break;
-		draw();
+	__counter *c = new __counter;
+	c->c = 5;
+	int meshes = 5;
+	#pragma omp parallel num_threads(6) shared(c)
+	{
+		if(omp_get_thread_num()!=0){
+			creatMesh(omp_get_thread_num()-1);
+			c->c--;
+			if(c->c  == 0){
+				createImages();
+			}
+		}else{
+			while(true){
+				if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS)
+					break;
+				draw();
+				//std::cout << c->c << std::endl;
+			}	
+		}
 	}
+
+
+	
 	return 0;
 }

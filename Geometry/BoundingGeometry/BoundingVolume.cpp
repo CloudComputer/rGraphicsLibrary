@@ -2,7 +2,7 @@
 
 #include <Math/Interpolator.h>
 
-
+#include <cmath>
 
 
 BoundingVolume::BoundingVolume(void)
@@ -29,12 +29,16 @@ glm::vec3 BoundingAABB::getInternalPosition(glm::vec3 worldPos)const
 	return pos;
 }
 
+double round(double a){
+	return std::floor(a+0.5);
+}
+
 glm::vec3 BoundingAABB::getDiscretePosition( glm::vec3 worldPos, glm::ivec3 dim )const
 {
-
+	//TODO check if the -1 one is correct
 	glm::vec3 oPos;
-	oPos.x = (dim.x-1) * (worldPos.x - _minPos.x) / (_maxPos.x - _minPos.x);
-	oPos.y = (dim.y-1) * (worldPos.y - _minPos.y) / (_maxPos.y - _minPos.y);
-	oPos.z = (dim.z-1) * (worldPos.z - _minPos.z) / (_maxPos.z - _minPos.z);
+	oPos.x = round((dim.x-1) * (worldPos.x - _minPos.x) / (_maxPos.x - _minPos.x));
+	oPos.y = round((dim.y-1) * (worldPos.y - _minPos.y) / (_maxPos.y - _minPos.y));
+	oPos.z = round((dim.z-1) * (worldPos.z - _minPos.z) / (_maxPos.z - _minPos.z));
 	return oPos;
 }

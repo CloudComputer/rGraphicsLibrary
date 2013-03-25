@@ -37,10 +37,10 @@ class KDNode: public Object{
 	unsigned int _dimmension;
 	floatPrecision _pos[dimmensions];
 
-	bool _goRight(floatPrecision pos[dimmensions])const;
-	bool _compare(floatPrecision pos[dimmensions])const;
+	bool _goRight(const floatPrecision pos[dimmensions])const;
+	bool _compare(const floatPrecision pos[dimmensions])const;
 public:
-	KDNode(KD_TREE *tree,floatPrecision pos[dimmensions],const dataType &data,KDNode *parent = 0);
+	KDNode(KD_TREE *tree,const floatPrecision pos[dimmensions],const dataType &data,KDNode *parent = 0);
 	virtual ~KDNode();
 	
 	bool isLeaf()const;
@@ -58,11 +58,11 @@ public:
 	KDNode *findMin(unsigned int dimmensions); 
 	KDNode *findMax(unsigned int dimmensions); 
 
-	KDNode *insert(floatPrecision pos[dimmensions], const dataType &data);
-	KDNode *find(floatPrecision pos[dimmensions]);
+	KDNode *insert(const floatPrecision pos[dimmensions], const dataType &data);
+	KDNode *find(const floatPrecision pos[dimmensions]);
 
-	KD_NODE* findNearest(floatPrecision pos[dimmensions],KDNode *nearest);
-	void findCloseTo(floatPrecision pos[dimmensions],floatPrecision squaredDistance,std::vector<KDNode*> &nodes);
+	KD_NODE* findNearest(const floatPrecision pos[dimmensions],KDNode *nearest);
+	void findCloseTo(const floatPrecision pos[dimmensions],const floatPrecision squaredDistance,std::vector<KDNode*> &nodes);
 
 	static void swap(KD_NODE* n0,KD_NODE* n1);
 	
@@ -107,11 +107,11 @@ public:
 	Node* findMin(unsigned int dimmensions);
 	Node* findMax(unsigned int dimmensions);
 
-	Node *insert(floatPrecision pos[dimmensions], const dataType &data);
-	Node *find(floatPrecision pos[dimmensions]);
+	Node *insert(const floatPrecision pos[dimmensions], const dataType &data);
+	Node *find(const floatPrecision pos[dimmensions]);
 	
-	Node *findNearest(floatPrecision pos[dimmensions]);
-	std::vector<Node*> findCloseTo(floatPrecision pos[dimmensions],floatPrecision distance);
+	Node *findNearest(const floatPrecision pos[dimmensions]);
+	std::vector<Node*> findCloseTo(const floatPrecision pos[dimmensions],const floatPrecision distance);
 
 	virtual std::string toString() const;
 };
