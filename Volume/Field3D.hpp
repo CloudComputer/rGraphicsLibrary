@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <iostream>
+
 template <typename T>
 Field3D<T>::Field3D(glm::ivec3 dimensions,BoundingAABB boundingAABB):
 _dimensions(dimensions),
@@ -16,6 +18,7 @@ _boundingAABB(boundingAABB)
 {
 	_delta =_boundingAABB.getPosition(glm::vec3(1,1,1)) - _boundingAABB.getPosition(glm::vec3(0,0,0));
 	_delta /= _dimensions;
+	std::cout << _delta.x << " " << _delta.y << " " << _delta.z << std::endl;
 	_data = 0;
 	_allocate();
 }

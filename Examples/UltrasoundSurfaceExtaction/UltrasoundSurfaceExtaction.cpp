@@ -114,7 +114,7 @@ float rx = 0,ry = 0,scale = 1;
 RBFSystem *rbfs[6];
 Mesh *meshes[] = {0,0,0,0,0,0};
 unsigned int currentMesh = 0;
-int meshRes = 50;
+int meshRes = 30;
 
 BoundingAABB aabb(glm::vec3(0,0,0),glm::vec3(0,0,0));
 
@@ -199,12 +199,13 @@ void loadPoints(){
 	StopClock sw;
 	sw.start();
 	
+	//vol = ScalarField::ReadFromRawfile(files[niceCases[_case]].path,files[niceCases[_case]].w,files[niceCases[_case]].h,files[niceCases[_case]].d);
 	auto tmp = ScalarField::ReadFromRawfile(files[niceCases[_case]].path,files[niceCases[_case]].w,files[niceCases[_case]].h,files[niceCases[_case]].d);
-	auto tm2 = tmp->blur();
-	vol = tm2->blur();	
-	delete tmp;
-	delete tm2;
-	
+	////auto tm2 = tmp->blur();
+	vol = tmp->blur();	
+	//delete tmp;
+	////delete tm2;
+	//
 	std::cout << "Dataset loaded " << files[niceCases[_case]].path << ": " << sw.getFractionElapsedSeconds() << " seconds" << std::endl;
 	sw.restart();
 
@@ -232,7 +233,8 @@ void loadPoints(){
 	auto points = cluster->getPoints()->getAsVector();
 
 	points.clear();
-	float dist = 0.029;
+	float dist = 0.03;
+	//dist = 0.019;
 	float p[] = {0,-1,0};
 	while(!cluster->getPoints()->empty()){
 		auto node = cluster->getPoints()->findNearest(p);
@@ -246,24 +248,24 @@ void loadPoints(){
 	
 	
 	int s = points.size();
-	/*
-	glm::vec3 v(0,-1,0);
-	for(int i = s-1;i>=0;i--){
-		if(std::abs(points[i].getPosition().z) > 0.4 ||  std::abs(points[i].getPosition().x) > 0.1){
-			points.erase(points.begin()+i);
-		}
-	}
+	
+	//glm::vec3 v(0,-1,0);
+	//for(int i = s-1;i>=0;i--){
+	//	if(std::abs(points[i].getPosition().z) > 0.18 ||  std::abs(points[i].getPosition().x) > 0.3){
+	//		points.erase(points.begin()+i);
+	//	}
+	//}
 //*/
 
 
 	s = points.size();
-	float d = 0.025;
+	float d = 0.05;
 	int inc = 0.5 + (3.0f*s / 4000);
 	std::cout << inc << std::endl;
 	//inc = 1;
 	surfacePoints.clear();
 	//for(int i = 0;i<s;i += inc){
-	for(int i = 0;i<points.size() && surfacePoints.size() <= 2500000;i++){
+	for(int i = 0;i<points.size();i++){
 		glm::vec4 p0,p1,p2,p3,p4;
 		
 		glm::vec3 n = points[i].getNormal();
@@ -274,9 +276,10 @@ void loadPoints(){
 		p0 = glm::vec4(p + (n * d), d);
 		p1 = glm::vec4(p - (n * d),-d);
 		p2 = glm::vec4(p,0);
-		p3 = glm::vec4(p + n * (2*d), 2*d);
-		p4 = glm::vec4(p - n * (2*d),-2*d);
 
+		/*p3 = glm::vec4(p + n * (2*d), 2*d);
+		p4 = glm::vec4(p - n * (2*d),-2*d);
+*/
 
 
 		surfacePoints.push_back(p0);
@@ -309,24 +312,25 @@ void creatMesh(int id){
 	//return;
 	StopClock s1,s2;
 	s1.start();
+	float w = 0.5;
 	switch(id){
 	case 0:
-		rbfs[id] =  RBFSystem::CreateFromPoints<InverseMultiQuadricRBF>(surfacePoints);
+		rbfs[id] =  RBFSystem::CreateFromPoints<InverseMultiQuadricRBF>(surfacePoints,w);
 		break;
 	case 1:
-		rbfs[id] =  RBFSystem::CreateFromPoints<Biharmonic>(surfacePoints);
+		rbfs[id] =  RBFSystem::CreateFromPoints<Biharmonic>(surfacePoints,w);
 		break;
 	case 2:
-		rbfs[id] =  RBFSystem::CreateFromPoints<Triharmonic>(surfacePoints);
+		rbfs[id] =  RBFSystem::CreateFromPoints<Triharmonic>(surfacePoints,w);
 		break;
 	case 3:
-		rbfs[id] =  RBFSystem::CreateFromPoints<MultiQuadricRBF>(surfacePoints);
+		rbfs[id] =  RBFSystem::CreateFromPoints<MultiQuadricRBF>(surfacePoints,w);
 		break;
 	case 4:
-		rbfs[id] =  RBFSystem::CreateFromPoints<GausianRBF>(surfacePoints);
+		rbfs[id] =  RBFSystem::CreateFromPoints<GausianRBF>(surfacePoints,w);
 		break;
 	case 5:
-		rbfs[id] =  RBFSystem::CreateFromPoints<ThinPlateSplineRBF>(surfacePoints);
+		rbfs[id] =  RBFSystem::CreateFromPoints<ThinPlateSplineRBF>(surfacePoints,w);
 		break;
 	}
 	s1.stop();
@@ -543,24 +547,32 @@ int main( int argc, char* argv[] )
 
 	__counter *c = new __counter;
 	c->c = 5;
-	int meshes = 5;
-	#pragma omp parallel num_threads(6) shared(c)
-	{
-		if(omp_get_thread_num()!=0){
-			creatMesh(omp_get_thread_num()-1);
-			c->c--;
-			if(c->c  == 0){
-				createImages();
-			}
-		}else{
-			while(true){
-				if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS)
-					break;
-				draw();
-				//std::cout << c->c << std::endl;
-			}	
-		}
-	}
+	creatMesh(1);
+	while(true){
+		if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS)
+			break;
+		draw();
+		//std::cout << c->c << std::endl;
+	}	
+
+	//int meshes = 5;
+	//#pragma omp parallel num_threads(6) shared(c)
+	//{
+	//	if(omp_get_thread_num()!=0){
+	//		creatMesh(omp_get_thread_num()-1);
+	//		c->c--;
+	//		if(c->c  == 0){
+	//			createImages();
+	//		}
+	//	}else{
+	//		while(true){
+	//			if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS)
+	//				break;
+	//			draw();
+	//			//std::cout << c->c << std::endl;
+	//		}	
+	//	}
+	//}
 
 
 	

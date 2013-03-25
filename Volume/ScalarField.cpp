@@ -51,8 +51,10 @@ ScalarField *ScalarField::blur()const{
 	ScalarField *s = new ScalarField(_dimensions,_boundingAABB);
 	FOR(_dimensions){
 		float v = 0;
-		for(int i=x-1;i<=x+1;i++)for(int j=y-1;j<=y+1;j++)for(int k=z-1;k<=z+1;k++){
-			v += _data[_index(glm::ivec3(i,j,k))];
+		for(int i=x-1;i<=x+1;i++)
+			for(int j=y-1;j<=y+1;j++)
+				for(int k=z-1;k<=z+1;k++){
+					v += _data[_index(glm::ivec3(i,j,k))];
 		}
 		s->set(glm::ivec3(x,y,z),v/27.0f);
 	}

@@ -119,13 +119,14 @@ public:
 	virtual float eval(glm::vec3 worldPos)const;
 	virtual std::string toString()const{return "RBFSystem";}
 
-	template <typename KernelType> static RBFSystem *CreateFromPoints(std::vector<glm::vec4> &tree);
-	template <typename KernelType> static RBFSystem *FastFitting(std::vector<glm::vec4> &tree);
+	template <typename KernelType> static RBFSystem *CreateFromPoints(std::vector<glm::vec4> &points,float w = 0);
+	//template <typename KernelType> 
+	static RBFSystem *FastFitting(std::vector<glm::vec4> &points);
 };
 
 
 template <typename KernelType>
-RBFSystem *RBFSystem::CreateFromPoints(std::vector<glm::vec4> &points){
+RBFSystem *RBFSystem::CreateFromPoints(std::vector<glm::vec4> &points,float w){
 	RBFSystem *rbfs = new RBFSystem();
 	
 	rbfs->_min = glm::vec3(points[0]);
@@ -154,7 +155,7 @@ RBFSystem *RBFSystem::CreateFromPoints(std::vector<glm::vec4> &points){
 			float v = rbf->eval(b.x,b.y,b.z);
 			A(i,j) = v;
 		}
-		A(i,i) -= 0.05;
+		A(i,i) -= w;
 		A(i,size+0) = 1;
 		A(i,size+1) = c.x;
 		A(i,size+2) = c.y;
@@ -172,7 +173,7 @@ RBFSystem *RBFSystem::CreateFromPoints(std::vector<glm::vec4> &points){
 	std::cout << A  << std::endl  << std::endl;
 	std::cout << p  << std::endl  << std::endl;*/
 	
-	/*
+	//*
 	{
 		StopClock s;
 		s.start();
