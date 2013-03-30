@@ -144,7 +144,6 @@ int main( int argc, char* argv[] )
 	init();
 
 	glfwSetWindowSizeCallback(GLFWwindowsizefun(resize));
-
 	glfwSetMouseButtonCallback(GLFWmousebuttonfun(mouseButton));
 	glfwSetMousePosCallback(GLFWmouseposfun(mouseMotion));
 	glfwSetMouseWheelCallback(GLFWmousewheelfun(wheel));

@@ -7,12 +7,12 @@ add_definitions( -DGLEW_STATIC)
 
 INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
 
-add_executable(RBFExample RBFExample.cpp)
+add_executable(LeastSquarePlane LeastSquarePlane.cpp)
 
 
-target_link_libraries(RBFExample Engine Util RBF BoundingGeometry Math Mesh CSG)
+target_link_libraries(LeastSquarePlane Math Util Engine glew BoundingGeometry)
 
-set_target_properties(RBFExample
+set_target_properties(LeastSquarePlane
   PROPERTIES
   FOLDER "Examples")
   

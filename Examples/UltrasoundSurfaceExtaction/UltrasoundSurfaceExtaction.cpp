@@ -25,6 +25,8 @@
 
 #include <Volume\ScalarField.h>
 
+#include <Math\Plane.h>
+
 #include "RBF\RBF.h"
 
 struct SourceFile{
@@ -229,6 +231,17 @@ void loadPoints(){
 			cluster = &clusters[i];
 		}
 	}
+
+	for(auto node = cluster->getPoints()->begin(); node != cluster->getPoints()->end() ; ++node){
+		auto close = cluster->getPoints()->findNNearest(node->getPosition(),20);
+		std::vector<glm::vec3> poses;
+		for(auto c = close.begin(); c!=close.end();++c){
+			poses.push_back(glm::vec3((*c)->getPosition()[0],(*c)->getPosition()[1],(*c)->getPosition()[2]));
+		}
+		Plane p(poses);
+		node->get().setNormal(p.getNormal());
+	}
+
 	auto points = cluster->getPoints()->getAsVector();
 
 	points.clear();
@@ -245,6 +258,8 @@ void loadPoints(){
 	}
 	
 	
+	//return;
+
 	int s = points.size();
 	/*
 	glm::vec3 v(0,-1,0);
