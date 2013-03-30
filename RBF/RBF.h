@@ -119,8 +119,12 @@ public:
 	virtual float eval(glm::vec3 worldPos)const;
 	virtual std::string toString()const{return "RBFSystem";}
 
-	template <typename KernelType> static RBFSystem *CreateFromPoints(std::vector<glm::vec4> &tree);
-	template <typename KernelType> static RBFSystem *FastFitting(std::vector<glm::vec4> &tree);
+	float meanSqError(const std::vector<glm::vec4> &points)const;
+
+	template <typename KernelType> static RBFSystem *CreateFromPoints(std::vector<glm::vec4> &points);
+	template <typename KernelType> static RBFSystem *FastFitting(std::vector<glm::vec4> &points,float accuracy = 0){
+		return new RBFSystem();
+	}
 };
 
 
@@ -232,9 +236,9 @@ RBFSystem *RBFSystem::CreateFromPoints(std::vector<glm::vec4> &points){
 
 	//Eigen::VectorXf x = A.colPivHouseholderQr().solve(p);
 	Eigen::VectorXf x = A.partialPivLu().solve(p);
-	double relative_error = (A*x - p).norm() / p.norm(); // norm() is L2 norm
+	//double relative_error = (A*x - p).norm() / p.norm(); // norm() is L2 norm
 	//std::cout << A.norm()  << " " << A.determinant() << "" <<  std::endl;
-	std::cout << "\tRelative error is:" << relative_error <<  std::endl;
+	//std::cout << "\tRelative error is:" << relative_error <<  std::endl;
 	//std::cout << x  << std::endl  << std::endl;
 	for(int i = 0;i<size;i++){
 		rbfs->_kernels[i]->setWeight(x(i));
@@ -244,6 +248,7 @@ RBFSystem *RBFSystem::CreateFromPoints(std::vector<glm::vec4> &points){
 	rbfs->_trend._c[2] = x(size+2);
 	rbfs->_trend._c[3] = x(size+3);
 	
+	//std::cout << "meanSqError is: " <<  rbfs->meanSqError(points);
 
 	return rbfs;
 }

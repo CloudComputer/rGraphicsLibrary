@@ -13,7 +13,6 @@ set_target_properties(glew
   FOLDER "ext/glew")
 
 
-add_definitions( -DGLEW_STATIC)
 
 add_executable(glewinfo glewinfo.c)
 add_executable(visualinfo visualinfo.c)

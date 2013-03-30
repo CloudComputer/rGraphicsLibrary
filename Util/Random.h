@@ -13,6 +13,7 @@ class Random{
 	template <typename F> F __getMinMax(F min,F max);
 
 public:
+	static Random* getRandomGenerator(int seed = 0);
 	virtual ~Random();
 	
 	void seed();
@@ -24,6 +25,13 @@ public:
 	
 	glm::vec3 getInBox(const BoundingAABB &_aabb);
 	std::vector<glm::vec3> getInBox(const BoundingAABB &_aabb,int amount);
+	
+	glm::vec4 randomPointCloseToCubeSurface(float dist);
+	std::vector<glm::vec4> randomPointsCloseToCubeSurface(int amount,float dist = 0.1);
+	
+	glm::vec3 randomPointOnSphereSurface();
+	glm::vec4 randomPointCloseToSphereSurface(float dist);
+	std::vector<glm::vec4> randomPointsCloseToSphereSurface(int amount,float dist = 0.1);
 
 };
 

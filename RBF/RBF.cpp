@@ -1,5 +1,13 @@
 #include "RBF.h"
 
+float RBFSystem::meanSqError(const std::vector<glm::vec4> &points)const{
+	float d = 0,dx;
+	for(auto p = points.begin();p!=points.end();p++){
+		dx =  p->w - eval(glm::vec3(*p));
+		d += dx*dx;
+	}
+	return d/points.size();
+}
 
 float RBFSystem::eval(glm::vec3 worldPos)const{
 	glm::vec3 c = glm::vec3(worldPos - _min.x) / (_max.x - _min.x);

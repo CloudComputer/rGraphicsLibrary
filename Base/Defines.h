@@ -1,0 +1,10 @@
+#ifndef _DEFINES_H_
+#define _DEFINES_H_
+
+#define RGL_EXIT_CODE_OK						0
+#define RGL_EXIT_CODE_ENGINE_INIT_FAILURE		1
+#define RGL_EXIT_CODE_ENGINE_ALREADY_CREATED	2
+
+
+
+#endif
