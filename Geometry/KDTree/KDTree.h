@@ -22,6 +22,12 @@ KD_TEMPLATE class KDNode;
 
 #include "KDIterator.hpp"
 
+KD_TEMPLATE
+struct __KD_NEAR_NODE__{
+	KD_NODE *node;
+	float sqDist;
+	bool operator<(const __KD_NEAR_NODE__<KD_TYPE> &rhs) const { return sqDist > rhs.sqDist; }
+};
 
 template <typename dataType,unsigned int dimmensions,typename floatPrecision = double> 
 class KDNode: public Object{
@@ -62,6 +68,7 @@ public:
 	KDNode *find(const floatPrecision pos[dimmensions]);
 
 	KD_NODE* findNearest(const floatPrecision pos[dimmensions],KDNode *nearest);
+	void findNNearest(const floatPrecision pos[dimmensions],int amount,std::vector<__KD_NEAR_NODE__<KD_TYPE>> &current);
 	void findCloseTo(const floatPrecision pos[dimmensions],const floatPrecision squaredDistance,std::vector<KDNode*> &nodes);
 
 	static void swap(KD_NODE* n0,KD_NODE* n1);
@@ -112,6 +119,7 @@ public:
 	
 	Node *findNearest(const floatPrecision pos[dimmensions]);
 	std::vector<Node*> findCloseTo(const floatPrecision pos[dimmensions],const floatPrecision distance);
+	std::vector<Node*> findNNearest(const floatPrecision pos[dimmensions],int amount);
 
 	virtual std::string toString() const;
 };

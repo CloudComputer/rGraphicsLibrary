@@ -372,4 +372,59 @@ KD_TEMPLATE std::string KD_NODE::toString()const{
 	return ss.str();
 }
 
+KD_TEMPLATE void KD_NODE::findNNearest(const floatPrecision pos[dimmensions],int amount,std::vector<__KD_NEAR_NODE__<KD_TYPE>> &current){
+	float sqDist = __sqDist<KD_TYPE>(pos,_pos);
+	if(current.size() < amount){
+		__KD_NEAR_NODE__<KD_TYPE> holder;
+		holder.node = this;
+		holder.sqDist = sqDist;
+		current.push_back(holder);
+		std::sort(current.begin(),current.end());
+	}
+	else if(sqDist<=current[0].sqDist){
+		__KD_NEAR_NODE__<KD_TYPE> holder;
+		holder.node = this;
+		holder.sqDist = sqDist;
+		current.push_back(holder);
+		std::sort(current.begin(),current.end());
+		while(current.size()>amount){
+			current.erase(current.begin());
+		}
+	}
+	
+	float d;
+	bool right = false,left = false;
+	if(current.size()<amount){
+		left = !isLeftLeaf();
+		right = !isRightLeaf();
+	}
+	else if(_goRight(pos)){
+		if(!isRightLeaf()){
+			right = true;
+		}
+		if(!isLeftLeaf()){
+			d = _pos[_dimmension] - pos[_dimmension];
+			if(d*d<=current[0].sqDist)
+				left = true;
+		}
+	}else{
+		if(!left && !isLeftLeaf()){
+			left = true;
+		}
+		if(!right && !isRightLeaf()){
+			d = _pos[_dimmension] - pos[_dimmension];
+			if(d*d<=current[0].sqDist)
+				right = true;
+		}
+	}
+	if(right){
+		_right->findNNearest(pos,amount,current);
+	}
+	if(left){
+		_left->findNNearest(pos,amount,current);
+	}
+
+}
+	
+
 #endif

@@ -161,4 +161,16 @@ KD_TEMPLATE std::vector<dataType> KD_TREE::getAsVector(){
 }
 
 
+KD_TEMPLATE std::vector<KD_NODE*> KD_TREE::findNNearest(const floatPrecision pos[dimmensions],int amount){
+	std::vector<__KD_NEAR_NODE__<KD_TYPE>> nearnodes;
+	std::vector<Node*> nodes;
+	if(root == 0)
+		return nodes;
+	root->findNNearest(pos,amount,nearnodes);
+	for(auto n = nearnodes.begin();n!=nearnodes.end();++n){
+		nodes.push_back(n->node);
+	}
+	return nodes;
+}
+
 #endif
