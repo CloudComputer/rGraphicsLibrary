@@ -34,6 +34,8 @@ add_definitions(-DGLSL_DIR="${GLSL_FOLDER}")
 add_definitions(-DMODELS_DIR="${MODELS_FOLDER}")
 add_definitions(-DEXR_IMAGES_DIR="${EXR_IMAGES_FOLDER}")
 
+add_definitions( -DGLEW_STATIC)
+add_definitions( -D_USE_MATH_DEFINES)
 
 #add_definitions(-DNCHOLMOD)
 
@@ -57,6 +59,7 @@ add_subdirectory(glsl)
 # add_subdirectory(ext/eigen)
 
 add_subdirectory(Base)
+add_subdirectory(Engine)
 add_subdirectory(FluidSimulator)
 add_subdirectory(Image)
 add_subdirectory(OpenEXRHelpers)
