@@ -1,6 +1,6 @@
 #include "RBF.h"
 
-float RBFSystem::meanSqError(const std::vector<glm::vec4> &points)const{
+float RBFSystem::meanSqError(const std::vector<glm::vec4> &points){
 	float d = 0,dx;
 	for(auto p = points.begin();p!=points.end();p++){
 		dx =  p->w - eval(glm::vec3(*p));
@@ -9,7 +9,7 @@ float RBFSystem::meanSqError(const std::vector<glm::vec4> &points)const{
 	return d/points.size();
 }
 
-float RBFSystem::eval(glm::vec3 worldPos)const{
+float RBFSystem::eval(glm::vec3 worldPos){
 	glm::vec3 c = glm::vec3(worldPos - _min.x) / (_max.x - _min.x);
 
 	float v = _trend.eval(c.x,c.y,c.z);

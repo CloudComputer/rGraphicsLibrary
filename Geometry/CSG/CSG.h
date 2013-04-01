@@ -11,7 +11,7 @@ public:
 	CSG(){}
 	virtual ~CSG(){}
 
-	virtual float eval(glm::vec3 worldPos)const = 0;
+	virtual float eval(glm::vec3 worldPos) = 0;
 };
 
 
@@ -26,7 +26,7 @@ class CSGCombine : public CSG{
 	CSGOperation _operation;
 public:
 	CSGCombine(CSG *c0, CSG *c1,CSGOperation _operation);
-	virtual float eval(glm::vec3 worldPos) const;
+	virtual float eval(glm::vec3 worldPos);
 
 	virtual std::string toString()const;
 };
@@ -41,5 +41,7 @@ public:
 	
 	virtual std::string toString()const;
 };
+
+#include "CSGCache.h"
 
 #endif

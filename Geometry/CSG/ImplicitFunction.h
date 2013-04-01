@@ -9,11 +9,11 @@ public:
 	ImplicitFunction(){};
 	virtual ~ImplicitFunction(){};
 
-	virtual float eval(float x,float y,float z) const{
+	virtual float eval(float x,float y,float z){
 		return eval(glm::vec3(x,y,z));
 	}
 
-	virtual float eval(glm::vec3 worldPos)const = 0;
+	virtual float eval(glm::vec3 worldPos) = 0;
 };
 
 

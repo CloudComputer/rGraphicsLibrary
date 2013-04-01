@@ -51,8 +51,10 @@ ScalarField *ScalarField::blur()const{
 	ScalarField *s = new ScalarField(_dimensions,_boundingAABB);
 	FOR(_dimensions){
 		float v = 0;
-		for(int i=x-1;i<=x+1;i++)for(int j=y-1;j<=y+1;j++)for(int k=z-1;k<=z+1;k++){
-			v += _data[_index(glm::ivec3(i,j,k))];
+		for(int i=x-1;i<=x+1;i++)
+			for(int j=y-1;j<=y+1;j++)
+				for(int k=z-1;k<=z+1;k++){
+					v += _data[_index(glm::ivec3(i,j,k))];
 		}
 		s->set(glm::ivec3(x,y,z),v/27.0f);
 	}
@@ -67,7 +69,8 @@ KDTree<Vertex,3,float>* ScalarField::getSurfacePoints(float iso)const{
 
 	glm::ivec3 dx(1,0,0),dy(0,1,0),dz(0,0,1);
 
-	FOR(_dimensions){//if(!(z == 0||z==_dimensions.z - 1 || y == 0||y==_dimensions.y - 1 || x == 0||x==_dimensions.x - 1)){
+	for(int x = 0;x<_dimensions.x;x++)for(int z = 0;z<_dimensions.z;z++)for(int y = 4;y<_dimensions.y-5;y++){
+	//FOR(_dimensions){//if(!(z == 0||z==_dimensions.z - 1 || y == 0||y==_dimensions.y - 1 || x == 0||x==_dimensions.x - 1)){
 		if(y < 4 || y >= _dimensions.y-5){
 			continue;
 		}
@@ -84,6 +87,8 @@ KDTree<Vertex,3,float>* ScalarField::getSurfacePoints(float iso)const{
 			v.getPosition() = glm::vec4(p,0);
 			v.setNormal(glm::normalize(getGradient(p)));
 			tree->insert(glm::value_ptr(p),v);
+
+			y=_dimensions.y;
 		}
 	}
 	return tree;
@@ -238,7 +243,7 @@ ScalarField* ScalarField::ReadFromRawfile(const char *filename,unsigned int w,un
 	y = h / m;
 	z = d / m;
 
-	z *= 2.9;
+	z *= 3.0;
 
 	if(bps == 1){
 		ScalarField *s = new ScalarField(glm::ivec3(w,h,d),BoundingAABB(glm::vec3(-x,-y,-z),glm::vec3(x,y,z)));

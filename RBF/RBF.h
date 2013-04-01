@@ -8,7 +8,7 @@
 #include "Geometry\KDTree\KDTree.h"
 #include "Geometry\Mesh\Vertex.h"
 
-#include "Geometry/CSG/ImplicitFunction.h"
+#include "Geometry/CSG/CSG.h"
 
 
 #include "Math\MatrixInversion.h"
@@ -105,7 +105,7 @@ public:
 
 
 
-class RBFSystem : public ImplicitFunction{
+class RBFSystem : public CSG{
 	struct TrendFunction{
 		float _c[4];
 		float eval(float x,float y,float z)const{return _c[0] + x * _c[1] + y * _c[2] + z* _c[3];}
@@ -116,12 +116,12 @@ class RBFSystem : public ImplicitFunction{
 	glm::vec3 _min,_max;
 	std::vector<RBF*> _kernels;
 public:
-	virtual float eval(glm::vec3 worldPos)const;
+	virtual float eval(glm::vec3 worldPos);
 	virtual std::string toString()const{return "RBFSystem";}
 
-	float meanSqError(const std::vector<glm::vec4> &points)const;
+	float meanSqError(const std::vector<glm::vec4> &points);
 
-	template <typename KernelType> static RBFSystem *CreateFromPoints(std::vector<glm::vec4> &points);
+	template <typename KernelType> static RBFSystem *CreateFromPoints(std::vector<glm::vec4> &points,float w = 0);
 	template <typename KernelType> static RBFSystem *FastFitting(std::vector<glm::vec4> &points,float accuracy = 0){
 		return new RBFSystem();
 	}
@@ -129,7 +129,7 @@ public:
 
 
 template <typename KernelType>
-RBFSystem *RBFSystem::CreateFromPoints(std::vector<glm::vec4> &points){
+RBFSystem *RBFSystem::CreateFromPoints(std::vector<glm::vec4> &points,float w){
 	RBFSystem *rbfs = new RBFSystem();
 	
 	rbfs->_min = glm::vec3(points[0]);
@@ -158,7 +158,7 @@ RBFSystem *RBFSystem::CreateFromPoints(std::vector<glm::vec4> &points){
 			float v = rbf->eval(b.x,b.y,b.z);
 			A(i,j) = v;
 		}
-		A(i,i) -= 0.05;
+		A(i,i) -= w;
 		A(i,size+0) = 1;
 		A(i,size+1) = c.x;
 		A(i,size+2) = c.y;

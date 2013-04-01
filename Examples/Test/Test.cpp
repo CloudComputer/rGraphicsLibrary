@@ -1,6 +1,7 @@
 #include <lsolver\gmres.h>
 #include <lsolver\cghs.h>
 #include <Eigen\Dense>
+#include <eigen\IterativeLinearSolvers>
 
 #include <glm\glm.hpp>
 
@@ -32,9 +33,22 @@ std::vector<glm::vec4> points;
 #define size 4000
 
 template <typename solver>
-Eigen::VectorXd testEigen(const Eigen::MatrixXd &A,const Eigen::VectorXd &b){
+Eigen::VectorXf testEigen(const Eigen::MatrixXf &A,const Eigen::VectorXf &b){
 	return solver(A).solve(b);
 }
+
+Eigen::VectorXf testEigen2(const Eigen::MatrixXf &A,const Eigen::VectorXf &b){
+	Eigen::VectorXf x(size);
+	Eigen::ConjugateGradient<Eigen::MatrixXf > cg;
+	cg.compute(A);
+	x = cg.solve(b);
+	std::cout << "#iterations:     " << cg.iterations() << std::endl;
+	std::cout << "estimated error: " << cg.error()      << std::endl;
+
+	return x;
+}
+
+
 
 //
 //boost_Vector testGMRES(const boost_mat_dense &A,const boost_Vector &b){
@@ -53,7 +67,7 @@ Eigen::VectorXd testEigen(const Eigen::MatrixXd &A,const Eigen::VectorXd &b){
 //}
 
 float rbf(const float &r){
-	return r;
+	return std::exp(-r*r);
 }
 
 struct Result{
@@ -63,7 +77,7 @@ struct Result{
 	float relError;
 
 	virtual ~Result(){
-		std::cout << std::setw(25) << name;
+		std::cout << std::setw(30) << name;
 		std::cout << std::setw(15) << seconds << " sec";
 		std::cout << std::setw(15) << error;
 		std::cout << std::setw(15) << relError << std::endl;
@@ -74,8 +88,8 @@ struct Result{
 int main( int argc, char* argv[] )
 {
 	
-	Eigen::MatrixXd A = Eigen::MatrixXd::Zero(size,size);
-	Eigen::VectorXd b = Eigen::VectorXd::Zero(size);
+	Eigen::MatrixXf A = Eigen::MatrixXf::Zero(size,size);
+	Eigen::VectorXf b = Eigen::VectorXf::Zero(size);
 	
 	boost_mat_dense A2(size,size);
 	boost_Vector b2(size);
@@ -118,10 +132,21 @@ int main( int argc, char* argv[] )
 	
 	//res.push_back(r);
 	} ///*/
-	
+	//ConjugateGradient
 	{
 	StopClock sc(true);
-	auto v = testEigen<Eigen::PartialPivLU<Eigen::MatrixXd>>(A,b);
+	auto v = testEigen2(A,b);
+	sc.stop();
+	Result r;
+	r.name = "Eigen::ConjugateGradient";
+	r.seconds = sc.getFractionElapsedSeconds();
+	r.error = (A*v - b).norm();
+	r.relError = r.error / b.norm();
+	//res.push_back(r);
+	}
+	{
+	StopClock sc(true);
+	auto v = testEigen<Eigen::PartialPivLU<Eigen::MatrixXf>>(A,b);
 	sc.stop();
 	Result r;
 	r.name = "Eigen::PartialPivLU";
@@ -133,7 +158,7 @@ int main( int argc, char* argv[] )
 
 	{
 	StopClock sc(true);
-	auto v = testEigen<Eigen::FullPivLU<Eigen::MatrixXd>>(A,b);
+	auto v = testEigen<Eigen::FullPivLU<Eigen::MatrixXf>>(A,b);
 	sc.stop();
 	Result r;
 	r.name = "Eigen::FullPivLU";
@@ -145,7 +170,7 @@ int main( int argc, char* argv[] )
 
 	{
 	StopClock sc(true);
-	auto v = testEigen<Eigen::HouseholderQR<Eigen::MatrixXd>>(A,b);
+	auto v = testEigen<Eigen::HouseholderQR<Eigen::MatrixXf>>(A,b);
 	sc.stop();
 	Result r;
 	r.name = "Eigen::HouseholderQR";
@@ -157,7 +182,7 @@ int main( int argc, char* argv[] )
 
 	{
 	StopClock sc(true);
-	auto v = testEigen<Eigen::ColPivHouseholderQR<Eigen::MatrixXd>>(A,b);
+	auto v = testEigen<Eigen::ColPivHouseholderQR<Eigen::MatrixXf>>(A,b);
 	sc.stop();
 	Result r;
 	r.name = "Eigen::ColPivHouseholderQR";
@@ -169,7 +194,7 @@ int main( int argc, char* argv[] )
 
 	{
 	StopClock sc(true);
-	auto v = testEigen<Eigen::FullPivHouseholderQR<Eigen::MatrixXd>>(A,b);
+	auto v = testEigen<Eigen::FullPivHouseholderQR<Eigen::MatrixXf>>(A,b);
 	sc.stop();
 	Result r;
 	r.name = "Eigen::FullPivHouseholderQR";
@@ -181,7 +206,7 @@ int main( int argc, char* argv[] )
 
 	{
 	StopClock sc(true);
-	auto v = testEigen<Eigen::LLT<Eigen::MatrixXd>>(A,b);
+	auto v = testEigen<Eigen::LLT<Eigen::MatrixXf>>(A,b);
 	sc.stop();
 	Result r;
 	r.name = "Eigen::LLT";
@@ -193,7 +218,7 @@ int main( int argc, char* argv[] )
 
 	{
 	StopClock sc(true);
-	auto v = testEigen<Eigen::LDLT<Eigen::MatrixXd>>(A,b);
+	auto v = testEigen<Eigen::LDLT<Eigen::MatrixXf>>(A,b);
 	sc.stop();
 	Result r;
 	r.name = "Eigen::LDLT";

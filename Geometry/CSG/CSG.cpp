@@ -9,7 +9,7 @@ _operation(operation)
 
 }
 
-float CSGCombine::eval(glm::vec3 worldPos) const{
+float CSGCombine::eval(glm::vec3 worldPos){
 	float v0 = _c0->eval(worldPos);
 	float v1 = _c1->eval(worldPos);
 	switch(_operation){
