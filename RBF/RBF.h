@@ -121,7 +121,7 @@ public:
 
 	template <typename KernelType> static RBFSystem *CreateFromPoints(std::vector<glm::vec4> &points,float w = 0);
 	//template <typename KernelType> 
-	static RBFSystem *FastFitting(std::vector<glm::vec4> &points);
+	static RBFSystem *FastFitting(std::vector<glm::vec4> &points,float accuracy);
 };
 
 
@@ -173,7 +173,7 @@ RBFSystem *RBFSystem::CreateFromPoints(std::vector<glm::vec4> &points,float w){
 	std::cout << A  << std::endl  << std::endl;
 	std::cout << p  << std::endl  << std::endl;*/
 	
-	//*
+	/*
 	{
 		StopClock s;
 		s.start();
