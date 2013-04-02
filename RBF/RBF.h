@@ -122,9 +122,8 @@ public:
 	float meanSqError(const std::vector<glm::vec4> &points);
 
 	template <typename KernelType> static RBFSystem *CreateFromPoints(std::vector<glm::vec4> &points,float w = 0);
-	template <typename KernelType> static RBFSystem *FastFitting(std::vector<glm::vec4> &points,float accuracy = 0){
-		return new RBFSystem();
-	}
+	template <typename KernelType> 
+	static RBFSystem *FastFitting(std::vector<glm::vec4> &points,float accuracy);
 };
 
 
@@ -252,5 +251,11 @@ RBFSystem *RBFSystem::CreateFromPoints(std::vector<glm::vec4> &points,float w){
 
 	return rbfs;
 }
+
+
+#ifndef _FASTFITTINGRBF_HPP_
+#include "FastFittingRBF.hpp"
+#endif
+
 
 #endif

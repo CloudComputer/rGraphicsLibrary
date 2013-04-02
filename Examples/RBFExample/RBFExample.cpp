@@ -26,7 +26,7 @@
 StopClock s(true);
 std::vector<glm::vec4> _points;
 
-int numPoints = 10000;
+int numPoints = 3000;
 int meshRes = 10;
 
 struct RBFInfo : public Object{
@@ -64,7 +64,7 @@ public:
 		for(auto p = points.begin()+1;p!=points.end();++p){
 			aabb.extend(glm::vec3(*p));
 		}
-		//createRBFS();
+		createRBFS();
 	}
 	~RBFSelecterObject(){}
 
@@ -89,32 +89,6 @@ public:
 			glEnd();
 		}
 		chkGLErr();
-
-		KDTree<bool,3,float> tree;
-		for(auto p = points.begin();p!=points.end();++p){
-			float pos[3];
-			pos[0] = p->x;
-			pos[1] = p->y;
-			pos[2] = p->z;
-			tree.insert(pos,0);
-		}
-		float pos[] = {1,0,0};
-		auto nodes = tree.findNNearest(pos,10);
-		std::vector<glm::vec3> ps;
-		for(auto n = nodes.begin();n!=nodes.end();++n){
-			ps.push_back(glm::vec3((*n)->getPosition()[0],(*n)->getPosition()[1],(*n)->getPosition()[2]));
-		}
-		Plane plane = Plane(ps);
- 		AttribPusher ____a(GL_ENABLE_BIT);
-		glDisable(GL_LIGHTING);
-		glBegin(GL_LINES);
-		glColor3f(1,0,1);
-		glVertex3f(1,0,0);
-		glColor3f(1,1,0);
-		glVertex3fv(glm::value_ptr(glm::vec3(1,0,0) + plane.getNormal()));
-
-		glEnd();
-
 	}
 
 	virtual std::string toString()const{return "RBFSelecterObject";}
@@ -143,8 +117,8 @@ void RBFSelecterObject::createRBFS(){
 	std::cout << std::setw(15) << "Fitting Time";
 	std::cout << std::setw(25) << "Mesh exraction time" << std::endl;
 
-	bool useFastFit = false;
-	bool useNormalFit = true;
+	bool useFastFit = true;
+	bool useNormalFit = false;
 
 	if(useNormalFit)rbfs.push_back(createRBF<Biharmonic>(points,"Biharmonic",false));
 	if(useFastFit)rbfs.push_back(createRBF<Biharmonic>(points,"Biharmonic fast fitting",true));
@@ -170,8 +144,9 @@ RBFInfo* RBFSelecterObject::createRBF(std::vector<glm::vec4> points,std::string 
 	RBFInfo *r = new RBFInfo();
 
 	StopClock s(true);
+	float acc = 0.0001;
 	if(fastFit)
-		r->rbf = RBFSystem::FastFitting<RBFKernel>(points);
+		r->rbf = RBFSystem::FastFitting<RBFKernel>(points,acc);
 	else
 		r->rbf = RBFSystem::CreateFromPoints<RBFKernel>(points);
 	s.stop();
