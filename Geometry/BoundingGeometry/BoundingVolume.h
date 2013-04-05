@@ -2,9 +2,11 @@
 
 #include <glm/glm.hpp>
 
+#include <Base\Object.h>
+
 #define within(x,a,b) (x >= a && x <= b)
 
-class BoundingVolume
+class BoundingVolume : public Object
 {
 public:
 	BoundingVolume(void);
@@ -32,6 +34,12 @@ public:
 
 	virtual bool inside(glm::vec3 pos)const{
 		return glm::distance(pos,_center) <= _radius;
+	}
+
+	virtual std::string toString()const{
+		std::stringstream ss;
+		ss << "Bounding sphere at [" << _center.x  << " "<< _center.y << " "  << _center.z << "] with radius: " << _radius;
+		return ss.str();
 	}
 };
 
@@ -66,6 +74,12 @@ public:
 	glm::vec3 getInternalPosition(glm::vec3 worldPos)const;
 	glm::vec3 getPosition( glm::vec3 t )const;
 	glm::vec3 getDiscretePosition( glm::vec3 pos, glm::ivec3 dim )const;
+
+	virtual std::string toString()const{
+		std::stringstream ss;
+		ss << "Bounding AABB between [" << _minPos.x  << " "<< _minPos.y << " "  << _minPos.z << "] and [ "  << _maxPos.x  << " "<< _maxPos.y << " "  << _maxPos.z << "] ";
+		return ss.str();
+	}
 
 #ifdef GL_VERSION_1_1
 	void draw()const{

@@ -18,8 +18,8 @@ public:
 		return *this;
 	}
 	
-	T &operator*(){return *t;}
-	T *operator->(){return t;}
+	T &operator*(){return *_t;}
+	T *operator->(){return _t;}
 };
 
 #endif

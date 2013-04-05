@@ -23,11 +23,18 @@
 #include <iostream>
 #include <iomanip>
 
-StopClock s(true);
+StopClock sw(true);
 std::vector<glm::vec4> _points;
 
-int numPoints = 3000;
+int numPoints = 60000;
 int meshRes = 10;
+
+float acc = 10e-5;
+int minInnerSize = 2000;
+float outerSize = 0.1f;
+int coarseGridSize = 40;
+int maxIterations = 2000;
+
 
 struct RBFInfo : public Object{
 	RBFSystem *rbf;
@@ -36,12 +43,15 @@ struct RBFInfo : public Object{
 	float fittingTime;
 	float meshExtractionTime;
 
+	float meanSqError;
+
 	virtual std::string toString()const{
 		std::stringstream ss;
 		
 		ss << std::setw(45) << name;
 		ss << std::setw(15) << fittingTime;
 		ss << std::setw(25) << meshExtractionTime;
+		ss << std::setw(25) << meanSqError;
 		return ss.str();
 	}
 };
@@ -118,11 +128,16 @@ void RBFSelecterObject::createRBFS(){
 	std::cout << std::setw(25) << "Mesh exraction time" << std::endl;
 
 	bool useFastFit = true;
-	bool useNormalFit = false;
+	bool useNormalFit = !true;
+	
+	//rbfs.push_back(createRBF<TestRBF<1>>(points,"TestRBF<1>",true));
+	//rbfs.push_back(createRBF<TestRBF<2>>(points,"TestRBF<2>",true));
+	//rbfs.push_back(createRBF<TestRBF<3>>(points,"TestRBF<3>",true));
+	//rbfs.push_back(createRBF<TestRBF<4>>(points,"TestRBF<4>",true));
 
 	if(useNormalFit)rbfs.push_back(createRBF<Biharmonic>(points,"Biharmonic",false));
 	if(useFastFit)rbfs.push_back(createRBF<Biharmonic>(points,"Biharmonic fast fitting",true));
-
+	return;
 	if(useNormalFit)rbfs.push_back(createRBF<InverseMultiQuadricRBF>(points,"InverseMultiQuadricRBF",false));
 	if(useFastFit)rbfs.push_back(createRBF<InverseMultiQuadricRBF>(points,"InverseMultiQuadricRBF fast fitting",true));
 
@@ -144,9 +159,8 @@ RBFInfo* RBFSelecterObject::createRBF(std::vector<glm::vec4> points,std::string 
 	RBFInfo *r = new RBFInfo();
 
 	StopClock s(true);
-	float acc = 0.0001;
 	if(fastFit)
-		r->rbf = RBFSystem::FastFitting<RBFKernel>(points,acc);
+		r->rbf = RBFSystem::FastFitting<RBFKernel>(points,acc,minInnerSize,outerSize,coarseGridSize,maxIterations);
 	else
 		r->rbf = RBFSystem::CreateFromPoints<RBFKernel>(points);
 	s.stop();
@@ -155,6 +169,8 @@ RBFInfo* RBFSelecterObject::createRBF(std::vector<glm::vec4> points,std::string 
 	s.stop();
 	r->meshExtractionTime = s.getFractionElapsedSeconds();
 	r->name = name;
+	r->meanSqError = r->rbf->meanSqError(points);
+
 
 	std::cout << r << std::endl;
 	return r;

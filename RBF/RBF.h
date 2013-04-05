@@ -20,6 +20,7 @@
 
 
 class RBF{
+	friend class RBFSystem;
 	float _weight;
 	float _center[3];
 	virtual float _eval(float r2) const = 0;
@@ -44,14 +45,27 @@ public:
 		return _eval(r) * _weight;
 	}
 
-	void setWeight(float weight){_weight = weight;}
+	void setWeight(float weight){
+		/*if(!(weight==weight)){
+			std::cout << weight << std::endl;
+		}*/
+		_weight = weight;
+	}
 	
+};
+
+template<unsigned int k>
+class TestRBF : public RBF{
+	virtual float _eval(float r2) const{
+		return (k%2==1)?-1:1 * std::powf(r2,k) * std::log(std::sqrt(r2));
+	}
+public:
+	TestRBF(float cx,float cy,float cz,float weight = 1):RBF(cx,cy,cz,weight){}
 };
 
 class ThinPlateSplineRBF : public RBF{
 	virtual float _eval(float r2) const{
 		return r2*std::log(std::sqrt(r2));
-		
 	}
 public:
 	ThinPlateSplineRBF(float cx,float cy,float cz,float weight = 1):RBF(cx,cy,cz,weight){}
@@ -106,6 +120,7 @@ public:
 
 
 class RBFSystem : public CSG{
+	friend class __rbf_SubSpace;
 	struct TrendFunction{
 		float _c[4];
 		float eval(float x,float y,float z)const{return _c[0] + x * _c[1] + y * _c[2] + z* _c[3];}
@@ -115,6 +130,7 @@ class RBFSystem : public CSG{
 	
 	glm::vec3 _min,_max;
 	std::vector<RBF*> _kernels;
+	virtual float eval(glm::vec3 worldPos,bool useTrendFunc);
 public:
 	virtual float eval(glm::vec3 worldPos);
 	virtual std::string toString()const{return "RBFSystem";}
@@ -123,7 +139,7 @@ public:
 
 	template <typename KernelType> static RBFSystem *CreateFromPoints(std::vector<glm::vec4> &points,float w = 0);
 	template <typename KernelType> 
-	static RBFSystem *FastFitting(std::vector<glm::vec4> &points,float accuracy);
+	static RBFSystem *FastFitting(std::vector<glm::vec4> &points,float accuracy,int minInnerSize = 500,float outerSize = 2.0f,int coarseGridSize = 4, int maxIterations = 1000);
 };
 
 

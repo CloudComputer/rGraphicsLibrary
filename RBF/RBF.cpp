@@ -11,9 +11,16 @@ float RBFSystem::meanSqError(const std::vector<glm::vec4> &points){
 
 
 float RBFSystem::eval(glm::vec3 worldPos){
+	return eval(worldPos,true);
+}
+
+
+float RBFSystem::eval(glm::vec3 worldPos,bool useTrendFunc){
 	glm::vec3 c = glm::vec3(worldPos - _min.x) / (_max.x - _min.x);
 
-	float v = _trend.eval(c.x,c.y,c.z);
+	float v = 0;
+	if(useTrendFunc)
+		v = _trend.eval(c.x,c.y,c.z);
 	for(auto k = _kernels.begin();k!=_kernels.end();++k){
 		v += (*k)->eval(c.x,c.y,c.z);
 	}
@@ -64,11 +71,19 @@ void __rbf_Subdived(std::vector<glm::vec4> &points,unsigned int minSize,__rbf_Su
 		}else if(right.innerAABB.inside(glm::vec3(points[*i]))){
 			right.Inner.push_back(*i);
 		}else{
+			auto p  = glm::vec3(points[*i]);
+			std::cout << p.x << " " << p.y << " " << p.z << std::endl;
+			std::cout << s.innerAABB << std::endl;
+			std::cout << left.innerAABB << std::endl;
+			std::cout << right.innerAABB << std::endl;
+			std::cout << splitAxis << std::endl;
+
 			std::cerr << "FAILED " << __FILE__ << " " << __LINE__ << std::endl;
 		}
 	}
-
+	bool fitAABB = false;
 	if(left.Inner.size()<minSize){
+		fitAABB = true;
 		switch(splitAxis){
 		case 0:
 			std::sort(right.Inner.begin(),right.Inner.end(),__rbf_SortXAxis(&points));
@@ -83,23 +98,12 @@ void __rbf_Subdived(std::vector<glm::vec4> &points,unsigned int minSize,__rbf_Su
 		
 		while(left.Inner.size()<minSize){
 			auto node = right.Inner[0];
-			left.innerAABB.extend(glm::vec3(node));
+			left.innerAABB.extend(glm::vec3(points[node]));
 			left.Inner.push_back(node);
 			right.Inner.erase(right.Inner.begin());
 		}
-
-		switch(splitAxis){
-		case 0:
-			right.innerAABB = BoundingAABB(left.innerAABB.getPosition(glm::vec3(1,0,0)),s.innerAABB.maxPos());
-			break;
-		case 1:
-			right.innerAABB = BoundingAABB(left.innerAABB.getPosition(glm::vec3(0,1,0)),s.innerAABB.maxPos());
-			break;
-		case 2:
-			right.innerAABB = BoundingAABB(left.innerAABB.getPosition(glm::vec3(0,0,1)),s.innerAABB.maxPos());
-			break;
-		}
 	}else if(right.Inner.size()<minSize){	
+		fitAABB = true;
 		switch(splitAxis){
 		case 0:
 			std::sort(left.Inner.begin(),left.Inner.end(),__rbf_SortXAxis(&points));
@@ -114,21 +118,21 @@ void __rbf_Subdived(std::vector<glm::vec4> &points,unsigned int minSize,__rbf_Su
 		
 		while(right.Inner.size()<minSize){
 			auto node = left.Inner[0];
-			right.innerAABB.extend(glm::vec3(node));
+			right.innerAABB.extend(glm::vec3(points[node]));
 			right.Inner.push_back(node);
 			left.Inner.erase(left.Inner.begin());
 		}
+	}
 
-		switch(splitAxis){
-		case 0:
-			left.innerAABB = BoundingAABB(right.innerAABB.getPosition(glm::vec3(1,0,0)),s.innerAABB.maxPos());
-			break;
-		case 1:
-			left.innerAABB = BoundingAABB(right.innerAABB.getPosition(glm::vec3(0,1,0)),s.innerAABB.maxPos());
-			break;
-		case 2:
-			left.innerAABB = BoundingAABB(right.innerAABB.getPosition(glm::vec3(0,0,1)),s.innerAABB.maxPos());
-			break;
+	if(fitAABB){
+		left.innerAABB.minPos() = left.innerAABB.maxPos() = glm::vec3(points[left.Inner[0]]);
+		right.innerAABB.minPos() = right.innerAABB.maxPos() = glm::vec3(points[right.Inner[0]]);
+
+		for(int i = 1;i<right.sizeInner();i++){
+			right.innerAABB.extend(glm::vec3(points[right.Inner[i]]));
+		}
+		for(int i = 1;i<left.sizeInner();i++){
+			left.innerAABB.extend(glm::vec3(points[left.Inner[i]]));
 		}
 	}
 
