@@ -139,7 +139,7 @@ public:
 
 	template <typename KernelType> static RBFSystem *CreateFromPoints(std::vector<glm::vec4> &points,float w = 0);
 	template <typename KernelType> 
-	static RBFSystem *FastFitting(std::vector<glm::vec4> &points,float accuracy,int minInnerSize = 500,float outerSize = 2.0f,int coarseGridSize = 4, int maxIterations = 1000);
+	static RBFSystem *FastFitting(std::vector<glm::vec4> &points,float smoothNess,float accuracy,int minInnerSize = 500,float outerSize = 2.0f,int coarseGridSize = 4, int maxIterations = 1000);
 };
 
 

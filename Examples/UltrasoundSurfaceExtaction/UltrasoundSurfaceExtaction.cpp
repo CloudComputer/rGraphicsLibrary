@@ -110,13 +110,13 @@ KDTree<Vertex,3,float>* points;
 std::vector<PointCluster> clusters;
 
 bool mouse0State = false;
-float rx = 0,ry = 0,scale = 1;
+float ry = -90,rx = 90,scale = 1.5;
 
 
 RBFSystem *rbfs[6];
 Mesh *meshes[] = {0,0,0,0,0,0};
 unsigned int currentMesh = 0;
-int meshRes = 50;
+int meshRes = 100;
 
 BoundingAABB aabb(glm::vec3(0,0,0),glm::vec3(0,0,0));
 
@@ -202,12 +202,11 @@ void loadPoints(){
 	sw.start();
 	
 	//vol = ScalarField::ReadFromRawfile(files[niceCases[_case]].path,files[niceCases[_case]].w,files[niceCases[_case]].h,files[niceCases[_case]].d);
-	auto tmp = ScalarField::ReadFromRawfile(files[niceCases[_case]].path,files[niceCases[_case]].w,files[niceCases[_case]].h,files[niceCases[_case]].d);
-	////auto tm2 = tmp->blur();
+	TmpPointer<ScalarField> tmp = ScalarField::ReadFromRawfile(files[niceCases[_case]].path,files[niceCases[_case]].w,files[niceCases[_case]].h,files[niceCases[_case]].d);
+	////TmpPointer<ScalarField> tm2 = tmp->blur();
 	vol = tmp->blur();	
-	//delete tmp;
-	////delete tm2;
-	//
+	
+
 	std::cout << "Dataset loaded " << files[niceCases[_case]].path << ": " << sw.getFractionElapsedSeconds() << " seconds" << std::endl;
 	sw.restart();
 
@@ -247,19 +246,19 @@ void loadPoints(){
 
 	auto points = cluster->getPoints()->getAsVector();
 
-	points.clear();
-	float dist = 0.017;
-	//dist = 0.019;
-	float p[] = {0,-1,0};
-	while(!cluster->getPoints()->empty()){
-		auto node = cluster->getPoints()->findNearest(p);
-		points.push_back(node->get());
-	//	cluster->getPoints()->erase(node);
-		auto nodes = cluster->getPoints()->findCloseTo(node->getPosition(),dist);
-		for(auto n = nodes.begin();n!=nodes.end();++n){
-			cluster->getPoints()->erase(*n);
-		}
-	}
+	//points.clear();
+	//float dist = 0.017;
+	////dist = 0.019;
+	//float p[] = {0,-1,0};
+	//while(!cluster->getPoints()->empty()){
+	//	auto node = cluster->getPoints()->findNearest(p);
+	//	points.push_back(node->get());
+	////	cluster->getPoints()->erase(node);
+	//	auto nodes = cluster->getPoints()->findCloseTo(node->getPosition(),dist);
+	//	for(auto n = nodes.begin();n!=nodes.end();++n){
+	//		cluster->getPoints()->erase(*n);
+	//	}
+	//}
 	
 	
 	//return;
@@ -325,6 +324,14 @@ void loadPoints(){
 
 }
 
+
+float acc = 0.4*10e-5;
+float smoothNess = 0.75;
+int minInnerSize = 4000;
+float outerSize = 0.01f;
+int coarseGridSize = 30;
+int maxIterations = 40;
+
 void creatMesh(int id){
 	//return;
 	StopClock s1,s2;
@@ -332,7 +339,8 @@ void creatMesh(int id){
 	float w = 0.5;
 	//w = 0.01;
 	w = id * 0.1 + 0.05;
-	switch(id){
+	rbfs[id] = RBFSystem::FastFitting<Biharmonic>(surfacePoints,smoothNess,acc,minInnerSize,outerSize,coarseGridSize,maxIterations);
+	/*switch(id){
 	case 0:
 		rbfs[id] =  RBFSystem::CreateFromPoints<Biharmonic>(surfacePoints,w);
 		break;
@@ -351,13 +359,14 @@ void creatMesh(int id){
 	case 5:
 		rbfs[id] =  RBFSystem::CreateFromPoints<ThinPlateSplineRBF>(surfacePoints,w);
 		break;
-	}
+	}*/
 	s1.stop();
 	s2.restart();
 	CSGCache ccc(rbfs[id]);
+	std::cout << "Mesh created: " << id << ", Fitting  time: " << s1.getFractionElapsedSeconds() << " sec";
 	meshes[id] = MarchingTetrahedra::March<IndexedMesh>(&ccc,aabb,glm::ivec3(meshRes,meshRes,meshRes));
 
-	std::cout << "Mesh created: " << id << ", Fitting  time: " << s1.getFractionElapsedSeconds() << " sec, Eval/Surface extract time: " << s2.getFractionElapsedSeconds()   << " sec" << std::endl;
+	std::cout << ", Eval/Surface extract time: " << s2.getFractionElapsedSeconds()   << " sec" << std::endl;
 }
 
 int prevScroll = 0;
@@ -391,6 +400,15 @@ void mouseMotion(int x,int y){
 	}
 }
 
+std::string datePan(int N,int a){
+	std::stringstream ss;
+	for(int i = a-1;a>=0;a--)
+		if(N<std::powf(10,a))
+			ss << "0";
+	ss << N;
+	return ss.str();
+}
+
 void keyboard(int button,int state){
 	if(button == 'N' && state){
 		_case++;
@@ -406,6 +424,22 @@ void keyboard(int button,int state){
 		}
 		loadPoints();
 	}
+	if(button == 'P' && state){
+		time_t t = time(0);   // get time now
+		struct tm * now = localtime( & t );
+		std::stringstream ss;
+		int day = now->tm_hour;
+		int h = now->tm_mday;
+		int min = now->tm_mday;
+		int y = now->tm_mday;
+		ss << "Screenshot_";
+		ss << datePan(now->tm_year + 1900,4) << "-" << datePan(now->tm_mon +1,2) << "-" << datePan(day,2) << day; //data
+		ss << "_";
+		ss << datePan(h,2) << "-" << datePan(min,2) << "-" << datePan(now->tm_sec,2);
+		ss << ".jpg";
+		Image::TakeScreenShot(ss.str().c_str());
+	}
+
 	if(button == '1' && state){
 		currentMesh = 0;
 	}

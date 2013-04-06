@@ -69,26 +69,35 @@ KDTree<Vertex,3,float>* ScalarField::getSurfacePoints(float iso)const{
 
 	glm::ivec3 dx(1,0,0),dy(0,1,0),dz(0,0,1);
 
-	for(int x = 0;x<_dimensions.x;x++)for(int z = 0;z<_dimensions.z;z++)for(int y = 4;y<_dimensions.y-5;y++){
+	for(int x = 0;x<_dimensions.x;x++)for(int z = 0;z<_dimensions.z;z++){
+		int surface = false;
+		for(int y = 4;y<_dimensions.y-5 && !surface;y++){
 	//FOR(_dimensions){//if(!(z == 0||z==_dimensions.z - 1 || y == 0||y==_dimensions.y - 1 || x == 0||x==_dimensions.x - 1)){
-		if(y < 4 || y >= _dimensions.y-5){
-			continue;
+			if(y < 4 || y >= _dimensions.y-5){
+				continue;
+			}
+			glm::ivec3 pos(x,y,z);
+			s = get(pos);
+			if(s<iso) continue;
+			glm::vec3 p = _getWorldPos(pos);
+			surface = true;
+			for(int Y = y-4;surface && Y<y+4;Y++)if(Y!=y){
+				surface = surface && s >= get(glm::ivec3(x,Y,z));
+			}
+			if(surface){
+				Vertex v;
+				v.getPosition() = glm::vec4(p,0);
+				v.setNormal(glm::normalize(getGradient(p)));
+				tree->insert(glm::value_ptr(p),v);
+			}
 		}
-		glm::ivec3 pos(x,y,z);
-		s = get(pos);
-		if(s<iso) continue;
-		glm::vec3 p = _getWorldPos(pos);
-		bool surface = true;
-		for(int Y = y-4;surface && Y<y+4;Y++)if(Y!=y){
-			surface = surface && s >= get(glm::ivec3(x,Y,z));
-		}
-		if(surface){
+		if(!surface){
+		/*	glm::ivec3 pos(x,maxY,z);
+			glm::vec3 p = _getWorldPos(pos);
 			Vertex v;
 			v.getPosition() = glm::vec4(p,0);
-			v.setNormal(glm::normalize(getGradient(p)));
-			tree->insert(glm::value_ptr(p),v);
-
-			y=_dimensions.y;
+			v.setNormal(glm::vec3(0,-1,0));
+			tree->insert(glm::value_ptr(p),v);*/
 		}
 	}
 	return tree;

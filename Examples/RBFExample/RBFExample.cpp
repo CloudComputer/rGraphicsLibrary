@@ -26,13 +26,13 @@
 StopClock sw(true);
 std::vector<glm::vec4> _points;
 
-int numPoints = 60000;
+int numPoints = 2000;
 int meshRes = 10;
 
 float acc = 10e-5;
-int minInnerSize = 2000;
+int minInnerSize = 1000;
 float outerSize = 0.1f;
-int coarseGridSize = 40;
+int coarseGridSize = 20;
 int maxIterations = 2000;
 
 

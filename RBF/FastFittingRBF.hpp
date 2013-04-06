@@ -9,6 +9,8 @@
 #include <Geometry\BoundingGeometry\BoundingVolume.h>
 #include <Util\TmpPointer.h>
 
+//TODO Remove this dependency
+#include <Util\Random.h>
 
 class __rbf_SortXAxis{
 	std::vector<glm::vec4> *_v;
@@ -28,6 +30,7 @@ public:
 	__rbf_SortZAxis(std::vector<glm::vec4> *v):_v(v){}
 	inline bool operator()(const unsigned int &id0,const unsigned int &id1){return (*_v)[id0].z < (*_v)[id1].z;}
 };
+
 
 class __rbf_Residual{
 	float *_r;
@@ -99,7 +102,7 @@ struct __rbf_SubSpace{
 		return arr(Outer[id]);
 	}
 
-	void buildMatrix(RBFSystem *s,std::vector<glm::vec4> &points,bool usePolynomial = false){
+	void buildMatrix(RBFSystem *s,std::vector<glm::vec4> &points,float smoothNess,bool usePolynomial = false){
 		int sizeI = sizeInner();
 		int sizeO = sizeOuter();
 		int extra = usePolynomial ? 4 : 0;
@@ -110,6 +113,7 @@ struct __rbf_SubSpace{
 				auto k = sampleInner(s->_kernels,i);
 				A(i,j) = k->eval(p.x,p.y,p.z);
 			}
+			A(i,i) -= smoothNess;
 			if(usePolynomial){
 				A(i,sizeI+0) = 1;
 				A(i,sizeI+1) = sampleInner(points,i).x;
@@ -153,7 +157,7 @@ void __rbf_Subdived(std::vector<glm::vec4> &points,unsigned int minSize,__rbf_Su
 
 typedef TmpPointer<RBFSystem> tmpRBF;
 template<typename KernelType>
-RBFSystem *RBFSystem::FastFitting(std::vector<glm::vec4> &points,float accuracy,int minInnerSize,float outerSize,int coarseGridSize, int maxIterations){
+RBFSystem *RBFSystem::FastFitting(std::vector<glm::vec4> &points,float smoothNess,float accuracy,int minInnerSize,float outerSize,int coarseGridSize, int maxIterations){
 	if(points.size()==0)
 		return new RBFSystem();
 	RBFSystem *sg = new RBFSystem();
@@ -242,15 +246,15 @@ RBFSystem *RBFSystem::FastFitting(std::vector<glm::vec4> &points,float accuracy,
 			}
 		}
 	}
-	coarseGrid.buildMatrix(&*s1,points,true);
+	coarseGrid.buildMatrix(&*s1,points,smoothNess,true);
 
 	for(auto s = subspace.begin();s!=subspace.end();++s){
-		s->buildMatrix(&*s1,points);
+		s->buildMatrix(&*s1,points,smoothNess);
 	}
 	
 	std::cout << sg->meanSqError(points) << std::endl;
 	int _maxIterations = maxIterations;//TODO maybe remove maxIterations when stable
-	while(--_maxIterations&&residual.notDone(accuracy)){
+	do{
 		for(auto s = subspace.begin();s!=subspace.end();++s){//(3)
 			s->buildVector(residual); //(4)
 			Eigen::VectorXf x = s->S.solve(s->b); //(4)
@@ -293,9 +297,8 @@ RBFSystem *RBFSystem::FastFitting(std::vector<glm::vec4> &points,float accuracy,
 				//std::cout << residual[i] << std::endl;
 			}
 		}
-
 		std::cout << sg->meanSqError(points) << std::endl;
-	}
+	}while(--_maxIterations&&residual.notDone(accuracy));
 	
 	std::cout << "Iterations:" <<  maxIterations - _maxIterations << std::endl;
 	return sg;
