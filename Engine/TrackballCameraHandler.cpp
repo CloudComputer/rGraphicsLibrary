@@ -7,8 +7,8 @@
 
 TrackballCameraHandler::TrackballCameraHandler():
 _fov(45.0f),
-_near(0.001f),
-_far(100.0f),
+_near(0.01f),
+_far(10.0f),
 _mouseState(0),
 _mouseButton(0),
 _distance(3.0f),

@@ -15,7 +15,8 @@ _id(id),
 _ambientColor(0,0,0,1),
 _diffuseColor(1,1,1,1),
 _specularColor(1,1,1,1),
-_attenuation(1,0,0),
+//_attenuation(1,0,0),
+_radius(1),
 _position(0,0,1,0),
 _spotDirection(0,0,-1),
 _spotCutOff(180.0),
@@ -35,10 +36,10 @@ void Light::set(){
 	
 	
 	chkGLErr();
-
+/*
 	glLightf(light, GL_CONSTANT_ATTENUATION,   _attenuation.x);
 	glLightf(light, GL_LINEAR_ATTENUATION,     _attenuation.y);
-	glLightf(light, GL_QUADRATIC_ATTENUATION,  _attenuation.z);
+	glLightf(light, GL_QUADRATIC_ATTENUATION,  _attenuation.z);*/
 
 	glLightfv(light, GL_POSITION, glm::value_ptr(_position));
 	
@@ -60,16 +61,21 @@ void Light::setDiffuseColor(glm::vec4 color){
 void Light::setSpecularColor(glm::vec4 color){
 	_specularColor = color;
 }
-	
-void Light::setConstantAttenuation(float constantAttenuation){
-	_attenuation.x = constantAttenuation;
+
+void Light::setRadius(float radius){
+	_radius = radius;
 }
-void Light::setLinearAttenuation(float linearAttenuation){
-	_attenuation.y = linearAttenuation;
-}
-void Light::setQuadraticAttenuation(float quadraticAttenuation){
-	_attenuation.z = quadraticAttenuation;
-}
+
+//	
+//void Light::setConstantAttenuation(float constantAttenuation){
+//	_attenuation.x = constantAttenuation;
+//}
+//void Light::setLinearAttenuation(float linearAttenuation){
+//	_attenuation.y = linearAttenuation;
+//}
+//void Light::setQuadraticAttenuation(float quadraticAttenuation){
+//	_attenuation.z = quadraticAttenuation;
+//}
 
 void Light::setPosition(glm::vec3 pos){
 	_position = glm::vec4(pos,1);
@@ -98,15 +104,20 @@ glm::vec4 Light::getSpecularColor()const{
 	return _specularColor;
 }
 	
-float Light::getConstantAttenuation()const{
-	return _attenuation.x;
+
+float Light::getRadius()const{
+	return _radius;
 }
-float Light::getLinearAttenuation()const{
-	return _attenuation.y;
-}
-float Light::getQuadraticAttenuation()const{
-	return _attenuation.z;
-}
+
+//float Light::getConstantAttenuation()const{
+//	return _attenuation.x;
+//}
+//float Light::getLinearAttenuation()const{
+//	return _attenuation.y;
+//}
+//float Light::getQuadraticAttenuation()const{
+//	return _attenuation.z;
+//}
 
 glm::vec3 Light::getPosition()const{
 	return glm::vec3(_position.x,_position.y,_position.z);

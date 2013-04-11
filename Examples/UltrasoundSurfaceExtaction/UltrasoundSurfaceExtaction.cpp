@@ -116,7 +116,7 @@ float ry = -90,rx = 90,scale = 1.5;
 RBFSystem *rbfs[6];
 Mesh *meshes[] = {0,0,0,0,0,0};
 unsigned int currentMesh = 0;
-int meshRes = 100;
+int meshRes = 50;
 
 BoundingAABB aabb(glm::vec3(0,0,0),glm::vec3(0,0,0));
 
@@ -133,48 +133,48 @@ void draw(){
 	aabb.draw();
 
 
-	KDTree<Vertex,3,float>::NodeIterator point;
-	//std::vector<PointCluster>::iterator cluster;
-	srand(0);
-	//for(cluster = clusters.begin();cluster != clusters.end();++cluster){
-		float r,g,b;
-		r = rand() / float(RAND_MAX);
-		g = rand() / float(RAND_MAX);
-		b = rand() / float(RAND_MAX);
-		r = (r + 0.5) / 1.5;
-		g = (g + 0.5) / 1.5;
-		b = (b + 0.5) / 1.5;
-		glColor3f(r,g,b);
-		glBegin(GL_POINTS);
-		/*for(point = cluster->getPoints()->begin();point != cluster->getPoints()->end();++point){
-			glVertex3fv(point->getPosition());
-		}*/
-		glEnd();
-	//}
+	//KDTree<Vertex,3,float>::NodeIterator point;
+	////std::vector<PointCluster>::iterator cluster;
+	//srand(0);
+	////for(cluster = clusters.begin();cluster != clusters.end();++cluster){
+	//	float r,g,b;
+	//	r = rand() / float(RAND_MAX);
+	//	g = rand() / float(RAND_MAX);
+	//	b = rand() / float(RAND_MAX);
+	//	r = (r + 0.5) / 1.5;
+	//	g = (g + 0.5) / 1.5;
+	//	b = (b + 0.5) / 1.5;
+	//	glColor3f(r,g,b);
+	//	glBegin(GL_POINTS);
+	//	/*for(point = cluster->getPoints()->begin();point != cluster->getPoints()->end();++point){
+	//		glVertex3fv(point->getPosition());
+	//	}*/
+	//	glEnd();
+	////}
 
-	float s = 1;
-	glBegin(GL_LINES);
-	glColor3f(1,0,0);
-	glVertex3f(0,0,0);
-	glVertex3f(s,0,0);
-	
-	glColor3f(0,1,0);
-	glVertex3f(0,0,0);
-	glVertex3f(0,s,0);
-	
-	glColor3f(0,0,1);
-	glVertex3f(0,0,0);
-	glVertex3f(0,0,s);
+	//float s = 1;
+	//glBegin(GL_LINES);
+	//glColor3f(1,0,0);
+	//glVertex3f(0,0,0);
+	//glVertex3f(s,0,0);
+	//
+	//glColor3f(0,1,0);
+	//glVertex3f(0,0,0);
+	//glVertex3f(0,s,0);
+	//
+	//glColor3f(0,0,1);
+	//glVertex3f(0,0,0);
+	//glVertex3f(0,0,s);
 
 
-	glEnd();
+	//glEnd();
 
 	
 	glColor3f(1,1,1);
 	if(meshes[currentMesh]!=0)
 		static_cast<IndexedMesh*>(meshes[currentMesh])->draw();
 
-	glPointSize(1);
+	/*glPointSize(1);
 	glDisable(GL_LIGHTING);
 	glBegin(GL_POINTS);
 	for(auto p = surfacePoints.begin();p != surfacePoints.end();++p){
@@ -185,7 +185,7 @@ void draw(){
 			glColor3f(0,1,0);
 		glVertex3f(p->x,p->y,p->z);
 	}
-	glEnd();
+	glEnd();*/
 	glEnable(GL_LIGHTING);
 
 
@@ -298,8 +298,10 @@ void loadPoints(){
 */
 
 
-		surfacePoints.push_back(p0);
-		surfacePoints.push_back(p1);
+		if(i%2==0)
+			surfacePoints.push_back(p0);
+		else 
+			surfacePoints.push_back(p1);
 		surfacePoints.push_back(p2);
 		/*surfacePoints.push_back(p3);
 		surfacePoints.push_back(p4);*/
@@ -554,12 +556,33 @@ void createImages(){
 	std::cout << "Images created" << std::endl;
 }
 
+char *filename;
+void takeScreen(){
+	Image::TakeScreenShot(filename);
+}
+
 struct __counter{
 	int c;
 };
+//
+//float acc = 0.4*10e-5;
+//float smoothNess = 0.75;
+//int minInnerSize = 4000;
+//float outerSize = 0.01f;
+//int coarseGridSize = 30;
+//int maxIterations = 40;
 
 int main( int argc, char* argv[] )
 {
+	if(argc>=2) acc = atof(argv[1]);
+	if(argc>=3) smoothNess = atof(argv[2]);
+	if(argc>=4) minInnerSize = atoi(argv[3]);
+	if(argc>=5) outerSize = atof(argv[4]);
+	if(argc>=6) coarseGridSize = atoi(argv[5]);
+	if(argc>=7) maxIterations = atoi(argv[6]);
+	
+	if(argc>=8) filename = argv[7];
+	else filename = "unnamed.jpg";
 	if (glfwInit() != GL_TRUE){
 		std::cout << "Could not init glfw"<< std::endl;
 		return 2;
@@ -614,6 +637,8 @@ int main( int argc, char* argv[] )
 			break;
 		draw();
 		//std::cout << c->c << std::endl;
+		takeScreen();
+		break;
 	}	
 
 	//int meshes = 5;

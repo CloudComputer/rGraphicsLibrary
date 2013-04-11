@@ -113,6 +113,8 @@ public:
 	bool isOk()const;
 	bool empty()const{return root==0;}
 
+	void clear();
+
 	unsigned long depth()const;
 	unsigned long size()const;
 	

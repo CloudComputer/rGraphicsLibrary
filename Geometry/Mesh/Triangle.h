@@ -25,13 +25,13 @@ public:
 
 	virtual std::string toString()const;
 
-#ifdef GL_VERSION_1_1
-	virtual void gl(){
-		_v0->gl();
-		_v1->gl();
-		_v2->gl();
-	}
-#endif
+//#ifdef GL_VERSION_1_1
+//	virtual void gl(){
+//		_v0->gl();
+//		_v1->gl();
+//		_v2->gl();
+//	}
+//#endif
 };
 
 

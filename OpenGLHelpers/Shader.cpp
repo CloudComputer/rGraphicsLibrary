@@ -24,6 +24,10 @@ void ShaderProgram::reReadFunctionSubbs(){
 	readFunctionSubbs();
 }
 
+GLint ShaderProgram::getLocation(std::string loc){
+	return _locations[loc];
+}
+
 void ShaderProgram::readFunctionSubbs(){
 	std::vector<std::string> files = Directory::getAllFilesInFolder(GLSL_DIR,"\.rgl$");
 
@@ -69,7 +73,6 @@ void Shader::setSourceFromFile(std::string filename){
 
 	std::stringstream s;
 	s << f.rdbuf();
-	std::cout << s << std::endl;
 	setSouce(s.str());
 }
 

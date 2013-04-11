@@ -11,7 +11,7 @@ class Light {
 	glm::vec4 _diffuseColor;
 	glm::vec4 _specularColor;
 
-	glm::vec3 _attenuation;
+	float _radius;
 	glm::vec4 _position;
 
 	glm::vec3 _spotDirection;
@@ -29,9 +29,10 @@ public:
 	void setDiffuseColor(glm::vec4 color);
 	void setSpecularColor(glm::vec4 color);
 	
-	void setConstantAttenuation(float constantAttenuation);
+	void setRadius(float radius);
+	/*void setConstantAttenuation(float constantAttenuation);
 	void setLinearAttenuation(float linearAttenuation);
-	void setQuadraticAttenuation(float quadraticAttenuation);
+	void setQuadraticAttenuation(float quadraticAttenuation);*/
 
 	void setPosition(glm::vec3 pos);
 	void setDirection(glm::vec3 dir);
@@ -40,14 +41,16 @@ public:
 	void setSpotCutOff(float cutOff);
 	void setSpotExponent(float exponent);
 
+	
 	glm::vec4 getAmbientColor()const;
 	glm::vec4 getDiffuseColor()const;
 	glm::vec4 getSpecularColor()const;
 	
-	float getConstantAttenuation()const;
+	float getRadius()const;
+	/*float getConstantAttenuation()const;
 	float getLinearAttenuation()const;
 	float getQuadraticAttenuation()const;
-
+*/
 	glm::vec3 getPosition()const;
 	glm::vec3 getDirection()const;
 	

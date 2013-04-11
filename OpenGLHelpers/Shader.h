@@ -67,6 +67,7 @@ public:
 	ShaderProgram();
 	~ShaderProgram();
 
+	GLint getLocation(std::string loc);
 
 	static void reReadFunctionSubbs();
 	void init();

@@ -11,19 +11,27 @@
 
 class IndexedMesh : public Mesh
 {
-	KDTree<Vertex*,3,float> _vertices;
+	K3DTree<Vertex*> _vertices;
+	//K3DTree<Triangle*> _triangles;
 	std::vector<Triangle*> _triangles;
 	BoundingAABB _boundingAABB;
 public:
 	IndexedMesh(void);
 	~IndexedMesh(void);
 
-	virtual Vertex *addVertex(glm::vec3 pos, glm::vec3 normal = glm::vec3(0,0,0));
-	virtual Face* addFace(std::vector<glm::vec3> positions);
+	virtual Vertex *addVertex(glm::vec3 &pos, glm::vec3 &normal = glm::vec3(0,0,0));
+	virtual Face* addFace(std::vector<glm::vec3> &positions);
+	Face *addTriangle(const glm::vec3 &p0,const glm::vec3 &p1,const glm::vec3 &p2);
 
 	std::vector<Triangle*> getFaces(){return _triangles;}
 
+	unsigned int getNumVertices(){return _vertices.size();}
+
+	void clear(bool onlyFaces = false);
+
 	virtual void calculateNormals();
+
+	void removeDoubleTriangles(bool removeBoth = false);
 
 	BoundingAABB getBoundingAABB()const{return _boundingAABB;}
 
@@ -44,7 +52,7 @@ public:
 		glEnd();
 	}
 #endif
-	virtual float distance(glm::vec3 worldPos , bool signedDistnace = false)const;
+	virtual float distance(glm::vec3 &worldPos , bool signedDistnace = false);
 
 	virtual std::string toString()const{
 		return "IndexedMesh";

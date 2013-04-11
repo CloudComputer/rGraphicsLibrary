@@ -17,12 +17,12 @@ class Mesh : public Object{
 public:
 	Mesh(){}
 	virtual ~Mesh(){}
-	virtual Vertex *addVertex(glm::vec3 pos, glm::vec3 normal) = 0;
-	virtual Face* addFace(std::vector<glm::vec3> positions) = 0;
+	virtual Vertex *addVertex(glm::vec3 &pos, glm::vec3 &normal) = 0;
+	virtual Face* addFace(std::vector<glm::vec3> &positions) = 0;
 
 	virtual void calculateNormals() = 0;
 
-	virtual float distance (glm::vec3 worldPos , bool signedDistance)const = 0;
+	virtual float distance (glm::vec3 &worldPos , bool signedDistance) = 0;
 	virtual BoundingAABB getBoundingAABB()const = 0;
 
 

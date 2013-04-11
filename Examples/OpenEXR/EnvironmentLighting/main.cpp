@@ -136,12 +136,14 @@ void draw(){
 		pgm->setUniform(name,lights[i].getDiffuseColor());
 		sprintf(name,"lights[%d].specular",i);
 		pgm->setUniform(name,lights[i].getSpecularColor());
-		sprintf(name,"lights[%d].constantAtt",i);
+		sprintf(name,"lights[%d].radius",i);
+		pgm->setUniform(name,lights[i].getRadius());
+		/*sprintf(name,"lights[%d].constantAtt",i);
 		pgm->setUniform(name,lights[i].getConstantAttenuation());
 		sprintf(name,"lights[%d].linearAtt",i);
 		pgm->setUniform(name,lights[i].getLinearAttenuation());
 		sprintf(name,"lights[%d].quadraticAtt",i);
-		pgm->setUniform(name,lights[i].getQuadraticAttenuation());
+		pgm->setUniform(name,lights[i].getQuadraticAttenuation());*/
 		sprintf(name,"lights[%d].position",i);
 		pgm->setUniform(name,lights[i].getPosition());
 		chkGLErr();
