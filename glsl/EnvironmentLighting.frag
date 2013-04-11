@@ -2,7 +2,6 @@ varying vec3 N;
 varying vec3 V;
 varying vec3 P;
 
-varying mat4 M;
 
 uniform float lum;
 
