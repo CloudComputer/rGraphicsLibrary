@@ -160,6 +160,9 @@ template<typename KernelType>
 RBFSystem *RBFSystem::FastFitting(std::vector<glm::vec4> &points,float smoothNess,float accuracy,int minInnerSize,float outerSize,int coarseGridSize, int maxIterations){
 	if(points.size()==0)
 		return new RBFSystem();
+	if(points.size()<=minInnerSize*2){
+		return CreateFromPoints<KernelType>(points,smoothNess);
+	}
 	RBFSystem *sg = new RBFSystem();
 	TmpPointer<RBFSystem> s1 = new RBFSystem();
 	TmpPointer<RBFSystem> s2 = new RBFSystem();
@@ -246,10 +249,18 @@ RBFSystem *RBFSystem::FastFitting(std::vector<glm::vec4> &points,float smoothNes
 			}
 		}
 	}
-	coarseGrid.buildMatrix(&*s1,points,smoothNess,true);
+	try{
+		coarseGrid.buildMatrix(&*s1,points,smoothNess,true);
+	}catch(...){
+		return 0;
+	}
 
 	for(auto s = subspace.begin();s!=subspace.end();++s){
-		s->buildMatrix(&*s1,points,smoothNess);
+		try{
+			s->buildMatrix(&*s1,points,smoothNess,!true);
+		}catch(...){
+			return 0;
+		}
 	}
 	
 	std::cout << sg->meanSqError(points) << std::endl;

@@ -1,7 +1,6 @@
 #ifndef _RBF_H_
 #define _RBF_H_
 
-
 #include <Util\StopClock.h>
 
 #include "Math\Polynomial.h"
@@ -159,8 +158,13 @@ RBFSystem *RBFSystem::CreateFromPoints(std::vector<glm::vec4> &points,float w){
 	}
 
 	unsigned long size = points.size(); 
-	
-	Eigen::MatrixXf A = Eigen::MatrixXf::Zero(size+4,size+4);
+	Eigen::MatrixXf A;
+	try{
+		A = Eigen::MatrixXf::Zero(size+4,size+4);
+	}catch(...){
+		delete rbfs;
+		return 0;
+	}
 	Eigen::VectorXf p = Eigen::VectorXf::Zero(size+4);
 
 	//Build a and p

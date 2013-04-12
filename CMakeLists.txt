@@ -72,6 +72,8 @@ add_subdirectory(Util)
 add_subdirectory(Physics)
 add_subdirectory(RBF)
 
+add_subdirectory(ext/tinyxml2)
+
 if(BUILD_GLEW)
 	add_subdirectory(ext/glew)
 endif()
