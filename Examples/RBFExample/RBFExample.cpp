@@ -26,17 +26,21 @@
 StopClock sw(true);
 std::vector<glm::vec4> _points;
 
-int numPoints = 2000;
+int numPoints = 500;
 int meshRes = 10;
 
 float acc = 10e-5;
-int minInnerSize = 1000;
+int minInnerSize = 100;
 float outerSize = 0.1f;
-int coarseGridSize = 20;
-int maxIterations = 2000;
+int coarseGridSize = 50;
+int maxIterations = 100;
 
 
 struct RBFInfo : public Object{
+	RBFInfo(){
+		rbf = 0;
+		m = 0;
+	}
 	RBFSystem *rbf;
 	IndexedMesh *m;
 	std::string name;
@@ -128,7 +132,7 @@ void RBFSelecterObject::createRBFS(){
 	std::cout << std::setw(25) << "Mesh exraction time" << std::endl;
 
 	bool useFastFit = true;
-	bool useNormalFit = !true;
+	bool useNormalFit = true;
 	
 	//rbfs.push_back(createRBF<TestRBF<1>>(points,"TestRBF<1>",true));
 	//rbfs.push_back(createRBF<TestRBF<2>>(points,"TestRBF<2>",true));
@@ -157,18 +161,24 @@ void RBFSelecterObject::createRBFS(){
 template<typename RBFKernel>
 RBFInfo* RBFSelecterObject::createRBF(std::vector<glm::vec4> points,std::string name,bool fastFit){
 	RBFInfo *r = new RBFInfo();
+	r->name = name;
+	
+	
 
 	StopClock s(true);
 	if(fastFit)
-		r->rbf = RBFSystem::FastFitting<RBFKernel>(points,acc,minInnerSize,outerSize,coarseGridSize,maxIterations);
+		r->rbf = RBFSystem::FastFitting<RBFKernel>(points,0,acc,minInnerSize,outerSize,coarseGridSize,maxIterations);
 	else
 		r->rbf = RBFSystem::CreateFromPoints<RBFKernel>(points);
+	if(r->rbf == 0){
+		r->name.append("-failed");
+		return r;
+	}
 	s.stop();
 	r->fittingTime = s.getFractionElapsedSeconds();s.restart();
 	r->m = static_cast<IndexedMesh*>(MarchingTetrahedra::March<IndexedMesh>(r->rbf,aabb,glm::ivec3(meshRes,meshRes,meshRes)));
 	s.stop();
 	r->meshExtractionTime = s.getFractionElapsedSeconds();
-	r->name = name;
 	r->meanSqError = r->rbf->meanSqError(points);
 
 
@@ -178,7 +188,7 @@ RBFInfo* RBFSelecterObject::createRBF(std::vector<glm::vec4> points,std::string 
 
 
 void createPoints(){
-	_points = Random::getRandomGenerator()->randomPointsCloseToCubeSurface(numPoints);
+	//_points = Random::getRandomGenerator()->randomPointsCloseToCubeSurface(numPoints);
 	_points = Random::getRandomGenerator()->randomPointsCloseToSphereSurface(numPoints);
 }
 
