@@ -10,6 +10,7 @@ file(GLOB Base_SRC
 )
 
 add_library(Base ${Base_SRC} ${Base_H})
+target_link_libraries(Base TinyXML2)
 
 set_target_properties(Base
   PROPERTIES
