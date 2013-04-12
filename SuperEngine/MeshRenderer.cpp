@@ -1,9 +1,9 @@
 #include "MeshRenderer.h"
 
+#include <OpenGLHelpers\AttribPusher.h>
 #include <OpenGLHelpers\OpenGLInfo.h>
 #include <Geometry\Mesh\IndexedMesh.h>
 
-#include <OpenGLHelpers\AttribPusher.h>
 
 #define BUFFER_OFFSET(i) ((void*)(i))
 

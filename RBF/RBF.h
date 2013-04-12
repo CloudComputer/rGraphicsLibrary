@@ -12,17 +12,25 @@
 
 #include "Math\MatrixInversion.h"
 
+#include <Base\XMLObject.h>
 
 #include <vector>
 
 #include <Eigen\Dense>
 
 
-class RBF{
+class RBF : public XMLObject{
 	friend class RBFSystem;
 	float _weight;
 	float _center[3];
+protected:
 	virtual float _eval(float r2) const = 0;
+	void addXMLTags(tinyxml2::XMLElement *node){
+		node->SetAttribute("x",_center[0]);
+		node->SetAttribute("y",_center[1]);
+		node->SetAttribute("z",_center[2]);
+		node->SetAttribute("weight",_weight);
+	}
 public:
 	RBF(float cx,float cy,float cz,float weight = 1):_weight(weight){
 		_center[0] = cx;
@@ -60,6 +68,12 @@ class TestRBF : public RBF{
 	}
 public:
 	TestRBF(float cx,float cy,float cz,float weight = 1):RBF(cx,cy,cz,weight){}
+	virtual void save(tinyxml2::XMLNode *parent){
+		auto element = parent->GetDocument()->NewElement("TestRBF");
+		parent->InsertEndChild(element);
+		addXMLTags(element);
+	}
+	virtual std::string toString()const{return "TestRBF";}
 };
 
 class ThinPlateSplineRBF : public RBF{
@@ -68,6 +82,12 @@ class ThinPlateSplineRBF : public RBF{
 	}
 public:
 	ThinPlateSplineRBF(float cx,float cy,float cz,float weight = 1):RBF(cx,cy,cz,weight){}
+	virtual void save(tinyxml2::XMLNode *parent){
+		auto element = parent->GetDocument()->NewElement("ThinPlateSplineRBF");
+		parent->InsertEndChild(element);
+		addXMLTags(element);
+	}
+	virtual std::string toString()const{return "ThinPlateSplineRBF";}
 };
 
 
@@ -77,6 +97,12 @@ class Biharmonic : public RBF{
 	}
 public:
 	Biharmonic(float cx,float cy,float cz,float weight = 1):RBF(cx,cy,cz,weight){}
+	virtual void save(tinyxml2::XMLNode *parent){
+		auto element = parent->GetDocument()->NewElement("Biharmonic");
+		parent->InsertEndChild(element);
+		addXMLTags(element);
+	}
+	virtual std::string toString()const{return "Biharmonic";}
 };
 
 class Triharmonic : public RBF{
@@ -85,6 +111,12 @@ class Triharmonic : public RBF{
 	}
 public:
 	Triharmonic(float cx,float cy,float cz,float weight = 1):RBF(cx,cy,cz,weight){}
+	virtual void save(tinyxml2::XMLNode *parent){
+		auto element = parent->GetDocument()->NewElement("Triharmonic");
+		parent->InsertEndChild(element);
+		addXMLTags(element);
+	}
+	virtual std::string toString()const{return "Triharmonic";}
 };
 
 class GausianRBF : public RBF{
@@ -93,7 +125,14 @@ class GausianRBF : public RBF{
 	}
 	float _a;
 public:
-	GausianRBF(float cx,float cy,float cz,float weight = 1.0,float a = 1.0):RBF(cx,cy,cz,weight),_a(a*a){}
+	GausianRBF(float cx,float cy,float cz,float weight = 1.0,float a = 50.0):RBF(cx,cy,cz,weight),_a(a*a){}
+	virtual void save(tinyxml2::XMLNode *parent){
+		auto element = parent->GetDocument()->NewElement("GausianRBF");
+		parent->InsertEndChild(element);
+		addXMLTags(element);
+		element->SetAttribute("a",std::sqrtf(_a));
+	}
+	virtual std::string toString()const{return "GausianRBF";}
 };
 
 class MultiQuadricRBF : public RBF{
@@ -103,6 +142,13 @@ class MultiQuadricRBF : public RBF{
 	float _a;
 public:
 	MultiQuadricRBF(float cx,float cy,float cz,float weight = 1.0,float a = 1.0):RBF(cx,cy,cz,weight),_a(a*a){}
+	virtual void save(tinyxml2::XMLNode *parent){
+		auto element = parent->GetDocument()->NewElement("MultiQuadricRBF");
+		parent->InsertEndChild(element);
+		addXMLTags(element);
+		element->SetAttribute("a",std::sqrtf(_a));
+	}
+	virtual std::string toString()const{return "MultiQuadricRBF";}
 };
 
 
@@ -113,12 +159,19 @@ class InverseMultiQuadricRBF : public RBF{
 	float _a;
 public:
 	InverseMultiQuadricRBF(float cx,float cy,float cz,float weight = 1.0,float a = 1.0):RBF(cx,cy,cz,weight),_a(a*a){}
+	virtual void save(tinyxml2::XMLNode *parent){
+		auto element = parent->GetDocument()->NewElement("InverseMultiQuadricRBF");
+		parent->InsertEndChild(element);
+		addXMLTags(element);
+		element->SetAttribute("a",std::sqrtf(_a));
+	}
+	virtual std::string toString()const{return "InverseMultiQuadricRBF";}
 };
 
 
 
 
-class RBFSystem : public CSG{
+class RBFSystem : public CSG , public XMLObject{
 	friend class __rbf_SubSpace;
 	struct TrendFunction{
 		float _c[4];
@@ -135,6 +188,8 @@ public:
 	virtual std::string toString()const{return "RBFSystem";}
 
 	float meanSqError(const std::vector<glm::vec4> &points);
+	
+	virtual void save(tinyxml2::XMLNode *parent);
 
 	template <typename KernelType> static RBFSystem *CreateFromPoints(std::vector<glm::vec4> &points,float w = 0);
 	template <typename KernelType> 

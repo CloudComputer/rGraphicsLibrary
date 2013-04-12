@@ -137,3 +137,38 @@ void __rbf_Subdived(std::vector<glm::vec4> &points,unsigned int minSize,__rbf_Su
 	}
 
 }
+
+
+
+void RBFSystem::save(tinyxml2::XMLNode *parent){
+	auto element = parent->GetDocument()->NewElement("RBFSystem");
+	auto centers = parent->GetDocument()->NewElement("centers");
+	auto trendFunc = parent->GetDocument()->NewElement("TrendFunction");
+	auto minPosition = parent->GetDocument()->NewElement("minPosition");
+	auto maxPosition = parent->GetDocument()->NewElement("maxPosition");
+	parent->InsertEndChild(element);
+	element->InsertEndChild(trendFunc);
+	element->InsertEndChild(minPosition);
+	element->InsertEndChild(maxPosition);
+	element->InsertEndChild(centers);
+	
+	trendFunc->SetAttribute("c0",_trend._c[0]);
+	trendFunc->SetAttribute("c1",_trend._c[1]);
+	trendFunc->SetAttribute("c2",_trend._c[2]);
+	trendFunc->SetAttribute("c3",_trend._c[3]);
+	
+	minPosition->SetAttribute("x",_min.x);
+	minPosition->SetAttribute("y",_min.y);
+	minPosition->SetAttribute("z",_min.z);
+	maxPosition->SetAttribute("x",_max.x);
+	maxPosition->SetAttribute("y",_max.y);
+	maxPosition->SetAttribute("z",_max.z);
+
+	for(auto k = _kernels.begin();k!=_kernels.end();++k){
+		(*k)->save(centers);
+	}
+
+}
+
+
+

@@ -17,7 +17,7 @@ public:
 
 #ifdef GL_VERSION_1_1
 	void draw(float s = 0.1){
-		AttribPusher __p(GL_CURRENT_BIT);
+		//AttribPusher __p(GL_CURRENT_BIT);
 		glColor3f(1,1,1);
 		glBegin(GL_LINES);
 		FOR(_dimensions){

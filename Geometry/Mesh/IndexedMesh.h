@@ -36,6 +36,31 @@ public:
 	BoundingAABB getBoundingAABB()const{return _boundingAABB;}
 
 #ifdef GL_VERSION_1_1
+#include <OpenGLHelpers\AttribPusher.h>
+
+	void drawWithNormals(bool faceNormals = true,float scale = 0.1){
+		glColor3f(1,1,1);
+		glColor3f(1,0,0);
+		draw();
+		
+		AttribPusher __a(GL_LIGHTING_BIT);
+		glDisable(GL_LIGHTING);
+		glBegin(GL_LINES);
+		for (auto tri = _triangles.begin(); tri != _triangles.end(); ++tri){
+			if(faceNormals){
+				glm::vec3 c = glm::vec3((*tri)->v0()->getPosition() + (*tri)->v1()->getPosition() + (*tri)->v2()->getPosition()) / glm::vec3(3.0,3.0,3.0);
+				glm::vec3 offC = c + (*tri)->getNormal() * scale;
+				glColor3f(1,0,0);
+				glVertex3fv(glm::value_ptr(c));
+				glColor3f(0,0,1);
+				glVertex3fv(glm::value_ptr(offC));
+			}
+		}
+		glEnd();
+
+	}
+
+
 	void draw(){
 		glBegin(GL_TRIANGLES);
 		for (auto tri = _triangles.begin(); tri != _triangles.end(); ++tri){

@@ -23,17 +23,24 @@
 #include <iostream>
 #include <iomanip>
 
+#include <SuperEngine\MeshRenderer.h>
+
+#include <Base\XMLObjectHandler.h>
+
+MeshRenderer *meshRenderer = 0;
+
+
 StopClock sw(true);
 std::vector<glm::vec4> _points;
 
-int numPoints = 500;
+int numPoints = 40000;
 int meshRes = 10;
 
-float acc = 10e-5;
-int minInnerSize = 100;
+float acc = 10e-6;
+int minInnerSize = numPoints/50;
 float outerSize = 0.1f;
-int coarseGridSize = 50;
-int maxIterations = 100;
+int coarseGridSize = 20;
+int maxIterations = 10;
 
 
 struct RBFInfo : public Object{
@@ -83,9 +90,18 @@ public:
 	~RBFSelecterObject(){}
 
 	virtual void draw(){
+		/*if(meshRenderer == 0){
+			if(showMesh && rbfs.size()>=current+1&& rbfs[current]->m != 0){
+				meshRenderer = new MeshRenderer();
+				meshRenderer->buildFromMesh(rbfs[current]->m,!false);
+			}
+		}*/
+
 		aabb.draw();
 		if(showMesh && rbfs.size()>=current+1&& rbfs[current]->m != 0){
-			rbfs[current]->m->draw();
+			//rbfs[current]->m->draw();
+			rbfs[current]->m->drawWithNormals();
+			//meshRenderer->draw();
 		}if(showPoints){
  			AttribPusher ____a(GL_ENABLE_BIT);
 			glDisable(GL_LIGHTING);
@@ -132,15 +148,16 @@ void RBFSelecterObject::createRBFS(){
 	std::cout << std::setw(25) << "Mesh exraction time" << std::endl;
 
 	bool useFastFit = true;
-	bool useNormalFit = true;
+	bool useNormalFit = !true;
 	
 	//rbfs.push_back(createRBF<TestRBF<1>>(points,"TestRBF<1>",true));
 	//rbfs.push_back(createRBF<TestRBF<2>>(points,"TestRBF<2>",true));
 	//rbfs.push_back(createRBF<TestRBF<3>>(points,"TestRBF<3>",true));
 	//rbfs.push_back(createRBF<TestRBF<4>>(points,"TestRBF<4>",true));
-
+	
 	if(useNormalFit)rbfs.push_back(createRBF<Biharmonic>(points,"Biharmonic",false));
 	if(useFastFit)rbfs.push_back(createRBF<Biharmonic>(points,"Biharmonic fast fitting",true));
+	
 	return;
 	if(useNormalFit)rbfs.push_back(createRBF<InverseMultiQuadricRBF>(points,"InverseMultiQuadricRBF",false));
 	if(useFastFit)rbfs.push_back(createRBF<InverseMultiQuadricRBF>(points,"InverseMultiQuadricRBF fast fitting",true));
@@ -182,14 +199,19 @@ RBFInfo* RBFSelecterObject::createRBF(std::vector<glm::vec4> points,std::string 
 	r->meanSqError = r->rbf->meanSqError(points);
 
 
+	std::stringstream ss;
+	ss << name << ".xml";
+	XMLObjectHandler::Handler()->save(r->rbf,ss.str());
+	
+
 	std::cout << r << std::endl;
 	return r;
 }
 
 
 void createPoints(){
-	//_points = Random::getRandomGenerator()->randomPointsCloseToCubeSurface(numPoints);
-	_points = Random::getRandomGenerator()->randomPointsCloseToSphereSurface(numPoints);
+	_points = Random::getRandomGenerator()->randomPointsCloseToCubeSurface(numPoints);
+	//_points = Random::getRandomGenerator()->randomPointsCloseToSphereSurface(numPoints);
 }
 
 void initGL(){
@@ -197,6 +219,9 @@ void initGL(){
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
+	//glEnable(GL_AUTO_NORMAL);
+	//glLightModelf(GL_LIGHT_MODEL_TWO_SIDE , GL_TRUE);
+	
 
 
 	GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
@@ -206,11 +231,17 @@ void initGL(){
 	glClearColor (0.0, 0.0, 0.0, 0.0);
 	glShadeModel (GL_SMOOTH);
 
+	
+	GLfloat green[] = { 0,1,0 , 1.0 };
+	GLfloat red[]   = { 1,0,0 , 1.0 };
+
 	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE , light_color);
-	glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE ) ;
+	glColorMaterial ( GL_FRONT, GL_AMBIENT_AND_DIFFUSE ) ;
+	/*glMaterialfv(GL_FRONT, GL_DIFFUSE, green);
+	glMaterialfv(GL_BACK, GL_DIFFUSE, red);*/
 	glEnable ( GL_COLOR_MATERIAL ) ;
 }
 

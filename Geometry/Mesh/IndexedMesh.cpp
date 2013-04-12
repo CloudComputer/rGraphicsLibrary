@@ -56,7 +56,7 @@ Vertex* IndexedMesh::addVertex(glm::vec3 &pos, glm::vec3 &normal){
 	auto node = _vertices.findNearest(pos);
 	if(node){
 		float d = glm::distance(pos,glm::vec3(node->get()->getPosition()));
-		if(d<0.0000001){
+		if(d<0.00001){
 			return node->get();
 		}
 	}

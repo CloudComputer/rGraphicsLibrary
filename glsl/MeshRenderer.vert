@@ -4,12 +4,14 @@ varying vec3 P;
 
 varying mat4 M;
 
+
 attribute vec4 Pos;
 attribute vec3 Normal;
 
 void main()
 {
 	N = (gl_NormalMatrix * Normal).xyz;
+	//N = Normal;
 	M = gl_ModelViewMatrix;
 	vec4 pos   =  M * Pos;
 	P = pos.xyz;

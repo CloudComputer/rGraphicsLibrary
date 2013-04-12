@@ -55,7 +55,7 @@ LitFrag calcLight(vec3 P,vec3 N,vec3 V){
 
 		float denom = dist/lights[l].radius;
 		att = 1.0 / (denom*denom);
-
+		att = 1.0;
 		
 		d = clamp(dot(L,N),0.0,1.0);
 		s = pow(clamp(dot(L,R),0.0,1.0),material.shininess);
