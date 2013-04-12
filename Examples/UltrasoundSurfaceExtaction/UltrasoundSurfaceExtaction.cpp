@@ -298,9 +298,9 @@ void loadPoints(){
 */
 
 
-		if(i%2==0)
+		//if(i%2==0)
 			surfacePoints.push_back(p0);
-		else 
+		//else 
 			surfacePoints.push_back(p1);
 		surfacePoints.push_back(p2);
 		/*surfacePoints.push_back(p3);

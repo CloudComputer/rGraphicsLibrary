@@ -113,7 +113,9 @@ struct __rbf_SubSpace{
 				auto k = sampleInner(s->_kernels,i);
 				A(i,j) = k->eval(p.x,p.y,p.z);
 			}
+
 			A(i,i) -= smoothNess;
+
 			if(usePolynomial){
 				A(i,sizeI+0) = 1;
 				A(i,sizeI+1) = sampleInner(points,i).x;
