@@ -22,6 +22,7 @@ option(BUILD_TOOLS "Build tools" ON)
 #SET(OPENEXRLIBS "Half Iex IlmImf IlmThread Imath")
 
 include_directories("${PROJECT_SOURCE_DIR}/ext/")
+include_directories("${PROJECT_SOURCE_DIR}/ext/im/include")
 include_directories("${PROJECT_SOURCE_DIR}/ext/eigen")
 include_directories("${PROJECT_SOURCE_DIR}/ext/glfw/include")
 include_directories("${PROJECT_SOURCE_DIR}/ext/openEXR/include/")
@@ -57,6 +58,7 @@ add_subdirectory(glsl)
 
 
 # add_subdirectory(ext/eigen)
+ add_subdirectory(ext/im)
 
 add_subdirectory(Base)
 add_subdirectory(Engine)
@@ -67,6 +69,7 @@ add_subdirectory(Geometry)
 add_subdirectory(Math)
 add_subdirectory(Volume)
 add_subdirectory(Fractals)
+add_subdirectory(IMHelpers)
 add_subdirectory(SuperEngine)
 add_subdirectory(Util)
 add_subdirectory(Physics)

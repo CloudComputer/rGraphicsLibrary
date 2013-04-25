@@ -1,0 +1,5 @@
+$(OBJDIR)/imlua_jp2.o: lua5/imlua_jp2.c ../include/im_format_jp2.h \
+ /cygdrive/d/tecgraf/lua5.1/include/lua.h \
+ /cygdrive/d/tecgraf/lua5.1/include/luaconf.h \
+ /cygdrive/d/tecgraf/lua5.1/include/lauxlib.h \
+ /cygdrive/d/tecgraf/lua5.1/include/lua.h

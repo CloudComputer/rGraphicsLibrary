@@ -1,0 +1,5 @@
+$(OBJDIR)/im_lua3.o: im_lua3.c /cygdrive/d/tecgraf/lua/include/lua.h \
+ ../include/im.h ../include/old_im.h ../include/im_lib.h \
+ /cygdrive/d/tecgraf/cd/include/cd.h \
+ /cygdrive/d/tecgraf/cd/include/cd_old.h \
+ /cygdrive/d/tecgraf/cd/include/cdlua3_private.h ../include/imlua.h
