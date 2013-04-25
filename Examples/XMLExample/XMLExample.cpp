@@ -1,6 +1,5 @@
 #include <Base\XMLObjectHandler.h>
 
-#include <tinyxml2\tinyxml2.h>
 
 #include <iostream>
 

@@ -18,6 +18,9 @@ public:
 		return *this;
 	}
 	
+	T *get(){return _t;}
+	T *get()const{return _t;}
+
 	T &operator*(){return *_t;}
 	T *operator->(){return _t;}
 };

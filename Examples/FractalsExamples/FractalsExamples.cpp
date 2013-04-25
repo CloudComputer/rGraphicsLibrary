@@ -33,7 +33,7 @@ public:
 
 
 
-void init(Engine *t){
+void init(int argc,char **argv,Engine *t){
 	TestObject *test = new TestObject();
 	static_cast<SuperGraphicsEngine*>(SuperEngine::getEngine()->getGraphicEngine())->addDrawableObject(test->getRenderer());
 }

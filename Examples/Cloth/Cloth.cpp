@@ -61,10 +61,10 @@ void init(){
 	chkGLErr();
 	glClearColor(0,0,0,0);
 	
-	sds = SpringDamperSystem<glm::vec3>::CreateSquared(1.2,1.2,30,30,10.2,0.16,1);
+	sds = SpringDamperSystem<glm::vec3>::CreateSquared(1.2,1.2,30,30,20.2,1,1);
 	sds->getParticles()[30*30-1]->setPinned();
 	sds->getParticles()[30*29]->setPinned();
-	sds->addExternalForce(glm::vec3(0,-0.005,0));
+	sds->addExternalForce(glm::vec3(0,-0.009,0));
 
 	chkGLErr();
 }

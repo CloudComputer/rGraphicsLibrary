@@ -8,7 +8,7 @@
 
 add_library(Volume ${Volume_SRC})
 
-target_link_libraries(Volume BoundingGeometry)
+target_link_libraries(Volume BoundingGeometry IMHelpers)
 
 set_target_properties(Volume
   PROPERTIES

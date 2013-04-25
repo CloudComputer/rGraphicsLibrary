@@ -19,6 +19,10 @@ _smooth(true){
 	
 	_lights.push_back(Light(0));
 	_lights.push_back(Light(1));
+	_lights.push_back(Light(2));
+	_lights.push_back(Light(3));
+	_lights.push_back(Light(4));
+	_lights.push_back(Light(5));
 	
 	_lights[0].setAmbientColor(glm::vec4(0,0,0,1));
 	_lights[0].setDiffuseColor(glm::vec4(0.3,0.3,1,1));
@@ -29,6 +33,26 @@ _smooth(true){
 	_lights[1].setDiffuseColor(glm::vec4(1,0.3,0.3,1));
 	_lights[1].setAmbientColor(glm::vec4(1,1,1,1));
 	_lights[1].setPosition(glm::vec3(2,0,3));
+
+	_lights[2].setAmbientColor(glm::vec4(0,0,0,1));
+	_lights[2].setDiffuseColor(glm::vec4(1,0.3,0.3,1));
+	_lights[2].setAmbientColor(glm::vec4(1,1,1,1));
+	_lights[2].setPosition(glm::vec3(-2,0,3));
+
+	_lights[3].setAmbientColor(glm::vec4(0,0,0,1));
+	_lights[3].setDiffuseColor(glm::vec4(1,0.3,0.3,1));
+	_lights[3].setAmbientColor(glm::vec4(1,1,1,1));
+	_lights[3].setPosition(glm::vec3(-2,0,-3));
+
+	_lights[4].setAmbientColor(glm::vec4(0,0,0,1));
+	_lights[4].setDiffuseColor(glm::vec4(1,0.3,0.3,1));
+	_lights[4].setAmbientColor(glm::vec4(1,1,1,1));
+	_lights[4].setPosition(glm::vec3(2,0,-3));
+
+	_lights[5].setAmbientColor(glm::vec4(0,0,0,1));
+	_lights[5].setDiffuseColor(glm::vec4(1,0.3,0.3,1));
+	_lights[5].setAmbientColor(glm::vec4(1,1,1,1));
+	_lights[5].setPosition(glm::vec3(0,5,0));
 
 	wireframe = !true;
  }

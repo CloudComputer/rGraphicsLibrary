@@ -67,10 +67,10 @@ public:
 #ifdef ENGINE_MAIN
 	#undef ENGINE_MAIN
 #endif
-#define ENGINE_MAIN(ENGINE,init) int main(int argv,char &argc){\
+#define ENGINE_MAIN(ENGINE,init) int main(int argv,char **argc){\
 	Engine *t = ENGINE;	\
 	if(!t->init()){std::cerr << "Could not init engine" << std::endl;return RGL_EXIT_CODE_ENGINE_INIT_FAILURE;}\
-	init(t);\
+	init(argv,argc,t);\
 	t->loop();\
 	return RGL_EXIT_CODE_OK;\
 }\

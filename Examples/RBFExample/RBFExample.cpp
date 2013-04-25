@@ -10,6 +10,8 @@
 #include <Util/StopClock.h>
 #include <Util/Random.h>
 
+#define RBF_DEBUG
+
 #include <Geometry/Mesh/IndexedMesh.h>
 #include <RBF/RBF.h>
 #include <Geometry/CSG/MarchingTetrahedra.h>
@@ -33,13 +35,13 @@ MeshRenderer *meshRenderer = 0;
 StopClock sw(true);
 std::vector<glm::vec4> _points;
 
-int numPoints = 40000;
+int numPoints = 47000;
 int meshRes = 10;
 
-float acc = 10e-6;
-int minInnerSize = numPoints/50;
-float outerSize = 0.1f;
-int coarseGridSize = 20;
+float acc = 1e-5;
+int minInnerSize = numPoints/30;
+float outerSize = 0.2f;
+int coarseGridSize = 40;
 int maxIterations = 10;
 
 
@@ -77,7 +79,7 @@ class RBFSelecterObject : public DrawableObject, public KeyboardEventListener{
 	BoundingAABB aabb;
 
 	void createRBFS();
-	template<typename RBFKernel> RBFInfo *createRBF(std::vector<glm::vec4> points,std::string name,bool fastFit);
+	template<typename RBFKernel,typename Solver> RBFInfo *createRBF(std::vector<glm::vec4> points,std::string name,bool fastFit,bool newTest = false);
 
 public:
 	RBFSelecterObject(std::vector<glm::vec4> points):points(points),aabb(glm::vec3(0,0,0),glm::vec3(0,0,0)),current(0),showMesh(1),showPoints(1){
@@ -140,6 +142,8 @@ public:
 	}
 };
 
+typedef Eigen::FullPivHouseholderQR<Eigen::MatrixXf> solver;
+
 void RBFSelecterObject::createRBFS(){
 	
 	std::cout << "Creating RBFS"<< std::endl;
@@ -155,36 +159,44 @@ void RBFSelecterObject::createRBFS(){
 	//rbfs.push_back(createRBF<TestRBF<3>>(points,"TestRBF<3>",true));
 	//rbfs.push_back(createRBF<TestRBF<4>>(points,"TestRBF<4>",true));
 	
-	if(useNormalFit)rbfs.push_back(createRBF<Biharmonic>(points,"Biharmonic",false));
-	if(useFastFit)rbfs.push_back(createRBF<Biharmonic>(points,"Biharmonic fast fitting",true));
+	//if(useFastFit)rbfs.push_back(createRBF<Biharmonic>(points,"Biharmonic fast fitting",true,true));
+	if(useNormalFit)rbfs.push_back(createRBF<Biharmonic,solver>(points,"Biharmonic",false));
+	if(useFastFit)rbfs.push_back(createRBF<Biharmonic,Eigen::PartialPivLU<Eigen::MatrixXf>>(points,"Biharmonic fast fitting PartialPivLU",true));
+	if(useFastFit)rbfs.push_back(createRBF<Biharmonic,Eigen::FullPivLU<Eigen::MatrixXf>>(points,"Biharmonic fast fitting FullPivLU",true));
+	if(useFastFit)rbfs.push_back(createRBF<Biharmonic,Eigen::HouseholderQR<Eigen::MatrixXf>>(points,"Biharmonic fast fitting HouseholderQR",true));
+	if(useFastFit)rbfs.push_back(createRBF<Biharmonic,Eigen::ColPivHouseholderQR<Eigen::MatrixXf>>(points,"Biharmonic fast fitting ColPivHouseholderQR",true));
+	if(useFastFit)rbfs.push_back(createRBF<Biharmonic,Eigen::LLT<Eigen::MatrixXf>>(points,"Biharmonic fast fitting LLT",true));
+	if(useFastFit)rbfs.push_back(createRBF<Biharmonic,Eigen::LDLT<Eigen::MatrixXf>>(points,"Biharmonic fast fitting LDLT",true));
 	
 	return;
-	if(useNormalFit)rbfs.push_back(createRBF<InverseMultiQuadricRBF>(points,"InverseMultiQuadricRBF",false));
-	if(useFastFit)rbfs.push_back(createRBF<InverseMultiQuadricRBF>(points,"InverseMultiQuadricRBF fast fitting",true));
+	if(useNormalFit)rbfs.push_back(createRBF<InverseMultiQuadricRBF,solver>(points,"InverseMultiQuadricRBF",false));
+	if(useFastFit)rbfs.push_back(createRBF<InverseMultiQuadricRBF,solver>(points,"InverseMultiQuadricRBF fast fitting",true));
 
-	if(useNormalFit)rbfs.push_back(createRBF<Triharmonic>(points,"Triharmonic",false));
-	if(useFastFit)rbfs.push_back(createRBF<Triharmonic>(points,"Triharmonic fast fitting",true));
+	if(useNormalFit)rbfs.push_back(createRBF<Triharmonic,solver>(points,"Triharmonic",false));
+	if(useFastFit)rbfs.push_back(createRBF<Triharmonic,solver>(points,"Triharmonic fast fitting",true));
 
-	if(useNormalFit)rbfs.push_back(createRBF<GausianRBF>(points,"GausianRBF",false));
-	if(useFastFit)rbfs.push_back(createRBF<GausianRBF>(points,"GausianRBF fast fitting",true));
+	if(useNormalFit)rbfs.push_back(createRBF<GausianRBF,solver>(points,"GausianRBF",false));
+	if(useFastFit)rbfs.push_back(createRBF<GausianRBF,solver>(points,"GausianRBF fast fitting",true));
 
-	if(useNormalFit)rbfs.push_back(createRBF<MultiQuadricRBF>(points,"MultiQuadricRBF",false));
-	if(useFastFit)rbfs.push_back(createRBF<MultiQuadricRBF>(points,"MultiQuadricRBF fast fitting",true));
+	if(useNormalFit)rbfs.push_back(createRBF<MultiQuadricRBF,solver>(points,"MultiQuadricRBF",false));
+	if(useFastFit)rbfs.push_back(createRBF<MultiQuadricRBF,solver>(points,"MultiQuadricRBF fast fitting",true));
 
-	//rbfs.push_back(createRBF<ThinPlateSplineRBF>(points,"ThinPlateSplineRBF",false));
-	//rbfs.push_back(createRBF<ThinPlateSplineRBF>(points,"ThinPlateSplineRBF fast fitting",true));
+	//rbfs.push_back(createRBF<ThinPlateSplineRBF,solver>(points,"ThinPlateSplineRBF",false));
+	//rbfs.push_back(createRBF<ThinPlateSplineRBF,solver>(points,"ThinPlateSplineRBF fast fitting",true));
 }
 
-template<typename RBFKernel>
-RBFInfo* RBFSelecterObject::createRBF(std::vector<glm::vec4> points,std::string name,bool fastFit){
+template<typename RBFKernel,class Solver>
+RBFInfo* RBFSelecterObject::createRBF(std::vector<glm::vec4> points,std::string name,bool fastFit,bool newTest){
 	RBFInfo *r = new RBFInfo();
 	r->name = name;
 	
 	
 
 	StopClock s(true);
-	if(fastFit)
-		r->rbf = RBFSystem::FastFitting<RBFKernel>(points,0,acc,minInnerSize,outerSize,coarseGridSize,maxIterations);
+	if(newTest)
+		r->rbf = RBFSystem::HFromPoints<RBFKernel>(points);
+	else if(fastFit)
+		r->rbf = RBFSystem::FastFitting<RBFKernel,Solver>(points,0,acc,minInnerSize,outerSize,coarseGridSize,maxIterations);
 	else
 		r->rbf = RBFSystem::CreateFromPoints<RBFKernel>(points);
 	if(r->rbf == 0){

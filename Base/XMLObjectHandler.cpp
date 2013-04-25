@@ -1,18 +1,21 @@
 #include "XMLObjectHandler.h"
 
+#include <iostream>
+
+#include <RBF\RBF.h>
 
 XMLObjectHandler* XMLObjectHandler::instance = 0;
 
 XMLObjectHandler *XMLObjectHandler::Handler(){
-	if(instance == 0)
+	if(instance == 0){
 		instance = new XMLObjectHandler();
+		instance->init();
+	}
 	return instance;
 }
 
 
-XMLObjectHandler::XMLObjectHandler(){
-	init();
-}
+XMLObjectHandler::XMLObjectHandler(){}
 
 void XMLObjectHandler::registerFactory(std::string name,Factory *f){
 	_factories[name] = f;
@@ -24,7 +27,7 @@ XMLObjectHandler::~XMLObjectHandler(){
 }
 
 void XMLObjectHandler::init(){
-	
+	RBFFactory::GetFactory();
 }
 
 
@@ -56,11 +59,17 @@ void XMLObjectHandler::read(std::vector<XMLObject*> &objects,std::string filenam
 	tinyxml2::XMLDocument doc;
 	doc.LoadFile(filename.c_str());
 
+
 	auto firstChild = doc.FirstChildElement("rGraphicsLibraryXMLFile");
 	if(firstChild){
 		tinyxml2::XMLElement *e = firstChild->FirstChildElement();
 		while(e){
-			objects.push_back(_factories[e->Name()]->create(e));
+			if(_factories.find(e->Name()) != _factories.end()){
+				objects.push_back(_factories[e->Name()]->create(e));
+			}else{
+				std::cerr << "No factory initiated for: " << e->Name() << std::endl; 
+			}
+
 			e = e->NextSiblingElement();
 		}
 	}

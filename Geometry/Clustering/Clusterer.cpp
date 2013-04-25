@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+#include <algorithm>
 
 PointCluster::PointCluster(){
 	_points = new KDTree<Vertex,3,float>();
@@ -28,8 +29,16 @@ void PointCluster::addPoint(float point[3],const Vertex &v){
 //}
 
 
+struct PointClusterComparer
+{
+    inline bool operator() (const PointCluster& c0, const PointCluster& c1)
+    {
+		return (c0.size() > c1.size());
+    }
+};
+
 std::vector<PointCluster> 
-Clusterer::ClusterPoints(KDTree<Vertex,3,float> *_points,float d,unsigned int minSize){
+Clusterer::ClusterPoints(KDTree<Vertex,3,float> *_points,float d,unsigned int minSize,bool sortBySize){
 	KDTree<Vertex,3,float>::NodeIterator point;
 	std::vector<KDTree<Vertex,3,float>::Node*>::iterator it;
 
@@ -64,6 +73,10 @@ Clusterer::ClusterPoints(KDTree<Vertex,3,float> *_points,float d,unsigned int mi
 		if(cluster._points->size() >= minSize)
 			clusters.push_back(cluster);
 		assert(tree.isOk());
+	}
+
+	if(sortBySize){
+		std::sort(clusters.begin(),clusters.end(),PointClusterComparer());
 	}
 
 

@@ -1,3 +1,5 @@
+#define RBF_DEBUG
+
 #include <fstream>;
 #include <omp.h>
 
@@ -27,7 +29,10 @@
 
 #include <Math\Plane.h>
 
+
 #include "RBF\RBF.h"
+
+#include <Base\XMLObjectHandler.h>
 
 struct SourceFile{
 	char *path;
@@ -90,6 +95,8 @@ const SourceFile files[] = {
 
 };
 const unsigned int numDatasets = 44;
+
+char *xmlFileName;
 
 PointCluster *cluster;
 std::vector<glm::vec4> surfacePoints;
@@ -341,7 +348,7 @@ void creatMesh(int id){
 	float w = 0.5;
 	//w = 0.01;
 	w = id * 0.1 + 0.05;
-	rbfs[id] = RBFSystem::FastFitting<Biharmonic>(surfacePoints,smoothNess,acc,minInnerSize,outerSize,coarseGridSize,maxIterations);
+	rbfs[id] = RBFSystem::FastFitting<Biharmonic,Eigen::HouseholderQR<Eigen::MatrixXf>>(surfacePoints,smoothNess,acc,minInnerSize,outerSize,coarseGridSize,maxIterations);
 	/*switch(id){
 	case 0:
 		rbfs[id] =  RBFSystem::CreateFromPoints<Biharmonic>(surfacePoints,w);
@@ -374,6 +381,11 @@ void creatMesh(int id){
 	meshes[id] = MarchingTetrahedra::March<IndexedMesh>(&ccc,aabb,glm::ivec3(meshRes,meshRes,meshRes));
 
 	std::cout << ", Eval/Surface extract time: " << s2.getFractionElapsedSeconds()   << " sec" << std::endl;
+
+	if(xmlFileName!=0){
+		XMLObjectHandler::Handler()->save(rbfs[id],xmlFileName);
+	}
+
 }
 
 int prevScroll = 0;
@@ -590,6 +602,10 @@ int main( int argc, char* argv[] )
 		filename = argv[7];
 	else 
 		filename = "unnamed.jpg";
+	if(argc>=9) 
+		xmlFileName = argv[8];
+	else
+		xmlFileName = "lastUSExractionRBF.xml";
 
 
 	if (glfwInit() != GL_TRUE){
@@ -646,9 +662,10 @@ int main( int argc, char* argv[] )
 			break;
 		draw();
 		//std::cout << c->c << std::endl;
-		takeScreen();
-		break;
+		//break;
 	}	
+	
+	takeScreen();
 
 	//int meshes = 5;
 	//#pragma omp parallel num_threads(6) shared(c)
