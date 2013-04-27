@@ -103,7 +103,23 @@ class PointRenderer : public DrawableObject{
 public:
 	PointRenderer(){
 		TmpPointer<ScalarField> tmp = ScalarField::ReadFromRawfile(files[niceCases[_case]].path,files[niceCases[_case]].w,files[niceCases[_case]].h,files[niceCases[_case]].d);
+		//TmpPointer<ScalarField> tmp = tmp2->blur();
 		surfPoints = UltrasoundSurfacePointExtractor::ExtractPoints(tmp.get(),Z_AXIS);
+		
+		glm::vec3 dir = tmp->getBoundingAABB().maxPos() - tmp->getBoundingAABB().minPos();
+		dir /= tmp->getDimensions();
+		
+		K3DTree<Vertex> tree;
+		for(auto s = surfPoints.begin() ; s != surfPoints.end() ; ++s){
+			Vertex v;
+			v.setPosition(glm::vec4(s->x,s->y,s->z,1));
+			tree.insert(*s,v);
+		}
+
+		auto clusters = Clusterer::ClusterPoints(&tree,glm::length(dir)*2,100,true);
+		if(clusters.size()!=0)
+			points = clusters[0].getPoints()->getAsVector();
+		
 		
 		//TmpPointer<ScalarField> vol = tmp->blur();
 
@@ -120,9 +136,13 @@ public:
 
 
 	virtual void draw(){
-		glColor3f(1,1,1);
-		glPointSize(4);
+		glPointSize(2);
 		glBegin(GL_POINTS);
+		glColor3f(1,1,1);
+		for(auto p = points.begin();p!=points.end();++p){
+			glVertex3fv(glm::value_ptr(p->getPosition()));
+		}
+		glColor3f(1,0,0);
 		for(auto p = surfPoints.begin();p!=surfPoints.end();++p){
 			glVertex3fv(glm::value_ptr(*p));
 		}
@@ -137,7 +157,13 @@ public:
 
 
 void init(int argc,char **argv,Engine *t){
+	if(argc == 2)
+		_case = atoi(argv[1]);
+	else
+		_case = 0;
 	static_cast<SuperGraphicsEngine*>(SuperEngine::getEngine()->getGraphicEngine())->addDrawableObject(new PointRenderer());
+	if(argc == 2)
+		exit(0);
 }
 
 ENGINE_MAIN(SuperEngine::CreateEngine(),init)

@@ -8,10 +8,14 @@ struct HoughPoint{
 	int v;
 
 	float rho,theta;
+	int x,y;
+
 
 	HoughPoint(int v,int x,int y,float rhoMax):
 	v(v)
 	{
+		this->x = x;
+		this->y = y;
 		theta = x;
 		rho = y - rhoMax;
 				
@@ -30,14 +34,20 @@ struct HoughPoint{
 	bool operator==(const HoughPoint &p)const{
 		if(this == &p)
 			return true;
-		float dr = std::abs(rho - p.rho);
+		/*float dr = std::abs(rho - p.rho);
 		if(dr>1.1)
 			return false;
 		float dt = std::abs(theta - p.theta);
 		if(dt>=0.02)
 			return false;
-		return true;
+		return true;*/
 
+
+		int dx,dy;
+		dx = p.x - x;
+		dy = p.y - y;
+		float d = std::sqrtf(dx*dx + dy*dy);
+		return d <= 5;
 	}
 
 	bool operator<(const HoughPoint &p)const{

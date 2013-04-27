@@ -21,6 +21,6 @@ void IM_SaveImage(imImage* image, const char* file_name, const char* format);
 
 void IM_PrintError(int error);
 
-std::vector<HoughPoint> IM_GetLines(imImage* img,int maxLines,imImage* out = 0);
+std::vector<HoughPoint> IM_GetLines(imImage* img,int maxLines,imImage* out = 0,imImage* binOut=0,imImage* bin2Out=0);
 
 #endif

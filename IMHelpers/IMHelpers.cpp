@@ -68,7 +68,7 @@ void IM_PrintError(int error){
 }
 
 #include <iostream>
-std::vector<HoughPoint> IM_GetLines(imImage* img,int maxLines,imImage* out){
+std::vector<HoughPoint> IM_GetLines(imImage* img,int maxLines,imImage* out,imImage* binOut,imImage* bin2Out){
 	std::vector<HoughPoint> lines;
 
 	float rhomax = std::sqrtf(img->width*img->width +img->height*img->height)/2;
@@ -88,16 +88,25 @@ std::vector<HoughPoint> IM_GetLines(imImage* img,int maxLines,imImage* out){
 		}else{
 			((bool*)binary->data[0])[id] = false;
 		}
+		if(binOut)
+			((bool*)binOut->data[0])[id] = ((bool*)binary->data[0])[id];
+		/*if(bin2Out)
+			((bool*)bin2Out->data[0])[id] = ((bool*)binary->data[0])[id];*/
 	}
+	imProcessBinMorphClose(binary.get(),binary2.get(),1,1);
+	imProcessFillHoles(binary2.get(),binary.get(),8);
 
-	
+
+	if(binOut){
+		imProcessFillHoles(binary2.get(),binOut,8);
+	}
 
 	imProcessBinMorphOutline(binary.get(),binary2.get(),3,1);
 	
-	//IM_SaveImage(img,"input.jpg","JPEG");
-	//IM_SaveImage(binary.get(),"binary.jpg","JPEG");
-	//IM_SaveImage(binary2.get(),"binary2.jpg","JPEG");
-	//
+	
+	if(bin2Out)
+		imProcessBinMorphOutline(binary.get(),bin2Out,3,1);
+	
 	imProcessHoughLines(binary2.get(), hough.get());
 	imProcessLocalMaxThreshold(hough.get(), hough_binary.get(), 7, 100);
 

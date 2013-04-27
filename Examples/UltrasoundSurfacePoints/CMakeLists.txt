@@ -10,7 +10,7 @@ INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
 add_executable(UltrasoundSurfacePoints UltrasoundSurfacePoints.cpp)
 
 
-target_link_libraries(UltrasoundSurfacePoints Mesh Clustering Image GLFW glew OpenGLHelpers Util Volume Math SuperEngine glew BoundingGeometry)
+target_link_libraries(UltrasoundSurfacePoints Mesh Clustering IMHelpers GLFW glew OpenGLHelpers Util Volume Math SuperEngine glew BoundingGeometry)
 
 set_target_properties(UltrasoundSurfacePoints
   PROPERTIES
