@@ -13,7 +13,7 @@ public:
 	CSG(){}
 	virtual ~CSG(){}
 
-	virtual float eval(glm::vec3 worldPos) = 0;
+	virtual float eval(const glm::vec3 &worldPos) = 0;
 };
 
 
@@ -28,7 +28,7 @@ class CSGCombine : public CSG{
 	CSGOperation _operation;
 public:
 	CSGCombine(CSG *c0, CSG *c1,CSGOperation _operation);
-	virtual float eval(glm::vec3 worldPos);
+	virtual float eval(const glm::vec3 &worldPos);
 
 	virtual std::string toString()const;
 };
@@ -39,7 +39,7 @@ class CSGSphere : public CSG {
 	float _r;
 public:
 	CSGSphere(float radius = 1.0 , glm::vec3 center = glm::vec3(0,0,0));
-	virtual float eval(glm::vec3 worldPos);
+	virtual float eval(const glm::vec3 &worldPos);
 	
 	virtual std::string toString()const;
 };
@@ -51,7 +51,7 @@ public:
 	CSGScalarField(ScalarField *sf,float threshold = 0):_sf(sf),_t(threshold){}
 	~CSGScalarField(){}
 	
-	virtual float eval(glm::vec3 worldPos){
+	virtual float eval(const glm::vec3 &worldPos){
 		return -(_sf->getFromWorldPos(worldPos) - _t);
 	}
 

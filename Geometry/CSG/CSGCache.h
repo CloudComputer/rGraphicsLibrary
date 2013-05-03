@@ -12,7 +12,7 @@ public:
 	CSGCache(CSG *csg);
 	virtual ~CSGCache();
 	
-	virtual float eval(glm::vec3 worldPos);
+	virtual float eval(const glm::vec3 &worldPos);
 	
 	virtual std::string toString()const{return "Cached CSG";}
 

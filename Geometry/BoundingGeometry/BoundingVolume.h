@@ -71,7 +71,7 @@ public:
 	glm::vec3 &minPos(){return _minPos;}
 	glm::vec3 &maxPos(){return _maxPos;}
 
-	glm::vec3 getInternalPosition(glm::vec3 worldPos)const;
+	glm::vec3 getInternalPosition(const glm::vec3 &worldPos)const;
 	glm::vec3 getPosition( glm::vec3 t )const;
 	glm::vec3 getDiscretePosition( glm::vec3 pos, glm::ivec3 dim )const;
 

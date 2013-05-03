@@ -14,16 +14,16 @@
 
 class MarchingTetrahedra : public Object{
 
-	static void _evaluateTetra(Mesh *m,glm::vec3 p0,float v0,glm::vec3 p1,float v1,glm::vec3 p2,float v2,glm::vec3 p3,float v3);
+	static void _evaluateTetra(Mesh *m,const glm::vec3 &p0,const float &v0,const glm::vec3 &p1,const float &v1,const glm::vec3 &p2,const float &v2,const glm::vec3 &p3,const float &v3);
 public:
 	template<typename MeshType>
-	static Mesh* March(ImplicitFunction *function, BoundingAABB box,glm::ivec3 resultion);
+	static Mesh* March(ImplicitFunction *function,const BoundingAABB &box,const glm::ivec3 &resultion);
 	template<typename MeshType>
-	static Mesh* March(RBFSystem *rbf, int resultion);
+	static Mesh* March(RBFSystem *rbf,const int &resultion);
 };
 
 template<typename MeshType>
-Mesh* MarchingTetrahedra::March(RBFSystem *rbf, int resultion){
+Mesh* MarchingTetrahedra::March(RBFSystem *rbf, const int &resultion){
 	Mesh *mesh = new MeshType();
 	CSGCache rbfEval(rbf);
 
@@ -112,7 +112,7 @@ Mesh* MarchingTetrahedra::March(RBFSystem *rbf, int resultion){
 }
 	
 template<typename MeshType>
-Mesh* MarchingTetrahedra::March(ImplicitFunction *function, BoundingAABB box,glm::ivec3 resultion){
+Mesh* MarchingTetrahedra::March(ImplicitFunction *function,const BoundingAABB &box,const glm::ivec3 &resultion){
 	Mesh *m = new MeshType();
 	float x,y,z,dx,dy,dz;
 	auto minPos = box.getPosition(glm::vec3(0,0,0));

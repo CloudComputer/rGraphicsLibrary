@@ -60,6 +60,7 @@ public:
 	unsigned long size()const;
 
 	dataType &get();
+	dataType *getDataAsPointer(){return &_data;}
 	floatPrecision* getPosition();
 
 	bool isOk()const;

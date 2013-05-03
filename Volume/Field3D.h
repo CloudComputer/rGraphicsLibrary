@@ -19,9 +19,9 @@ public:
 	void foreach(T (*funcPtr)(T,glm::vec3));
 	void foreach(void (*funcPtr)(T&,glm::vec3));
 
-	void set(glm::ivec3 pos,T value);
-	T get(glm::ivec3 pos)const;
-	T getFromWorldPos(glm::vec3 worldPos)const;
+	void set(const glm::ivec3 &pos,const T &value);
+	T get(const glm::ivec3 &pos)const;
+	T getFromWorldPos(const glm::vec3 &worldPos)const;
 	glm::ivec3 getDimensions()const;
 	BoundingAABB getBoundingAABB()const;
 
@@ -35,7 +35,7 @@ public:
 	unsigned int getMemSize()const;
 protected:
 	unsigned int _index(glm::ivec3 pos,bool clamp = true)const;
-	glm::vec3 _getWorldPos(glm::ivec3 pos)const;
+	glm::vec3 _getWorldPos(const glm::ivec3 &pos)const;
 
 	glm::vec3 _delta;
 	glm::ivec3 _dimensions;

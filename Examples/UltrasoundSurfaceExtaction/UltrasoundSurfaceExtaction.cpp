@@ -1,6 +1,6 @@
 #define RBF_DEBUG
 
-#include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h"
+//#include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h"
 
 #include <Util\Directory.h>
 
@@ -255,7 +255,7 @@ int main( int argc, char* argv[] )
 		return 2;
 	}
 
-	if (glfwOpenWindow(600, 600, 8, 8, 8, 8, 32, 0, GLFW_WINDOW) != GL_TRUE){
+	if (glfwOpenWindow(1920, 1080, 8, 8, 8, 8, 32, 0, GLFW_WINDOW) != GL_TRUE){
 		std::cout << "Could not create window"<< std::endl;
 		return 3;
 	}
@@ -285,11 +285,13 @@ int main( int argc, char* argv[] )
 	glfwSetMouseWheelCallback(GLFWmousewheelfun(wheel));
 
 	bool run = true;
+	run = runTests();
+	run = true;
 	while(run){
 		if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS)
 			break;
-		run = runTests();
-		//draw();
+		
+		draw();
 		//break;
 	}	
 
@@ -351,6 +353,21 @@ bool runTests(){
 
 			tests.push_back(test);
 		}
+
+		//tests.clear();
+
+		//testParams test;
+		//test.name = "real test";
+		//test.alpha = 0.1;
+		//test.beta = 0.03;
+		//test.w = 0.6;
+		//test.iso = 0.4;
+		//test.uind = 0.8;
+		//test.xi = 0.7;
+		//test.threshold = 0.3;
+
+		//tests.push_back(test);
+
 		std::cout << tests.size() << " tests created" << std::endl;
 		DBG("Test cretead");
 	}
@@ -367,58 +384,68 @@ bool runTests(){
 
 
 std::string test(ScalarField *v,const char *name,float alpha,float beta,float w,float iso,float uind,float xi,float threshold){
-	Directory::createFolder(name);
-	char screnshot[255];
-	{
-		std::stringstream filename;
-		filename << name << "/screenshot.jpg";
-		strcpy(screnshot,filename.str().c_str());
-	}	
-	DBG("starting test");
-	TmpPointer<UltrasoundVariationalClassification> tmp = new UltrasoundVariationalClassification(v,alpha,beta,w,iso,uind,xi);
-	DBG("US Classified");
+	try{
+		Directory::createFolder(name);
+		char screnshot[255];
+		{
+			std::stringstream filename;
+			filename << name << "/screenshot.jpg";
+			strcpy(screnshot,filename.str().c_str());
+		}	
+		DBG("starting test");
+		TmpPointer<UltrasoundVariationalClassification> tmp = new UltrasoundVariationalClassification(v,alpha,beta,w,iso,uind,xi);
+		DBG("US Classified");
 	
-	CSGScalarField csg(tmp.get(),threshold);
-	DBG("CSGScalarField created");
+		CSGScalarField csg(tmp.get(),threshold);
+		DBG("CSGScalarField created");
 
-	mesh = MarchingTetrahedra::March<IndexedMesh>(&csg,tmp->getBoundingAABB(),tmp->getDimensions()/4);
-	DBG("Mesh Created");
+		mesh = MarchingTetrahedra::March<IndexedMesh>(&csg,tmp->getBoundingAABB(),tmp->getDimensions());
+		DBG("Mesh Created");
 	
-	for(int i = 0;i<tmp->getDimensions().z;i++){
-		IM_Pointer img = UltrasoundSurfacePointExtractor::getSlice(tmp.get(),Z_AXIS,i);
+		for(int i = 0;i<tmp->getDimensions().z;i++){
+			IM_Pointer img = UltrasoundSurfacePointExtractor::getSlice(tmp.get(),Z_AXIS,i);
+			std::stringstream ss;
+			ss << name << "/slice_" << i << ".jpg";
+			IM_SaveImage(img.get(),ss.str().c_str(),"JPEG");
+		}
+		DBG("Slices saved");
+
+	
+	
+		draw();
+		draw();
+		DBG("Mesh drawn");
+		IM_Pointer scren = IM_GetScreenshot();
+		DBG("Screenshot taken");
+		IM_SaveImage(scren.get(),screnshot,"JPEG");
+		DBG("Screenshot saved");
+		/*delete mesh;
+		mesh = 0;*/
+		DBG("Mesh deleted");
+
 		std::stringstream ss;
-		ss << name << "/slice_" << i << ".jpg";
-		IM_SaveImage(img.get(),ss.str().c_str(),"JPEG");
+		ss << "<div class=\"testrun\" id=\"" << name << "\" >"<<std::endl;
+		ss << "<img width=\"250\" src=\"" << screnshot <<  "\" />" << std::endl;
+		ss << "<table>" << std::endl;
+		ss << "\t<tr><th colspan=\"2\">" << name << "</th></tr>" << std::endl;
+		ss << "\t<tr><td>&alpha;</td><td>" << alpha << "</td></tr>" << std::endl;
+		ss << "\t<tr><td>&beta;</td><td>" << beta << "</td></tr>" << std::endl;
+		ss << "\t<tr><td>&gamma;</td><td>" << 1-alpha-beta << "</td></tr>" << std::endl;
+		ss << "\t<tr><td>&omega;</td><td>" << w << "</td></tr>" << std::endl;
+		ss << "\t<tr><td>v<sub>iso</sub></td><td>" << iso << "</td></tr>" << std::endl;
+		ss << "\t<tr><td>u<sub>ind</sub></td><td>" << uind << "</td></tr>" << std::endl;
+		ss << "\t<tr><td>&delta;</td><td>" << xi << "</td></tr>" << std::endl;
+		ss << "\t<tr><td>Threshold</td><td>" << threshold << "</td></tr>" << std::endl;
+		ss << "</table></div>" << std::endl << std::endl;
+		DBG("HTML Created");
+		return ss.str();
+	}catch(...){
+		std::stringstream ss;
+		ss << "<div class=\"testrun\" id=\"" << name << "\" >"<<std::endl;
+		ss << name << "failed, due to memory or something";
+		ss << "</div>" << std::endl << std::endl;
+		DBG("HTML Created");
+		mesh = 0;
+		return ss.str();
 	}
-	DBG("Slices saved");
-
-	
-	
-	draw();
-	draw();
-	DBG("Mesh drawn");
-	IM_Pointer scren = IM_GetScreenshot();
-	DBG("Screenshot taken");
-	IM_SaveImage(scren.get(),screnshot,"JPEG");
-	DBG("Screenshot saved");
-	delete mesh;
-	mesh = 0;
-	DBG("Mesh deleted");
-
-	std::stringstream ss;
-	ss << "<div class=\"testrun\" id=\"" << name << "\" >"<<std::endl;
-	ss << "<img width=\"250\" src=\"" << screnshot <<  "\" />" << std::endl;
-	ss << "<table>" << std::endl;
-	ss << "\t<tr><th colspan=\"2\">" << name << "</th></tr>" << std::endl;
-	ss << "\t<tr><td>&alpha;</td><td>" << alpha << "</td></tr>" << std::endl;
-	ss << "\t<tr><td>&beta;</td><td>" << beta << "</td></tr>" << std::endl;
-	ss << "\t<tr><td>&gamma;</td><td>" << 1-alpha-beta << "</td></tr>" << std::endl;
-	ss << "\t<tr><td>&omega;</td><td>" << w << "</td></tr>" << std::endl;
-	ss << "\t<tr><td>v<sub>iso</sub></td><td>" << iso << "</td></tr>" << std::endl;
-	ss << "\t<tr><td>u<sub>ind</sub></td><td>" << uind << "</td></tr>" << std::endl;
-	ss << "\t<tr><td>&delta;</td><td>" << xi << "</td></tr>" << std::endl;
-	ss << "\t<tr><td>Threshold</td><td>" << threshold << "</td></tr>" << std::endl;
-	ss << "</table></div>" << std::endl << std::endl;
-	DBG("HTML Created");
-	return ss.str();
 }

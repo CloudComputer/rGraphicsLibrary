@@ -54,15 +54,15 @@ Face* IndexedMesh::addFace(std::vector<glm::vec3> &pos){
 Vertex* IndexedMesh::addVertex(glm::vec3 &pos, glm::vec3 &normal){
 	auto node = _vertices.findNearest(pos);
 	if(node){
-		float d = glm::distance(pos,glm::vec3(node->get().getPosition()));
+		float d = glm::distance(pos,glm::vec3(node->getDataAsPointer()->getPosition()));
 		if(d<0.001){
-			return &node->get();
+			return node->getDataAsPointer();
 		}
 	}
 
 	 node = _vertices.insert(pos,Vertex(pos,normal));
 	_boundingAABB.extend(pos);
-	return &node->get();
+	return node->getDataAsPointer();
 }
 
 void IndexedMesh::calculateNormals(){

@@ -1,7 +1,7 @@
 #ifndef __SCALARFIELD_H__
 #define __SCALARFIELD_H__
 
-#include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h"
+//#include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h"
 
 #include <Geometry/KDTree/KDTree.h>
 #include <Geometry/Mesh/Vertex.h>
@@ -15,29 +15,33 @@ class ScalarField : public Field3D<float>{
 public:
 	ScalarField(glm::ivec3 dimensions = glm::ivec3(64,64,64),BoundingAABB boundingAABB = BoundingAABB(glm::vec3(0,0,0),glm::vec3(1,1,1)));
 
-	glm::vec3 getGradient(glm::vec3 worldPos)const;
-	glm::vec3 getUpWindGradient(glm::vec3 worldPos,glm::vec3 V)const;
+	glm::vec3 getGetGradientCurl(const glm::ivec3 &pos)const;
+	glm::vec3 getGradient(const glm::vec3 &worldPos)const;
+	glm::vec3 getGradient(const glm::ivec3 &pos)const;
+	glm::vec3 getUpWindGradient(const glm::vec3 &worldPos,const glm::vec3 &V)const;
 
 	VectorField *getGradientField()const;
 
 	ScalarField *blur()const;
 
-	float DiffXp(glm::vec3 worldPos)const;
-	float DiffXm(glm::vec3 worldPos)const;
-	float DiffXpm(glm::vec3 worldPos)const;
-	float DiffYp(glm::vec3 worldPos)const;
-	float DiffYm(glm::vec3 worldPos)const;
-	float DiffYpm(glm::vec3 worldPos)const;
-	float DiffZp(glm::vec3 worldPos)const;
-	float DiffZm(glm::vec3 worldPos)const;
-	float DiffZpm(glm::vec3 worldPos)const;
+	
 
-	float DiffXXpm(glm::vec3 worldPos)const;
-	float DiffXYpm(glm::vec3 worldPos)const;
-	float DiffXZpm(glm::vec3 worldPos)const;
-	float DiffYYpm(glm::vec3 worldPos)const;
-	float DiffYZpm(glm::vec3 worldPos)const;
-	float DiffZZpm(glm::vec3 worldPos)const;
+	float DiffXp(const glm::vec3 &worldPos)const;
+	float DiffXm(const glm::vec3 &worldPos)const;
+	float DiffXpm(const glm::vec3 &worldPos)const;
+	float DiffYp(const glm::vec3 &worldPos)const;
+	float DiffYm(const glm::vec3 &worldPos)const;
+	float DiffYpm(const glm::vec3 &worldPos)const;
+	float DiffZp(const glm::vec3 &worldPos)const;
+	float DiffZm(const glm::vec3 &worldPos)const;
+	float DiffZpm(const glm::vec3 &worldPos)const;
+
+	float DiffXXpm(const glm::vec3 &worldPos)const;
+	float DiffXYpm(const glm::vec3 &worldPos)const;
+	float DiffXZpm(const glm::vec3 &worldPos)const;
+	float DiffYYpm(const glm::vec3 &worldPos)const;
+	float DiffYZpm(const glm::vec3 &worldPos)const;
+	float DiffZZpm(const glm::vec3 &worldPos)const;
 
 	float DiffXp(glm::ivec3 pos)const;
 	float DiffXm(glm::ivec3 pos)const;

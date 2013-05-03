@@ -13,7 +13,7 @@ public:
 		return eval(glm::vec3(x,y,z));
 	}
 
-	virtual float eval(glm::vec3 worldPos) = 0;
+	virtual float eval(const glm::vec3 &worldPos) = 0;
 };
 
 

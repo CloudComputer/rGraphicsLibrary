@@ -93,17 +93,17 @@ void Field3D<T>::foreach(void (*funcPtr)(T&,glm::vec3)){
 }
 
 template<typename T>
-void Field3D<T>::set(glm::ivec3 pos,T value){
+void Field3D<T>::set(const glm::ivec3 &pos,const T &value){
 	_data[_index(pos)] = value;
 }
 
 template<typename T>
-T Field3D<T>::get(glm::ivec3 pos)const{
+T Field3D<T>::get(const glm::ivec3 &pos)const{
 	return _data[_index(pos)];
 }
 
 template<typename T>
-T Field3D<T>::getFromWorldPos(glm::vec3 worldPos)const{
+T Field3D<T>::getFromWorldPos(const glm::vec3 &worldPos)const{
 	glm::vec3 internalPosition = (glm::vec3)_boundingAABB.getDiscretePosition(worldPos,_dimensions);
 	glm::ivec3 dPos =  (glm::ivec3)internalPosition;
 	glm::vec3 t = internalPosition - (glm::vec3)dPos;
@@ -176,7 +176,7 @@ unsigned int Field3D<T>::_index(glm::ivec3 pos,bool clamp)const
 }
 
 template<typename T>
-glm::vec3 Field3D<T>::_getWorldPos(glm::ivec3 pos)const{
+glm::vec3 Field3D<T>::_getWorldPos(const glm::ivec3 &pos)const{
 	glm::vec3 t = (glm::vec3)pos;
 	t /= _dimensions;
 	return _boundingAABB.getPosition(t);

@@ -7,7 +7,7 @@ Field3D<glm::vec3>(dimensions,boundingAABB)
 }
 
 
-glm::vec3 VectorField::curl(glm::vec3 worldPos)const{
+glm::vec3 VectorField::curl(const glm::vec3 &worldPos)const{
 	glm::vec3 c;
 	glm::ivec3 ip = (glm::ivec3)_boundingAABB.getDiscretePosition(worldPos,_dimensions);
 	

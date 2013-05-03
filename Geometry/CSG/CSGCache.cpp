@@ -15,7 +15,7 @@ CSGCache::~CSGCache(){
 }
 
 
-float CSGCache::eval(glm::vec3 worldPos){
+float CSGCache::eval(const glm::vec3 &worldPos){
 	float pos[3];
 	pos[0] = worldPos.x;
 	pos[1] = worldPos.y;

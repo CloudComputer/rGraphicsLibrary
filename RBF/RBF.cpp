@@ -10,7 +10,7 @@ float RBFSystem::meanSqError(const std::vector<glm::vec4> &points){
 }
 
 
-float RBFSystem::eval(glm::vec3 worldPos){
+float RBFSystem::eval(const glm::vec3 &worldPos){
 	return eval(worldPos,true);
 }
 

@@ -33,7 +33,7 @@ public:
 	}
 #endif
 
-	glm::vec3 curl(glm::vec3 worldPos)const;
+	glm::vec3 curl(const glm::vec3 &worldPos)const;
 };
 
 #ifndef __VECTORFIELD_HPP__

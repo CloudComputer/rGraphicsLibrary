@@ -190,7 +190,7 @@ class RBFSystem : public CSG , public XMLObject{
 	std::vector<RBF*> _kernels;
 	virtual float eval(glm::vec3 worldPos,bool useTrendFunc);
 public:
-	virtual float eval(glm::vec3 worldPos);
+	virtual float eval(const glm::vec3 &worldPos);
 	virtual std::string toString()const{return "RBFSystem";}
 
 	float meanSqError(const std::vector<glm::vec4> &points);

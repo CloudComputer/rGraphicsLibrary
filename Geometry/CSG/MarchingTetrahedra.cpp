@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-glm::vec3 __interpolate(glm::vec3 p0,float v0,glm::vec3 p1,float v1){
+glm::vec3 __interpolate(const glm::vec3 &p0,const float &v0,const glm::vec3 &p1,const float &v1){
 	float t = 0;
 	if(v0 != v1)
 		t = v0 / (v0 - v1);
@@ -10,7 +10,7 @@ glm::vec3 __interpolate(glm::vec3 p0,float v0,glm::vec3 p1,float v1){
 }
 
 
-void MarchingTetrahedra::_evaluateTetra(Mesh *m,glm::vec3 p0,float v0,glm::vec3 p1,float v1,glm::vec3 p2,float v2,glm::vec3 p3,float v3){
+void MarchingTetrahedra::_evaluateTetra(Mesh *m,const glm::vec3 &p0,const float &v0,const glm::vec3 &p1,const float &v1,const glm::vec3 &p2,const float &v2,const glm::vec3 &p3,const float &v3){
 	int index = 0;
 	if(v0 > 0) index+=1;
 	if(v1 > 0) index+=2;
