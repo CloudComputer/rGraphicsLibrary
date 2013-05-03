@@ -8,6 +8,9 @@ class Directory{
 public:
 	static std::vector<std::string> getAllFilesInFolder(std::string dir);
 	static std::vector<std::string> getAllFilesInFolder(std::string dir,std::string pattern);
+
+	static void createFolder(std::string dir);
+
 };
 
 #endif

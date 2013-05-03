@@ -35,3 +35,7 @@ std::vector<std::string> Directory::getAllFilesInFolder(std::string dir,std::str
 
 	return files;
 }
+
+void Directory::createFolder(std::string dir){
+	create_directory(dir);
+}
