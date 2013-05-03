@@ -18,7 +18,7 @@ _boundingAABB(boundingAABB)
 {
 	_delta =_boundingAABB.getPosition(glm::vec3(1,1,1)) - _boundingAABB.getPosition(glm::vec3(0,0,0));
 	_delta /= _dimensions;
-	std::cout << _delta.x << " " << _delta.y << " " << _delta.z << std::endl;
+	_delta = glm::vec3(1,1,1);
 	_data = 0;
 	_allocate();
 }
@@ -194,7 +194,7 @@ void Field3D<T>::_allocate()
 template<typename T>
 void Field3D<T>::_deallocate()
 {
-	delete _data;
+	delete [] _data;
 	_data = 0;
 }
 

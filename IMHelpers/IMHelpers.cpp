@@ -7,6 +7,8 @@
 
 #include <Util\TmpPointer.h>
 
+#include <OpenGLHelpers\FBO.h>
+
 imImage* IM_LoadImage(const char* file_name){
 	int error;
 	imFile* ifile = imFileOpen(file_name, &error);
@@ -20,7 +22,6 @@ imImage* IM_LoadImage(const char* file_name){
 		IM_PrintError(error);
     
 	imFileClose(ifile);  
-
 	return image;
 }
 
@@ -67,18 +68,37 @@ void IM_PrintError(int error){
 	}
 }
 
-#include <iostream>
+imImage* IM_GetScreenshot(){
+	int vp[4];
+	glGetIntegerv(GL_VIEWPORT, vp);
+	int w;int h;
+	w = vp[2] - vp[0];
+	h = vp[3] - vp[1];
+	imImage *img = imImageCreate(w, h, IM_RGB, IM_BYTE);
+	uint8_t* data = new uint8_t[w*h*3*sizeof(uint8_t)];
+	
+	glReadPixels(vp[0],vp[1],w,h,GL_RGB,GL_BYTE,data);
+	for(int i = 0;i<w*h;i++){
+		((uint8_t*)img->data[0])[i] = data[i*3+0];
+		((uint8_t*)img->data[1])[i] = data[i*3+1];
+		((uint8_t*)img->data[2])[i] = data[i*3+2];
+	}
+
+	delete [] data;
+	return img;
+}	
+
 std::vector<HoughPoint> IM_GetLines(imImage* img,int maxLines,imImage* out,imImage* binOut,imImage* bin2Out){
 	std::vector<HoughPoint> lines;
 
 	float rhomax = std::sqrtf(img->width*img->width +img->height*img->height)/2;
 	float hough_height=2*rhomax+1;
 	
-	TmpPointer<imImage> binary  = imImageCreate(img->width, img->height, IM_BINARY, IM_BYTE);
-	TmpPointer<imImage> binary2 = imImageCreate(img->width, img->height, IM_BINARY, IM_BYTE);
+	IM_Pointer binary  = imImageCreate(img->width, img->height, IM_BINARY, IM_BYTE);
+	IM_Pointer binary2 = imImageCreate(img->width, img->height, IM_BINARY, IM_BYTE);
 
-	TmpPointer<imImage> hough        = imImageCreate(180, hough_height, IM_GRAY   , IM_INT);
-	TmpPointer<imImage> hough_binary = imImageCreate(180, hough_height, IM_BINARY, IM_BYTE);
+	IM_Pointer hough        = imImageCreate(180, hough_height, IM_GRAY   , IM_INT);
+	IM_Pointer hough_binary = imImageCreate(180, hough_height, IM_BINARY, IM_BYTE);
 
 	auto data = (imbyte*)img->data[0];
 	for(int x = 0;x!=img->width;x++)for(int y = 0;y!=img->height;y++){
@@ -131,7 +151,7 @@ std::vector<HoughPoint> IM_GetLines(imImage* img,int maxLines,imImage* out,imIma
 	}
 
 	if(out!=0){
-		TmpPointer<imImage> tmp = imImageCreate(img->width, img->height, IM_GRAY, IM_BYTE);
+		IM_Pointer tmp = imImageCreate(img->width, img->height, IM_GRAY, IM_BYTE);
 		imProcessHoughLinesDraw(img,hough.get(),hough_binary.get(),tmp.get());
 		imProcessConvertColorSpace(tmp.get(), out);
 	}

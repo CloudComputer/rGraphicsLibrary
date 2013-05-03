@@ -26,4 +26,5 @@ void Image::TakeScreenShot(const char *filename){
 	ilutGLScreen();
 
 	ilSaveImage(filename);
+	ilDeleteImages(1, &img);
 }

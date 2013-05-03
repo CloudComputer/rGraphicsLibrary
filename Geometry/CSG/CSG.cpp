@@ -48,7 +48,7 @@ _c(c)
 	
 }
 
-float CSGSphere::eval(glm::vec3 worldPos)const{
+float CSGSphere::eval(glm::vec3 worldPos){
 	return glm::distance(_c,worldPos) - _r;
 }
 

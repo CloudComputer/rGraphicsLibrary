@@ -6,8 +6,9 @@
 #include <IMHelpers\IMHelpers.h>
 
 #ifndef NDEBUG 
-#define US_DEBUG
+//#define US_DEBUG
 #endif
+#define US_DEBUG
 
 #define X_AXIS 1
 #define Y_AXIS 2

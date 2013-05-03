@@ -1,6 +1,8 @@
 #ifndef _CSG_H_
 #define _CSG_H_
 
+#include <Volume\ScalarField.h>
+
 #include "ImplicitFunction.h"
 #include <glm/glm.hpp>
 
@@ -37,9 +39,23 @@ class CSGSphere : public CSG {
 	float _r;
 public:
 	CSGSphere(float radius = 1.0 , glm::vec3 center = glm::vec3(0,0,0));
-	virtual float eval(glm::vec3 worldPos)const;
+	virtual float eval(glm::vec3 worldPos);
 	
 	virtual std::string toString()const;
+};
+
+class CSGScalarField : public CSG {
+	ScalarField *_sf;
+	float _t;
+public:
+	CSGScalarField(ScalarField *sf,float threshold = 0):_sf(sf),_t(threshold){}
+	~CSGScalarField(){}
+	
+	virtual float eval(glm::vec3 worldPos){
+		return -(_sf->getFromWorldPos(worldPos) - _t);
+	}
+
+	virtual std::string toString()const{return "CSGScalarField";}
 };
 
 #include "CSGCache.h"

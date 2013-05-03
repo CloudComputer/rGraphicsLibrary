@@ -8,7 +8,7 @@ file(GLOB IM_HLP_SRC
 )
 
 add_library(IMHelpers ${IM_HLP_SRC})
-target_link_libraries(IMHelpers IM)
+target_link_libraries(IMHelpers IM OpenGLHelpers)
 
 set_target_properties(IMHelpers
   PROPERTIES

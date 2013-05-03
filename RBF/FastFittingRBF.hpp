@@ -5,6 +5,7 @@
 #include "RBF.h"
 #endif
 
+#include <omp.h>
 
 #include <Geometry\BoundingGeometry\BoundingVolume.h>
 #include <Util\TmpPointer.h>
@@ -421,6 +422,7 @@ RBFSystem *RBFSystem::FastFitting(std::vector<glm::vec4> &points,float smoothNes
 	try{
 		coarseGrid.buildMatrix(&*s1,points,smoothNess,true);
 	}catch(...){
+		std::cerr << "Failed build solver for coarse grid ; " << coarseGrid.sizeInner() << " " << coarseGrid.sizeOuter() << std::endl;
 		return 0;
 	}
 #ifdef RBF_DEBUG
@@ -429,18 +431,28 @@ RBFSystem *RBFSystem::FastFitting(std::vector<glm::vec4> &points,float smoothNes
 	sw.reset();sw.start();
 #endif
 
-	for(auto s = subspace.begin();s!=subspace.end();++s){
+	int ii = 0;
+	//for(auto s = subspace.begin();s!=subspace.end();++s){
+	for(int ii = 0;ii<subspace.size();ii++){
+		auto s = &subspace[ii];
 		try{
 			s->buildMatrix(&*s1,points,smoothNess,!true);
+			//ii++;
+			#ifdef RBF_DEBUG
+				sw.stop();
+				std::cout << '\t' << "Subspace Solver "<< ii << "/" << subspace.size() <<" done:  ( " << sw.getFractionElapsedSeconds() << " sec)"  << std::endl;
+				sw.reset();sw.start();
+			#endif
 		}catch(...){
-			return 0;
+			std::cerr << "Failed build solver for subspace "<< ii << "; " << s->sizeInner() << " " << s->sizeOuter() << std::endl;
+			//return 0;
 		}
 	}
-#ifdef RBF_DEBUG
-	sw.stop();
-	std::cout << '\t' << "subspace Solvers done:  ( " << sw.getFractionElapsedSeconds() << " sec)"  << std::endl;
-	sw.reset();sw.start();
-#endif
+//#ifdef RBF_DEBUG
+//	sw.stop();
+//	std::cout << '\t' << "subspace Solvers done:  ( " << sw.getFractionElapsedSeconds() << " sec)"  << std::endl;
+//	sw.reset();sw.start();
+//#endif
 	
 	std::cout << sg->meanSqError(points) << std::endl;
 	int _maxIterations = maxIterations;//TODO maybe remove maxIterations when stable

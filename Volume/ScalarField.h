@@ -1,6 +1,8 @@
 #ifndef __SCALARFIELD_H__
 #define __SCALARFIELD_H__
 
+#include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h"
+
 #include <Geometry/KDTree/KDTree.h>
 #include <Geometry/Mesh/Vertex.h>
 
@@ -55,6 +57,8 @@ public:
 	float DiffZZpm(glm::ivec3 pos)const;
 
 	KDTree<Vertex,3,float> *getSurfacePoints(float threshold)const;
+
+	void saveAsRaw(const char *filename);
 
 	static ScalarField* ReadFromRawfile(const char *filename,unsigned int width,unsigned int height,unsigned int depth,unsigned int bps = 1);
 

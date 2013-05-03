@@ -99,9 +99,9 @@ void MeshRenderer::draw(){
 
 	_shader->bind();
 	_shader->setUniform("num_lights",glm::min(64,(int)_lights.size()));chkGLErr();
-	_shader->setUniform("material.ambient",glm::vec4(0,0,0,1));chkGLErr();
-	_shader->setUniform("material.diffuse",glm::vec4(1,1,1,1));chkGLErr();
-	_shader->setUniform("material.specular",glm::vec4(1,1,1,1));chkGLErr();
+	_shader->setUniform("material.ambient",glm::vec4(0,0,0,.5));chkGLErr();
+	_shader->setUniform("material.diffuse",glm::vec4(1,1,1,.5));chkGLErr();
+	_shader->setUniform("material.specular",glm::vec4(1,1,1,.5));chkGLErr();
 	_shader->setUniform("material.shininess",20.0f);chkGLErr();
 	chkGLErr();
 
@@ -182,64 +182,64 @@ void MeshRenderer::buildFromMesh(Mesh *m,bool smooth){
 		int i = 0;
 		for(auto t = faces.begin();t!=faces.end();++t){
 			if(!smooth){
-				_vertices[v++] = (*t)->v0()->getPosition().x;
-				_vertices[v++] = (*t)->v0()->getPosition().y;
-				_vertices[v++] = (*t)->v0()->getPosition().z;
-				_vertices[v++] = (*t)->v0()->getPosition().w;
-				_vertices[v++] = (*t)->getNormal().x;
-				_vertices[v++] = (*t)->getNormal().y;
-				_vertices[v++] = (*t)->getNormal().z;
-				_vertices[v++] = (*t)->v1()->getPosition().x;
-				_vertices[v++] = (*t)->v1()->getPosition().y;
-				_vertices[v++] = (*t)->v1()->getPosition().z;
-				_vertices[v++] = (*t)->v1()->getPosition().w;
-				_vertices[v++] = (*t)->getNormal().x;
-				_vertices[v++] = (*t)->getNormal().y;
-				_vertices[v++] = (*t)->getNormal().z;
-				_vertices[v++] = (*t)->v2()->getPosition().x;
-				_vertices[v++] = (*t)->v2()->getPosition().y;
-				_vertices[v++] = (*t)->v2()->getPosition().z;
-				_vertices[v++] = (*t)->v2()->getPosition().w;
-				_vertices[v++] = (*t)->getNormal().x;
-				_vertices[v++] = (*t)->getNormal().y;
-				_vertices[v++] = (*t)->getNormal().z;
+				_vertices[v++] = t->v0()->getPosition().x;
+				_vertices[v++] = t->v0()->getPosition().y;
+				_vertices[v++] = t->v0()->getPosition().z;
+				_vertices[v++] = t->v0()->getPosition().w;
+				_vertices[v++] = t->getNormal().x;
+				_vertices[v++] = t->getNormal().y;
+				_vertices[v++] = t->getNormal().z;
+				_vertices[v++] = t->v1()->getPosition().x;
+				_vertices[v++] = t->v1()->getPosition().y;
+				_vertices[v++] = t->v1()->getPosition().z;
+				_vertices[v++] = t->v1()->getPosition().w;
+				_vertices[v++] = t->getNormal().x;
+				_vertices[v++] = t->getNormal().y;
+				_vertices[v++] = t->getNormal().z;
+				_vertices[v++] = t->v2()->getPosition().x;
+				_vertices[v++] = t->v2()->getPosition().y;
+				_vertices[v++] = t->v2()->getPosition().z;
+				_vertices[v++] = t->v2()->getPosition().w;
+				_vertices[v++] = t->getNormal().x;
+				_vertices[v++] = t->getNormal().y;
+				_vertices[v++] = t->getNormal().z;
 				_indices[i] = i++;
 				_indices[i] = i++;
 				_indices[i] = i++;
 			}else{
-				n[0] = tree.find(glm::vec3((*t)->v0()->getPosition()));
-				n[1] = tree.find(glm::vec3((*t)->v1()->getPosition()));
-				n[2] = tree.find(glm::vec3((*t)->v2()->getPosition()));
+				n[0] = tree.find(glm::vec3(t->v0()->getPosition()));
+				n[1] = tree.find(glm::vec3(t->v1()->getPosition()));
+				n[2] = tree.find(glm::vec3(t->v2()->getPosition()));
 				if(n[0] == 0){
-					n[0] = tree.insert(glm::vec3((*t)->v0()->getPosition()),v/7);
-					_vertices[v++] = (*t)->v0()->getPosition().x;
-					_vertices[v++] = (*t)->v0()->getPosition().y;
-					_vertices[v++] = (*t)->v0()->getPosition().z;
-					_vertices[v++] = (*t)->v0()->getPosition().w;
-					_vertices[v++] = (*t)->v0()->getNormal().x;
-					_vertices[v++] = (*t)->v0()->getNormal().y;
-					_vertices[v++] = (*t)->v0()->getNormal().z;
+					n[0] = tree.insert(glm::vec3(t->v0()->getPosition()),v/7);
+					_vertices[v++] = t->v0()->getPosition().x;
+					_vertices[v++] = t->v0()->getPosition().y;
+					_vertices[v++] = t->v0()->getPosition().z;
+					_vertices[v++] = t->v0()->getPosition().w;
+					_vertices[v++] = t->v0()->getNormal().x;
+					_vertices[v++] = t->v0()->getNormal().y;
+					_vertices[v++] = t->v0()->getNormal().z;
 				
 				}
 				if(n[1] == 0){
-					n[1] = tree.insert(glm::vec3((*t)->v1()->getPosition()),v/7);
-					_vertices[v++] = (*t)->v1()->getPosition().x;
-					_vertices[v++] = (*t)->v1()->getPosition().y;
-					_vertices[v++] = (*t)->v1()->getPosition().z;
-					_vertices[v++] = (*t)->v1()->getPosition().w;
-					_vertices[v++] = (*t)->v1()->getNormal().x;
-					_vertices[v++] = (*t)->v1()->getNormal().y;
-					_vertices[v++] = (*t)->v1()->getNormal().z;
+					n[1] = tree.insert(glm::vec3(t->v1()->getPosition()),v/7);
+					_vertices[v++] = t->v1()->getPosition().x;
+					_vertices[v++] = t->v1()->getPosition().y;
+					_vertices[v++] = t->v1()->getPosition().z;
+					_vertices[v++] = t->v1()->getPosition().w;
+					_vertices[v++] = t->v1()->getNormal().x;
+					_vertices[v++] = t->v1()->getNormal().y;
+					_vertices[v++] = t->v1()->getNormal().z;
 				}
 				if(n[2] == 0){
-					n[2] = tree.insert(glm::vec3((*t)->v2()->getPosition()),v/7);
-					_vertices[v++] = (*t)->v2()->getPosition().x;
-					_vertices[v++] = (*t)->v2()->getPosition().y;
-					_vertices[v++] = (*t)->v2()->getPosition().z;
-					_vertices[v++] = (*t)->v2()->getPosition().w;
-					_vertices[v++] = (*t)->v2()->getNormal().x;
-					_vertices[v++] = (*t)->v2()->getNormal().y;
-					_vertices[v++] = (*t)->v2()->getNormal().z;
+					n[2] = tree.insert(glm::vec3(t->v2()->getPosition()),v/7);
+					_vertices[v++] = t->v2()->getPosition().x;
+					_vertices[v++] = t->v2()->getPosition().y;
+					_vertices[v++] = t->v2()->getPosition().z;
+					_vertices[v++] = t->v2()->getPosition().w;
+					_vertices[v++] = t->v2()->getNormal().x;
+					_vertices[v++] = t->v2()->getNormal().y;
+					_vertices[v++] = t->v2()->getNormal().z;
 				}
 				_indices[i++] = n[0]->get();
 				_indices[i++] = n[1]->get();

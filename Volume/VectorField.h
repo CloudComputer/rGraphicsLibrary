@@ -12,8 +12,11 @@
 
 
 class VectorField : public Field3D<glm::vec3>{
+	friend class UltrasoundVariationalClassification;
 public:
 	VectorField(glm::ivec3 dimensions = glm::ivec3(64,64,64),BoundingAABB boundingAABB = BoundingAABB(glm::vec3(0,0,0),glm::vec3(1,1,1)));
+
+	VectorField *getCurlField()const;
 
 #ifdef GL_VERSION_1_1
 	void draw(float s = 0.1){
@@ -29,6 +32,8 @@ public:
 		glEnd();
 	}
 #endif
+
+	glm::vec3 curl(glm::vec3 worldPos)const;
 };
 
 #ifndef __VECTORFIELD_HPP__

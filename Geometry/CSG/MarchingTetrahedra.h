@@ -50,6 +50,7 @@ Mesh* MarchingTetrahedra::March(RBFSystem *rbf, int resultion){
 	res.y = std::ceil(h/dm);
 	res.z = std::ceil(d/dm);
 
+	std::cout << res.x << " " << res.y << " " << res.z << std::endl;
 	
 	float v[8];
 	glm::vec3 p[8];

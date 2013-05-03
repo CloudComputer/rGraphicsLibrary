@@ -239,6 +239,16 @@ float ScalarField::DiffYYpm(glm::ivec3 pos)const{return DiffYYpm(_getWorldPos(po
 float ScalarField::DiffYZpm(glm::ivec3 pos)const{return DiffYZpm(_getWorldPos(pos));}
 float ScalarField::DiffZZpm(glm::ivec3 pos)const{return DiffZZpm(_getWorldPos(pos));}
 
+void ScalarField::saveAsRaw(const char *filename){
+	FILE *file = fopen(filename,"wb");
+
+	FOR(_dimensions){
+		int id = _index(glm::ivec3(x,y,z));
+		unsigned char c = _data[id]*255;
+		fwrite(&c,1,1,file);
+	}
+}
+
 ScalarField* ScalarField::ReadFromRawfile(const char *filename,unsigned int w,unsigned int h,unsigned int d,unsigned int bps){
 	FILE *file = fopen(filename,"r");
 	if(!file){

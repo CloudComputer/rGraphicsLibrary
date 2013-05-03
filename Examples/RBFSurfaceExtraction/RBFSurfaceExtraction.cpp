@@ -30,14 +30,22 @@ void init(int argc,char **argv,Engine *t){
 		exit(2);
 	}
 	int meshRes = std::atoi(argv[2]);
+	//meshRes = 50;
 	Mesh *mesh;
 	{
 		ScopeClock s("Mesh extracted: ");
-		mesh = MarchingTetrahedra::March<IndexedMesh> (rbf,meshRes);
+		//mesh = MarchingTetrahedra::March<IndexedMesh> (rbf,meshRes);
+		mesh = MarchingTetrahedra::March<IndexedMesh>(rbf,BoundingAABB(glm::vec3(-4,-4,-4),glm::vec3(4,4,4)),glm::ivec3(meshRes,meshRes,meshRes));
 	}
 	MeshRenderer *meshRenderer = new MeshRenderer();
 	meshRenderer->buildFromMesh(mesh);
 	static_cast<SuperGraphicsEngine*>(SuperEngine::getEngine()->getGraphicEngine())->addDrawableObject(meshRenderer);
+
+	//glDisable(GL_DEPTH_TEST);
+	//glEnable (GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+
 }
 
 ENGINE_MAIN(SuperEngine::CreateEngine(),init)

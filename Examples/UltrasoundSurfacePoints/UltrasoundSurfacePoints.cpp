@@ -159,9 +159,13 @@ public:
 void init(int argc,char **argv,Engine *t){
 	if(argc == 2)
 		_case = atoi(argv[1]);
-	else
-		_case = 0;
-	static_cast<SuperGraphicsEngine*>(SuperEngine::getEngine()->getGraphicEngine())->addDrawableObject(new PointRenderer());
+	/*else
+		_case = 3;*/
+	try{
+		static_cast<SuperGraphicsEngine*>(SuperEngine::getEngine()->getGraphicEngine())->addDrawableObject(new PointRenderer());
+	}catch(...){
+		exit(1);
+	}
 	if(argc == 2)
 		exit(0);
 }

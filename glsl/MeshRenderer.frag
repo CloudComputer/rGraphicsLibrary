@@ -16,5 +16,5 @@ void main(){
 	c += lightFrag.diffuse;
 	c += lightFrag.specular;
 	//c = normalize(N) + 1.0 / 2.0;
-	gl_FragColor = vec4(c,1);
+	gl_FragColor = vec4(c,material.diffuse.a);
 }

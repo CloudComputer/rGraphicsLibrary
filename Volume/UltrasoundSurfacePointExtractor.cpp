@@ -49,11 +49,12 @@ std::vector<glm::vec3> UltrasoundSurfacePointExtractor::ExtractPoints(ScalarFiel
 #ifndef US_DEBUG
 		auto lines = IM_GetLines(sliceImgs[i],2);
 #else
-		TmpPointer<imImage> out = imImageCreate(res.x, res.y, IM_RGB, IM_BYTE);
-		TmpPointer<imImage> binOut = imImageCreate(res.x, res.y, IM_BINARY, IM_BYTE);
-		TmpPointer<imImage> bin2Out = imImageCreate(res.x, res.y, IM_BINARY, IM_BYTE);
+		IM_Pointer out = imImageCreate(res.x, res.y, IM_RGB, IM_BYTE);
+		IM_Pointer binOut = imImageCreate(res.x, res.y, IM_BINARY, IM_BYTE);
+		IM_Pointer bin2Out = imImageCreate(res.x, res.y, IM_BINARY, IM_BYTE);
 		auto lines = IM_GetLines(sliceImgs[i],2,out.get(),binOut.get(),bin2Out.get());
-		/*{
+		//*
+		{
 			std::stringstream ss;
 			ss << "slice_"<<i<<".jpg";
 			IM_SaveImage(out.get(),ss.str().c_str(),"JPEG");
@@ -67,11 +68,13 @@ std::vector<glm::vec3> UltrasoundSurfacePointExtractor::ExtractPoints(ScalarFiel
 			std::stringstream ss;
 			ss << "binary2_"<<i<<".jpg";
 			IM_SaveImage(bin2Out.get(),ss.str().c_str(),"JPEG");
-		}*/
+		}//*/
 #endif	
 		if(lines.size()!=2){
 			std::cout << i  << std::endl;
 		}
+
+	
 
 		float k[2],m[2];
 		glm::vec2 focal;
@@ -85,7 +88,8 @@ std::vector<glm::vec3> UltrasoundSurfacePointExtractor::ExtractPoints(ScalarFiel
 			candidates.push_back(focal);
 		//std::cout << focal.x << " " << focal.y << std::endl;
 
-
+		getPointsFromSlice(vol,axis,i,sliceImgs[i],lines[0],lines[1],points);
+		std::cout << "ASDFe" << std::endl;
 
 		#ifdef US_DEBUG //do this for every found point
 		std::cout << "Slice done: " << i << std::endl;
@@ -152,11 +156,12 @@ void UltrasoundSurfacePointExtractor::getPointsFromSlice(ScalarField *vol,int ax
 	if((l0==l1))
 		return;
 #ifdef US_DEBUG
-	TmpPointer<imImage> dbgOut = imImageCreate(img->width,img->height, IM_RGB, IM_BYTE);
+	IM_Pointer dbgOut = imImageCreate(img->width,img->height, IM_RGB, IM_BYTE);
 	imProcessConvertColorSpace(img,dbgOut.get());
 #endif	
-	TmpPointer<imImage> blured = imImageCreate(img->width,img->height, IM_GRAY, IM_BYTE);
-	imProcessMeanConvolve(img,blured.get(),3);
+	IM_Pointer blured = imImageCreate(img->width,img->height, IM_GRAY, IM_BYTE);
+	//imProcessMeanConvolve(img,blured.get(),3);
+	imProcessGrayMorphOpen(img,blured.get(),3);
 
 	//Extract points from slice using raytracing between l0 and l1, see matlab code
 	float k[2],m[2];
@@ -168,6 +173,8 @@ void UltrasoundSurfacePointExtractor::getPointsFromSlice(ScalarField *vol,int ax
 	focal.y = m[0] + k[0] * focal.x;
 
 	std::cout << focal.x << " " << focal.y << std::endl;
+	if(!(focal.x == focal.x))
+		return;
 
 	glm::vec2 entry[2],exit[2],tmp[2],dir[3];
 	float dist[2],length[2];
@@ -223,7 +230,7 @@ void UltrasoundSurfacePointExtractor::getPointsFromSlice(ScalarField *vol,int ax
 	
 	glm::vec3 dim = glm::vec3(vol->getDimensions());
 	int numSamples = 300;
-	int res = 300; 
+	int res = 100; 
 
 
 	for(int i = 0;i<numSamples;i++){
@@ -237,7 +244,7 @@ void UltrasoundSurfacePointExtractor::getPointsFromSlice(ScalarField *vol,int ax
 		float d = dist[1] * t  + dist[0] * (1-t);
 		float l = length[1] * t  + length[0] * (1-t);
 		
-		float threshold = 0.2 * 255;
+		float threshold = 0.2;
 
 		std::vector<UVSample> samples;
 		auto data = (imbyte*)blured->data[0];
@@ -262,7 +269,7 @@ void UltrasoundSurfacePointExtractor::getPointsFromSlice(ScalarField *vol,int ax
 			v[1] = data[id+1];
 			v[2] = data[id+img->width];
 			v[3] = data[id+img->width+1];
-			s.v = BiLinearInterpolator<imbyte>::interpolate(v[0],v[1],v[2],v[3],dd);
+			s.v = std::sqrt(BiLinearInterpolator<imbyte>::interpolate(v[0],v[1],v[2],v[3],dd)/255.0);
 			//if(s.v>10)
 				samples.push_back(s);
 		}
@@ -270,26 +277,63 @@ void UltrasoundSurfacePointExtractor::getPointsFromSlice(ScalarField *vol,int ax
 			continue;
 		float prev=10,diff;
 		std::vector<UVSample> diffs;
-		for(int j = 1;j<samples.size();j++){
-			diff = samples[j].v - prev;
+		for(int j = 2;j<samples.size()-1;j++){
+			diff = samples[j+1].v - samples[j-1].v;
+			//diff = samples[j].v / prev;
+			//diff = prev / samples[j].v;
 			prev = samples[j].v;
-			
-			if(samples[j].v < threshold || j < 5)
+
+			if(samples[j+1].v == 0 || samples[j-1].v == 0 || samples[j].v == 0)
 				continue;
 
-			diff /= samples[j].v;
+			if(diff >= 0.2){
+				diffs.clear();
+				UVSample s;
+				s.p = samples[j].p;
+				s.v = diff;
+				diffs.push_back(s);
+				break;
+			}else{
+				//continue;
+			}
+
+			if(j < 5)
+				continue;//*/
+
+			//diff /= samples[j].v;
 			UVSample s;
 			s.p = samples[j].p;
 			s.v = diff;
 			diffs.push_back(s);
 
 		}
+
+		/*float scale =  0.4;
+		int kernel = 6;
+		diffs.clear();
+		for(int j = kernel;j<samples.size();j++){
+				float d = 0;
+				float s = samples[j].v;
+				for(int k = j-kernel;k<j;k++){
+					d += samples[k].v;
+				}
+				d /= kernel;
+				UVSample ss;
+				ss.p = samples[j].p;
+
+				float ts = 1 - float(j)/samples.size();
+				ts = std::powf(ts,scale);
+
+				ss.v = (s / d) *ts;
+				diffs.push_back(ss);
+		}*/
+
 		if(diffs.size()==0)
 			continue;
 		std::sort(diffs.rbegin(),diffs.rend());
 		std::sort(samples.rbegin(),samples.rend());
 
-		glm::vec3 p(samples[0].p.x,samples[0].p.y,slice);
+		glm::vec3 p(diffs[0].p.x,diffs[0].p.y,slice);
 		p = p / dim;
 		auto v = vol->getBoundingAABB().getPosition(p);
 		points.push_back(v);
