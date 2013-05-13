@@ -285,13 +285,13 @@ int main( int argc, char* argv[] )
 	glfwSetMouseWheelCallback(GLFWmousewheelfun(wheel));
 
 	bool run = true;
-	run = runTests();
-	run = true;
+	
+	//run = true;
 	while(run){
 		if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS)
 			break;
-		
-		draw();
+		run = runTests();
+		//draw();
 		//break;
 	}	
 
@@ -354,19 +354,19 @@ bool runTests(){
 			tests.push_back(test);
 		}
 
-		//tests.clear();
+		tests.clear();
 
-		//testParams test;
-		//test.name = "real test";
-		//test.alpha = 0.1;
-		//test.beta = 0.03;
-		//test.w = 0.6;
-		//test.iso = 0.4;
-		//test.uind = 0.8;
-		//test.xi = 0.7;
-		//test.threshold = 0.3;
+		testParams test;
+		test.name = "real test";
+		test.alpha = 0.6;
+		test.beta = 0.03;
+		test.w = 0.6;
+		test.iso = 0.6;
+		test.uind = 0.95;
+		test.xi = 0.8;	
+		test.threshold = 0.3;
 
-		//tests.push_back(test);
+		tests.push_back(test);
 
 		std::cout << tests.size() << " tests created" << std::endl;
 		DBG("Test cretead");
@@ -374,7 +374,7 @@ bool runTests(){
 
 	html.appendToBody(test(sf,tests[testRun].name.c_str(),tests[testRun].alpha,tests[testRun].beta,tests[testRun].w,tests[testRun].iso,tests[testRun].uind,tests[testRun].xi,tests[testRun].threshold));
 	DBG("Test run completed");
-	html.save("testruns.html");
+	html.save("index.html");
 	DBG("HTML Saved");
 
 	testRun++;
@@ -395,19 +395,21 @@ std::string test(ScalarField *v,const char *name,float alpha,float beta,float w,
 		DBG("starting test");
 		TmpPointer<UltrasoundVariationalClassification> tmp = new UltrasoundVariationalClassification(v,alpha,beta,w,iso,uind,xi);
 		DBG("US Classified");
-	
-		CSGScalarField csg(tmp.get(),threshold);
+		
+		TmpPointer<ScalarField> blured = tmp->blur();
+		CSGScalarField csg(blured.get(),threshold);
 		DBG("CSGScalarField created");
-
-		mesh = MarchingTetrahedra::March<IndexedMesh>(&csg,tmp->getBoundingAABB(),tmp->getDimensions());
-		DBG("Mesh Created");
-	
+		
 		for(int i = 0;i<tmp->getDimensions().z;i++){
 			IM_Pointer img = UltrasoundSurfacePointExtractor::getSlice(tmp.get(),Z_AXIS,i);
 			std::stringstream ss;
 			ss << name << "/slice_" << i << ".jpg";
 			IM_SaveImage(img.get(),ss.str().c_str(),"JPEG");
 		}
+
+		mesh = MarchingTetrahedra::March<IndexedMesh>(&csg,tmp->getBoundingAABB(),tmp->getDimensions()/2);
+		DBG("Mesh Created");
+	
 		DBG("Slices saved");
 
 	
@@ -419,9 +421,12 @@ std::string test(ScalarField *v,const char *name,float alpha,float beta,float w,
 		DBG("Screenshot taken");
 		IM_SaveImage(scren.get(),screnshot,"JPEG");
 		DBG("Screenshot saved");
-		/*delete mesh;
-		mesh = 0;*/
+		delete mesh;
+		mesh = 0;
 		DBG("Mesh deleted");
+
+		auto vmin = tmp->getMin();
+		auto vmax = tmp->getMax();
 
 		std::stringstream ss;
 		ss << "<div class=\"testrun\" id=\"" << name << "\" >"<<std::endl;
@@ -436,6 +441,7 @@ std::string test(ScalarField *v,const char *name,float alpha,float beta,float w,
 		ss << "\t<tr><td>u<sub>ind</sub></td><td>" << uind << "</td></tr>" << std::endl;
 		ss << "\t<tr><td>&delta;</td><td>" << xi << "</td></tr>" << std::endl;
 		ss << "\t<tr><td>Threshold</td><td>" << threshold << "</td></tr>" << std::endl;
+		ss << "\t<tr><td>Volume min/max</td><td>" << vmin<< "/" << vmax << "</td></tr>" << std::endl;
 		ss << "</table></div>" << std::endl << std::endl;
 		DBG("HTML Created");
 		return ss.str();

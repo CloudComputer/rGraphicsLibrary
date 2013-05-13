@@ -34,9 +34,13 @@ ScalarField(v->getDimensions(),v->getBoundingAABB())
 		iy = dim.x;
 		iz = dim.y*dim.x;
 		//Build A start
-		std::vector<Eigen::Triplet<float>> a_val;
+		//std::vector<Eigen::Triplet<float>> a_val;
 		//a_val.reserve(7*size);
 		FOR(dim){
+			x = 215;
+			y = 167;
+			z = 28;
+			
 			auto iv = glm::ivec3(x,y,z);
 			int id = _index(iv);
 			float a = 0,g = 0;
@@ -50,7 +54,7 @@ ScalarField(v->getDimensions(),v->getBoundingAABB())
 			g = xi+(1-xi)*glm::length(grad);
 			g *= gamma;
 
-		
+
 			auto V = v_blur->getGradient(iv);
 			auto c = v->getGetGradientCurl(iv);// curl->_data[id];
 
@@ -59,29 +63,10 @@ ScalarField(v->getDimensions(),v->getBoundingAABB())
 			p2  = c.x*V.z - c.z*V.x;		
 			p3  = c.y*V.x - c.x*V.y;
 		
-			p1 /= _delta.x;
-			p2 /= _delta.y;
-			p3 /= _delta.z;
-		
-			p1 *= beta;
-			p2 *= beta;
-			p3 *= beta;
-
-			//a_val.push_back(Eigen::Triplet<float>(id,id, a+g));
-			////
-			//a_val.push_back(Eigen::Triplet<float>(id,id+ix,upx * beta));
-			//a_val.push_back(Eigen::Triplet<float>(id,id-ix,umx * beta));
-			////
-			//a_val.push_back(Eigen::Triplet<float>(id,id+iy,upy * beta));
-			//a_val.push_back(Eigen::Triplet<float>(id,id-iy,umy * beta));
-			////
-			//a_val.push_back(Eigen::Triplet<float>(id,id+iz,upz * beta));
-			//a_val.push_back(Eigen::Triplet<float>(id,id-iz,umz * beta));
-
-			//*
+			p1 /= _delta.x;p2 /= _delta.y;p3 /= _delta.z;
+			p1 *= beta;p2 *= beta;p3 *= beta;
 
 			b(id) = g*uind;
-
 			A.insert(id,id) = a + g;
 		
 			if(x==0||y==0||z==0||x==dim.x-1||y==dim.y-1||z==dim.z-1)

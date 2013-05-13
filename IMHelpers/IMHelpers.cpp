@@ -77,7 +77,7 @@ imImage* IM_GetScreenshot(){
 	imImage *img = imImageCreate(w, h, IM_RGB, IM_BYTE);
 	uint8_t* data = new uint8_t[w*h*3*sizeof(uint8_t)];
 	
-	glReadPixels(vp[0],vp[1],w,h,GL_RGB,GL_BYTE,data);
+	glReadPixels(vp[0],vp[1],w,h,GL_RGB,GL_UNSIGNED_BYTE,data);
 	for(int i = 0;i<w*h;i++){
 		((uint8_t*)img->data[0])[i] = data[i*3+0];
 		((uint8_t*)img->data[1])[i] = data[i*3+1];
