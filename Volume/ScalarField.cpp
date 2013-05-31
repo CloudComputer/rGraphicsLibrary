@@ -100,6 +100,8 @@ void ScalarField::createCannyCases(){
 
 }
 
+
+//TODO make this const
 ScalarField* ScalarField::Canny(bool blurFirst){
 	createCannyCases();
 	ScalarField* vOut = new ScalarField(_dimensions,_boundingAABB);
@@ -132,10 +134,10 @@ ScalarField* ScalarField::Canny(bool blurFirst){
 		v0 = get(s0);
 		v1 = get(s1);
 		
-		if(v>v0 && v>v1){
-			set(pos,1);
+		if(v>v0 && v>v1 && v == 0.15){
+			vOut->set(pos,1);
 		}else{
-			set(pos,0.3);
+			vOut->set(pos,0.3);
 		}
 	}
 

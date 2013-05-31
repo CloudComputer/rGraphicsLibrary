@@ -400,8 +400,8 @@ std::string test(ScalarField *v,const char *name,float alpha,float beta,float w,
 		TmpPointer<UltrasoundVariationalClassification> tmp = new UltrasoundVariationalClassification(v,alpha,beta,w,iso,uind,xi);
 		DBG("US Classified");
 		
-		TmpPointer<ScalarField> blured = tmp->blur();
-		TmpPointer<ScalarField> canny = tmp->Canny();
+		TmpPointer<ScalarField> blured    = tmp->blur();
+		TmpPointer<ScalarField> canny     = tmp->Canny();
 		TmpPointer<ScalarField> blurcanny = blured->Canny();
 		CSGScalarField csg(blured.get(),threshold);
 		DBG("CSGScalarField created");
