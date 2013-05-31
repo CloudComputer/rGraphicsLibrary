@@ -134,10 +134,10 @@ ScalarField* ScalarField::Canny(bool blurFirst){
 		v0 = get(s0);
 		v1 = get(s1);
 		
-		if(v>v0 && v>v1 && v == 0.15){
+		if(v>v0 && v>v1 && v >= 0.15){
 			vOut->set(pos,1);
 		}else{
-			vOut->set(pos,0.3);
+			vOut->set(pos,0.0);
 		}
 	}
 
