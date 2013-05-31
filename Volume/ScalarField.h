@@ -12,6 +12,11 @@
 #include <vector>
 
 class ScalarField : public Field3D<float>{
+	static std::vector<glm::ivec3> _cannyCases;
+	static std::vector<glm::vec3> _cannyNormCases;
+
+	static void createCannyCases();
+
 public:
 	ScalarField(glm::ivec3 dimensions = glm::ivec3(64,64,64),BoundingAABB boundingAABB = BoundingAABB(glm::vec3(0,0,0),glm::vec3(1,1,1)));
 
@@ -23,6 +28,8 @@ public:
 	VectorField *getGradientField()const;
 
 	ScalarField *blur()const;
+
+	ScalarField* Canny(bool blurFirst = false);
 
 	
 
@@ -61,6 +68,7 @@ public:
 	float DiffZZpm(glm::ivec3 pos)const;
 
 	KDTree<Vertex,3,float> *getSurfacePoints(float threshold)const;
+
 
 	void saveAsRaw(const char *filename);
 

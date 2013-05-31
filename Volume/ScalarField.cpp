@@ -3,6 +3,8 @@
 #include "VectorField.h"
 #include <Math\Interpolator.h>
 
+#include <Util\TmpPointer.h>
+
 #include <fstream>
 #include <iostream>
 
@@ -71,6 +73,81 @@ VectorField* ScalarField::getGradientField()const{
 	return vf;
 }
 
+std::vector<glm::ivec3> ScalarField::_cannyCases;
+std::vector<glm::vec3> ScalarField::_cannyNormCases;
+
+void ScalarField::createCannyCases(){
+	if(_cannyCases.size()) //if we have nonzero entries in the vector, this has already been runned.
+		return;
+	
+	_cannyCases.push_back(glm::ivec3(0,0,1));//0
+	_cannyCases.push_back(glm::ivec3(0,1,0));//1
+	_cannyCases.push_back(glm::ivec3(1,0,0));//2
+	_cannyCases.push_back(glm::ivec3(1,1,0));//3
+	_cannyCases.push_back(glm::ivec3(1,-1,0));//4
+	_cannyCases.push_back(glm::ivec3(1,-1,-1));//5
+	_cannyCases.push_back(glm::ivec3(1,1,-1));//6
+	_cannyCases.push_back(glm::ivec3(1,-1,1));//7
+	_cannyCases.push_back(glm::ivec3(1,1,1));//8
+	_cannyCases.push_back(glm::ivec3(0,1,1));//9
+	_cannyCases.push_back(glm::ivec3(0,1,-1));//10
+	_cannyCases.push_back(glm::ivec3(1,0,-1));//11
+	_cannyCases.push_back(glm::ivec3(1,0,1));//12
+	
+	for(int i= 0;i<_cannyCases.size();i++){
+		_cannyNormCases.push_back( glm::normalize(glm::vec3(_cannyCases[i])));
+	}
+
+}
+
+ScalarField* ScalarField::Canny(bool blurFirst){
+	createCannyCases();
+	ScalarField* vOut = new ScalarField(_dimensions,_boundingAABB);
+	ScalarField* vIn = this;
+	if(blurFirst)
+		vIn = blur();
+	TmpPointer<VectorField> vVec = vIn->getGradientField();
+
+	FOR(_dimensions)if(!(x==0||y==0||z==0||x==_dimensions.x-1||y==_dimensions.y-1||z==_dimensions.z-1)){
+		glm::ivec3 pos(x,y,z),s0,s1;
+		float v,v0,v1;
+		auto grad = vVec->get(pos);
+		//if(glm::length(grad) <= 1e-7) //test with this if something is not right
+		//	continue;
+		auto norm = glm::normalize(grad);
+
+		int case_ = -1;
+		float bestCase = 0;
+		for(int i= 0;i<_cannyCases.size();i++){
+			float d = std::abs(glm::dot(_cannyNormCases[i],norm));
+			if(d>bestCase){
+				bestCase = d;
+				case_ = i;
+			}
+		}
+		s0 = pos + _cannyCases[case_];
+		s1 = pos - _cannyCases[case_];
+		
+		v  = get(pos);
+		v0 = get(s0);
+		v1 = get(s1);
+		
+		if(v>v0 && v>v1){
+			set(pos,1);
+		}else{
+			set(pos,0.3);
+		}
+	}
+
+
+
+
+	if(blurFirst)
+		delete vIn;
+	return vOut;
+
+}
+
 ScalarField *ScalarField::blur()const{
 	ScalarField *s = new ScalarField(_dimensions,_boundingAABB);
 	FOR(_dimensions){
@@ -116,7 +193,7 @@ KDTree<Vertex,3,float>* ScalarField::getSurfacePoints(float iso)const{
 			}
 		}
 		if(!surface){
-		/*	glm::ivec3 pos(x,maxY,z);
+		/*	glm::ivec3 ip(x,maxY,z);
 			glm::vec3 p = _getWorldPos(pos);
 			Vertex v;
 			v.getPosition() = glm::vec4(p,0);
@@ -203,59 +280,59 @@ float ScalarField::DiffZZpm(const glm::vec3 &worldPos)const{
 	return DiffZZpm(ip);
 }
 
-float ScalarField::DiffXp(glm::ivec3 pos)const{
+float ScalarField::DiffXp(glm::ivec3 ip)const{
 	return (_data[_index(ip+glm::ivec3(1,0,0))] - _data[_index(ip)])/_delta.x;
 }
-float ScalarField::DiffXm(glm::ivec3 pos)const{
+float ScalarField::DiffXm(glm::ivec3 ip)const{
 	return (_data[_index(ip)] - _data[_index(ip-glm::ivec3(1,0,0))])/_delta.x;
 }
-float ScalarField::DiffXpm(glm::ivec3 pos)const{
+float ScalarField::DiffXpm(glm::ivec3 ip)const{
 	return (_data[_index(ip+glm::ivec3(1,0,0))] - _data[_index(ip-glm::ivec3(1,0,0))])/(2*_delta.x);
 }
 
 
-float ScalarField::DiffYp(glm::ivec3 pos)const{
+float ScalarField::DiffYp(glm::ivec3 ip)const{
 	return (_data[_index(ip+glm::ivec3(0,1,0))] - _data[_index(ip)])/_delta.y;
 }
-float ScalarField::DiffYm(glm::ivec3 pos)const{
+float ScalarField::DiffYm(glm::ivec3 ip)const{
 	return (_data[_index(ip)] - _data[_index(ip-glm::ivec3(0,1,0))])/_delta.y;
 }
-float ScalarField::DiffYpm(glm::ivec3 pos)const{
+float ScalarField::DiffYpm(glm::ivec3 ip)const{
 	return (_data[_index(ip+glm::ivec3(0,1,0))] - _data[_index(ip-glm::ivec3(0,1,0))])/(2*_delta.y);
 }
 
 
-float ScalarField::DiffZp(glm::ivec3 pos)const{
+float ScalarField::DiffZp(glm::ivec3 ip)const{
 	return (_data[_index(ip+glm::ivec3(0,0,1))] - _data[_index(ip)])/_delta.z;
 }
-float ScalarField::DiffZm(glm::ivec3 pos)const{
+float ScalarField::DiffZm(glm::ivec3 ip)const{
 	return (_data[_index(ip)] - _data[_index(ip-glm::ivec3(0,0,1))])/_delta.z;
 }
-float ScalarField::DiffZpm(glm::ivec3 pos)const{
+float ScalarField::DiffZpm(glm::ivec3 ip)const{
 	return (_data[_index(ip+glm::ivec3(0,0,1))] - _data[_index(ip-glm::ivec3(0,0,1))])/(2*_delta.z);
 }
 
-float ScalarField::DiffXXpm(glm::ivec3 pos)const{
+float ScalarField::DiffXXpm(glm::ivec3 ip)const{
 	assert(false && "Not yet implemented");
 	return 0;
 }
-float ScalarField::DiffXYpm(glm::ivec3 pos)const{
+float ScalarField::DiffXYpm(glm::ivec3 ip)const{
 	assert(false && "Not yet implemented");
 	return 0;
 }
-float ScalarField::DiffXZpm(glm::ivec3 pos)const{
+float ScalarField::DiffXZpm(glm::ivec3 ip)const{
 	assert(false && "Not yet implemented");
 	return 0;
 }
-float ScalarField::DiffYYpm(glm::ivec3 pos)const{
+float ScalarField::DiffYYpm(glm::ivec3 ip)const{
 	assert(false && "Not yet implemented");
 	return 0;
 }
-float ScalarField::DiffYZpm(glm::ivec3 pos)const{
+float ScalarField::DiffYZpm(glm::ivec3 ip)const{
 	assert(false && "Not yet implemented");
 	return 0;
 }
-float ScalarField::DiffZZpm(glm::ivec3 pos)const{
+float ScalarField::DiffZZpm(glm::ivec3 ip)const{
 	assert(false && "Not yet implemented");
 	return 0;
 }

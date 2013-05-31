@@ -37,10 +37,6 @@ ScalarField(v->getDimensions(),v->getBoundingAABB())
 		//std::vector<Eigen::Triplet<float>> a_val;
 		//a_val.reserve(7*size);
 		FOR(dim){
-			x = 215;
-			y = 167;
-			z = 28;
-			
 			auto iv = glm::ivec3(x,y,z);
 			int id = _index(iv);
 			float a = 0,g = 0;

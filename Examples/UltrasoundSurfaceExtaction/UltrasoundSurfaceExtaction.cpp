@@ -285,13 +285,13 @@ int main( int argc, char* argv[] )
 	glfwSetMouseWheelCallback(GLFWmousewheelfun(wheel));
 
 	bool run = true;
-	
-	//run = true;
+	runTests();
+	run = true;
 	while(run){
 		if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS)
 			break;
-		run = runTests();
-		//draw();
+		//run = runTests();
+		draw();
 		//break;
 	}	
 
@@ -358,12 +358,16 @@ bool runTests(){
 
 		testParams test;
 		test.name = "real test";
-		test.alpha = 0.6;
+		
+		test.alpha = 0.2;
 		test.beta = 0.03;
-		test.w = 0.6;
+
 		test.iso = 0.6;
+
+		test.w = 0.6;
 		test.uind = 0.95;
 		test.xi = 0.8;	
+
 		test.threshold = 0.3;
 
 		tests.push_back(test);
@@ -397,14 +401,25 @@ std::string test(ScalarField *v,const char *name,float alpha,float beta,float w,
 		DBG("US Classified");
 		
 		TmpPointer<ScalarField> blured = tmp->blur();
+		TmpPointer<ScalarField> canny = tmp->Canny();
+		TmpPointer<ScalarField> blurcanny = blured->Canny();
 		CSGScalarField csg(blured.get(),threshold);
 		DBG("CSGScalarField created");
 		
 		for(int i = 0;i<tmp->getDimensions().z;i++){
-			IM_Pointer img = UltrasoundSurfacePointExtractor::getSlice(tmp.get(),Z_AXIS,i);
+			IM_Pointer img  = UltrasoundSurfacePointExtractor::getSlice(tmp.get(),Z_AXIS,i);
+			IM_Pointer img2 = UltrasoundSurfacePointExtractor::getSlice(canny.get(),Z_AXIS,i);
+			IM_Pointer img3 = UltrasoundSurfacePointExtractor::getSlice(blurcanny.get(),Z_AXIS,i);
 			std::stringstream ss;
 			ss << name << "/slice_" << i << ".jpg";
+			std::stringstream ss2;
+			ss2 << name << "/slice_" << i << "canny.jpg";
+			std::stringstream ss3;
+			ss3 << name << "/slice_" << i << "blurcanny.jpg";
+			std::cout << ss.str() << std::endl;
 			IM_SaveImage(img.get(),ss.str().c_str(),"JPEG");
+			IM_SaveImage(img2.get(),ss2.str().c_str(),"JPEG");
+			IM_SaveImage(img3.get(),ss3.str().c_str(),"JPEG");
 		}
 
 		mesh = MarchingTetrahedra::March<IndexedMesh>(&csg,tmp->getBoundingAABB(),tmp->getDimensions()/2);
