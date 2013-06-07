@@ -33,6 +33,21 @@ public:
 
 	T* getData()const;
 	unsigned int getMemSize()const;
+
+	
+	static Field3D *Add(const Field3D *f0,const Field3D *f1);
+	static Field3D *Sub(const Field3D *f0,const Field3D *f1);
+	static Field3D *Mult(const Field3D *f0,const Field3D *f1);
+	static Field3D *Div(const Field3D *f0,const Field3D *f1);
+
+	static Field3D *Max(const Field3D *f0,const Field3D *f1);
+	static Field3D *Min(const Field3D *f0,const Field3D *f1);
+
+	static Field3D *Add(const Field3D *f0,const float &f1);
+	static Field3D *Sub(const Field3D *f0,const float &f1);
+	static Field3D *Mult(const Field3D *f0,const float &f1);
+	static Field3D *Div(const Field3D *f0,const float &f1);
+
 protected:
 	unsigned int _index(glm::ivec3 pos,bool clamp = true)const;
 	glm::vec3 _getWorldPos(const glm::ivec3 &pos)const;
@@ -41,6 +56,8 @@ protected:
 	glm::ivec3 _dimensions;
 	BoundingAABB _boundingAABB;
 	T *_data;
+	
+	
 private:
 	void _allocate();
 	void _deallocate();

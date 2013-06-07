@@ -198,4 +198,116 @@ void Field3D<T>::_deallocate()
 	_data = 0;
 }
 
+
+template<typename T> Field3D<T> *Field3D<T>::Add(const Field3D *f0,const Field3D *f1){
+	assert(f0->_dimensions == f1->_dimensions);
+	
+	Field3D<T> *f = new Field3D<T>(f->_dimensions,f->_boundingAABB);
+	FOR(f0->_dimensions){
+		int id = f->_index(glm::ivec3(x,y,z));
+		f->_data[id]  = f0->_data[id] + f1->_data[id];
+	}
+	return f;
+}
+template<typename T> Field3D<T> *Field3D<T>::Sub(const Field3D *f0,const Field3D *f1){
+	assert(f0->_dimensions == f1->_dimensions);
+	
+	Field3D<T> *f = new Field3D<T>(f->_dimensions,f->_boundingAABB);
+	FOR(f0->_dimensions){
+		int id = f->_index(glm::ivec3(x,y,z));
+		f->_data[id]  = f0->_data[id] - f1->_data[id];
+	}
+	return f;
+}
+template<typename T> Field3D<T> *Field3D<T>::Mult(const Field3D *f0,const Field3D *f1){
+	assert(f0->_dimensions == f1->_dimensions);
+	
+	Field3D<T> *f = new Field3D<T>(f->_dimensions,f->_boundingAABB);
+	FOR(f0->_dimensions){
+		int id = f->_index(glm::ivec3(x,y,z));
+		f->_data[id]  = f0->_data[id] * f1->_data[id];
+	}
+	return f;
+}
+template<typename T> Field3D<T> *Field3D<T>::Div(const Field3D *f0,const Field3D *f1){
+	assert(f0->_dimensions == f1->_dimensions);
+	
+	Field3D<T> *f = new Field3D<T>(f->_dimensions,f->_boundingAABB);
+	FOR(f0->_dimensions){
+		int id = f->_index(glm::ivec3(x,y,z));
+		f->_data[id]  = f0->_data[id] / f1->_data[id];
+	}
+	return f;
+}
+
+
+template<typename T>
+Field3D<T> *Field3D<T>::Max(const Field3D *f0,const Field3D *f1){
+	assert(f0->_dimensions == f1->_dimensions);
+	
+	Field3D<T> *f = new Field3D<T>(f0->_dimensions,f0->_boundingAABB);
+	FOR(f0->_dimensions){
+		int id = f->_index(glm::ivec3(x,y,z));
+		f->_data[id]  = std::max(f0->_data[id],f1->_data[id]);
+	}
+	return f;
+}
+
+
+
+
+template<typename T>
+Field3D<T> *Field3D<T>::Min(const Field3D *f0,const Field3D *f1){
+	assert(f0->_dimensions == f1->_dimensions);
+	
+	Field3D<T> *f = new Field3D<T>(f->_dimensions,f->_boundingAABB);
+	FOR(f0->_dimensions){
+		int id = f->_index(glm::ivec3(x,y,z));
+		f->_data[id]  = std::min(f0->_data[id],f1->_data[id]);
+	}
+	return f;
+}
+
+template<typename T>
+Field3D<T> *Field3D<T>::Add(const Field3D *f0,const float &f1){
+	assert(f0->_dimensions == f1->_dimensions);
+	
+	Field3D<T> *f = new Field3D<T>(f->_dimensions,f->_boundingAABB);
+	FOR(f0->_dimensions){
+		int id = f->_index(glm::ivec3(x,y,z));
+		f->_data[id]  = f0->_data[id] + f1;
+	}
+	return f;
+}
+template<typename T> Field3D<T> *Field3D<T>::Sub(const Field3D *f0,const float &f1){
+	assert(f0->_dimensions == f1->_dimensions);
+	
+	Field3D<T> *f = new Field3D<T>(f->_dimensions,f->_boundingAABB);
+	FOR(f0->_dimensions){
+		int id = f->_index(glm::ivec3(x,y,z));
+		f->_data[id]  = f0->_data[id] -  f1;
+	}
+}
+template<typename T> Field3D<T> *Field3D<T>::Mult(const Field3D *f0,const float &f1){
+	assert(f0->_dimensions == f1->_dimensions);
+	
+	Field3D<T> *f = new Field3D<T>(f->_dimensions,f->_boundingAABB);
+	FOR(f0->_dimensions){
+		int id = f->_index(glm::ivec3(x,y,z));
+		f->_data[id]  = f0->_data[id] *  f1;
+	}
+	return f;
+}
+template<typename T> Field3D<T> *Field3D<T>::Div(const Field3D *f0,const float &f1){
+	assert(f0->_dimensions == f1->_dimensions);
+	
+	Field3D<T> *f = new Field3D<T>(f->_dimensions,f->_boundingAABB);
+	FOR(f0->_dimensions){
+		int id = f->_index(glm::ivec3(x,y,z));
+		f->_data[id]  = f0->_data[id] / f1;
+	}
+	return f;
+}
+
+
 #endif

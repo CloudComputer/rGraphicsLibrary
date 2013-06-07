@@ -114,8 +114,6 @@ ScalarField* ScalarField::Canny(bool blurFirst){
 		glm::ivec3 pos(x,y,z),s0,s1;
 		float v,v0,v1;
 		auto grad = vVec->get(pos);
-		//if(glm::length(grad) <= 1e-7) //test with this if something is not right
-		//	continue;
 		auto norm = glm::normalize(grad);
 
 		int case_ = -1;
@@ -342,11 +340,16 @@ float ScalarField::DiffZZpm(glm::ivec3 ip)const{
 void ScalarField::saveAsRaw(const char *filename){
 	FILE *file = fopen(filename,"wb");
 
+
+	std::cout << "Saving volume as raw [" << _dimensions.x << " " << _dimensions.y << " " << _dimensions.z << "]" << std::endl;
+
 	FOR(_dimensions){
 		int id = _index(glm::ivec3(x,y,z));
 		unsigned char c = _data[id]*255;
 		fwrite(&c,1,1,file);
 	}
+
+	fclose(file);
 }
 
 ScalarField* ScalarField::ReadFromRawfile(const char *filename,unsigned int w,unsigned int h,unsigned int d,unsigned int bps){

@@ -2,6 +2,8 @@
 #define _KDNODE_HPP_
 #include "KDTree.h"
 
+#include <algorithm>
+
 KD_TEMPLATE KD_NODE::KDNode(KD_TREE *tree,const floatPrecision pos[dimmensions],const dataType &data,KD_NODE *parent):
 _tree(tree),
 _data(data),

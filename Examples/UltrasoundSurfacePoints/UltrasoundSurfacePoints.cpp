@@ -22,6 +22,7 @@
 #include <iostream>
 
 #include <Volume\UltrasoundSurfacePointExtractor.h>
+#include <Volume\UltrasoundVariationalClassification.h>
 
 #include <Math\Plane.h>
 
@@ -102,12 +103,24 @@ class PointRenderer : public DrawableObject{
 	std::vector<glm::vec3> surfPoints;
 public:
 	PointRenderer(){
-		TmpPointer<ScalarField> tmp = ScalarField::ReadFromRawfile(files[niceCases[_case]].path,files[niceCases[_case]].w,files[niceCases[_case]].h,files[niceCases[_case]].d);
+		TmpPointer<ScalarField> vol = ScalarField::ReadFromRawfile(files[niceCases[_case]].path,files[niceCases[_case]].w,files[niceCases[_case]].h,files[niceCases[_case]].d);
 		//TmpPointer<ScalarField> tmp = tmp2->blur();
-		surfPoints = UltrasoundSurfacePointExtractor::ExtractPoints(tmp.get(),Z_AXIS);
+		//surfPoints = UltrasoundSurfacePointExtractor::ExtractPoints(tmp.get(),Z_AXIS);
 		
-		glm::vec3 dir = tmp->getBoundingAABB().maxPos() - tmp->getBoundingAABB().minPos();
-		dir /= tmp->getDimensions();
+		TmpPointer<UltrasoundVariationalClassification> usClassified = new UltrasoundVariationalClassification(vol.get(),0.12,0.03,0.5,0.5,0.9,0.8);
+		TmpPointer<ScalarField> surfVol = usClassified->Canny();
+		
+		glm::ivec3 dim = surfVol->getDimensions();
+		FOR(dim)if(z>20&&z<80 && x > 100 && x < 350)
+		{
+			if(surfVol->get(glm::ivec3(x,y,z)) >= 0.99){
+				auto pos = surfVol->getBoundingAABB().getPosition(glm::vec3(x,y,z) / glm::vec3(dim));
+				surfPoints.push_back(pos);
+			}
+		}
+
+		glm::vec3 dir = usClassified->getBoundingAABB().maxPos() - surfVol->getBoundingAABB().minPos();
+		dir /= dim;
 		
 		K3DTree<Vertex> tree;
 		for(auto s = surfPoints.begin() ; s != surfPoints.end() ; ++s){
@@ -116,11 +129,35 @@ public:
 			tree.insert(*s,v);
 		}
 
-		auto clusters = Clusterer::ClusterPoints(&tree,glm::length(dir)*2,100,true);
+		auto clusters = Clusterer::ClusterPoints(&tree,glm::length(dir),100,true);
 		if(clusters.size()!=0)
 			points = clusters[0].getPoints()->getAsVector();
 		
+
+
+
+		for(int i = 0;i<points.size();i++){
+			auto nodes = clusters[0].getPoints()->findNNearest(glm::value_ptr(points[i].getPosition()),10);
+			std::vector<glm::vec3> pointsForPlane;
+			for(auto node = nodes.begin();node != nodes.end() ; ++node){
+				pointsForPlane.push_back(glm::vec3((*node)->getPosition()[0],(*node)->getPosition()[1],(*node)->getPosition()[2]));
+			}
+			Plane p(pointsForPlane);
+			points[i].setNormal(p.getNormal());
+		}
 		
+
+
+		std::ofstream file("points2.obj");
+		for(int i = 0;i<points.size();i++){
+			file << "v " << points[i].getPosition().x << " " << points[i].getPosition().y << " " << points[i].getPosition().z << std::endl;
+			file << "vn " << points[i].getNormal().x << " " << points[i].getNormal().y << " " << points[i].getNormal().z << std::endl;
+		}
+
+		file.close();
+
+		
+
 		//TmpPointer<ScalarField> vol = tmp->blur();
 
 		/*auto tree = vol->getSurfacePoints(0.4);
@@ -143,9 +180,9 @@ public:
 			glVertex3fv(glm::value_ptr(p->getPosition()));
 		}
 		glColor3f(1,0,0);
-		for(auto p = surfPoints.begin();p!=surfPoints.end();++p){
-			glVertex3fv(glm::value_ptr(*p));
-		}
+		//for(auto p = surfPoints.begin();p!=surfPoints.end();++p){
+		//	glVertex3fv(glm::value_ptr(*p));
+		//}
 		glEnd();
 	}
 

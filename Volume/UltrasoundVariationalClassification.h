@@ -1,8 +1,8 @@
 #ifndef _ULTRASOUNDVARIATIONALCLASSIFICATION_H_
 #define _ULTRASOUNDVARIATIONALCLASSIFICATION_H_
 
-#define DBG(str) std::cout << str << " " << __FUNCTION__ << "@" << __FILE__ << ":" << __LINE__ << std::endl;
-//#define DBG(str)
+//#define DBG(str) std::cout << str << " " << __FUNCTION__ << "@" << __FILE__ << ":" << __LINE__ << std::endl;
+#define DBG(str)
 
 #include "ScalarField.h"
 

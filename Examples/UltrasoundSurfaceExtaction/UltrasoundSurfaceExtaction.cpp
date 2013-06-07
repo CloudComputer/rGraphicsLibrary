@@ -254,8 +254,9 @@ int main( int argc, char* argv[] )
 		std::cout << "Could not init glfw"<< std::endl;
 		return 2;
 	}
-
-	if (glfwOpenWindow(1920, 1080, 8, 8, 8, 8, 32, 0, GLFW_WINDOW) != GL_TRUE){
+	
+	//if (glfwOpenWindow(1920, 1080, 8, 8, 8, 8, 32, 0, GLFW_WINDOW) != GL_TRUE){
+	if (glfwOpenWindow(800, 600, 8, 8, 8, 8, 32, 0, GLFW_WINDOW) != GL_TRUE){
 		std::cout << "Could not create window"<< std::endl;
 		return 3;
 	}
@@ -400,13 +401,18 @@ std::string test(ScalarField *v,const char *name,float alpha,float beta,float w,
 		TmpPointer<UltrasoundVariationalClassification> tmp = new UltrasoundVariationalClassification(v,alpha,beta,w,iso,uind,xi);
 		DBG("US Classified");
 		
+
 		TmpPointer<ScalarField> blured    = tmp->blur();
 		TmpPointer<ScalarField> canny     = tmp->Canny();
 		TmpPointer<ScalarField> blurcanny = blured->Canny();
-		CSGScalarField csg(blured.get(),threshold);
+		
+		tmp->saveAsRaw("tmp.raw");
+		canny->saveAsRaw("canny.raw");
+		blurcanny->saveAsRaw("cannyBlur.raw");
+		
 		DBG("CSGScalarField created");
 		
-		for(int i = 0;i<tmp->getDimensions().z;i++){
+		for(int i = 0;i<tmp->getDimensions().z&&false;i++){
 			IM_Pointer img  = UltrasoundSurfacePointExtractor::getSlice(tmp.get(),Z_AXIS,i);
 			IM_Pointer img2 = UltrasoundSurfacePointExtractor::getSlice(canny.get(),Z_AXIS,i);
 			IM_Pointer img3 = UltrasoundSurfacePointExtractor::getSlice(blurcanny.get(),Z_AXIS,i);
@@ -421,8 +427,20 @@ std::string test(ScalarField *v,const char *name,float alpha,float beta,float w,
 			IM_SaveImage(img2.get(),ss2.str().c_str(),"JPEG");
 			IM_SaveImage(img3.get(),ss3.str().c_str(),"JPEG");
 		}
+		
+		
+		TmpPointer<ScalarField> cannyBlurred = blurcanny->blur();
+		TmpPointer<ScalarField> combined = static_cast<ScalarField*>(ScalarField::Max(cannyBlurred.get(),blurcanny.get()));
 
-		mesh = MarchingTetrahedra::March<IndexedMesh>(&csg,tmp->getBoundingAABB(),tmp->getDimensions()/2);
+		TmpPointer<ScalarField> blurcanny2 = blurcanny->blur()->blur();
+
+
+		CSGScalarField csg(tmp.get(),threshold);
+
+		auto dim = tmp->getDimensions();
+		dim *= glm::vec3(1.1,1.1,1.1);
+
+		mesh = MarchingTetrahedra::March<IndexedMesh>(&csg,tmp->getBoundingAABB(),dim);
 		DBG("Mesh Created");
 	
 		DBG("Slices saved");
@@ -436,8 +454,8 @@ std::string test(ScalarField *v,const char *name,float alpha,float beta,float w,
 		DBG("Screenshot taken");
 		IM_SaveImage(scren.get(),screnshot,"JPEG");
 		DBG("Screenshot saved");
-		delete mesh;
-		mesh = 0;
+		/*delete mesh;
+		mesh = 0;*/
 		DBG("Mesh deleted");
 
 		auto vmin = tmp->getMin();
