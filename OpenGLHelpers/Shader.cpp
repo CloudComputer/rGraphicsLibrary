@@ -2,7 +2,8 @@
 #include "Shader.h"
 #include "OpenGLInfo.h"
 
-#include <Util/Directory.h>
+#include <Util\Directory.h>
+#include <Util\Macros.h>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -37,7 +38,7 @@ void ShaderProgram::readFunctionSubbs(){
 		
 		std::stringstream s;
 		s << f.rdbuf();
-		std::cout << s << std::endl;
+		//std::cout << s << std::endl;
 		std::string source = s.str(),name;
 		if(source.substr(0,4).compare("#RGL")!=0){
 			std::cerr << "Error loading " << file->c_str() << "" << std::endl;
@@ -67,17 +68,22 @@ GLuint Shader::getShader(){
 	return _shader;
 }
 
-void Shader::setSourceFromFile(std::string filename){
+void Shader::setSourceFromFile(std::string filename,std::vector<std::string> defines){
 	std::ifstream f(filename.c_str());
 	assert(f.is_open());
 
 	std::stringstream s;
 	s << f.rdbuf();
-	setSouce(s.str());
+	setSouce(s.str(),defines);
 }
 
-void Shader::setSouce(std::string source){
-	_source  = source;
+void Shader::setSouce(std::string source,std::vector<std::string> defines){
+	std::stringstream ss;
+	IT_FOR(defines,def){
+		ss << "#define " << *def << std::endl;
+	}
+	ss << source;
+	_source = ss.str();
 	static std::map<std::string,std::string>::iterator itr;
 	int changes = 0;
 	do{
@@ -120,18 +126,18 @@ void Shader::compile(){
 	}
 }
 
-VertexShader* VertexShader::CreateNewFromFile(std::string filename){
+VertexShader* VertexShader::CreateNewFromFile(std::string filename,std::vector<std::string> defines){
 	VertexShader *v = new VertexShader();
 	v->init();
-	v->setSourceFromFile(filename);
+	v->setSourceFromFile(filename,defines);
 	v->compile();
 	return v;
 }
 
-FragmentShader* FragmentShader::CreateNewFromFile(std::string filename){
+FragmentShader* FragmentShader::CreateNewFromFile(std::string filename,std::vector<std::string> defines){
 	FragmentShader *f = new FragmentShader();
 	f->init();
-	f->setSourceFromFile(filename);
+	f->setSourceFromFile(filename,defines);
 	f->compile();
 	return f;
 }
@@ -165,8 +171,11 @@ void ShaderProgram::setShader(FragmentShader *f){
 
 void ShaderProgram::link(){
 	chkGLErr();
-	glAttachShader(_programID,_vertexShader->getShader());
+	glAttachShader(_programID,_vertexShader->getShader()); //TODO this should only be done once
 	glAttachShader(_programID,_fragmentShader->getShader());
+	relink();
+}
+void ShaderProgram::relink(){
 	glLinkProgram(_programID);
 	chkGLErr();
 	GLint err;
@@ -182,6 +191,7 @@ void ShaderProgram::link(){
 		chkGLErr();
 	}
 	chkGLErr();
+	loadLocations();
 }
 
 
@@ -218,11 +228,11 @@ void ShaderProgram::loadLocations(){
 	chkGLErr();
 }
 
-ShaderProgram *ShaderProgram::CreateShaderProgramFromSources(std::string vertexShader,std::string fragmentShader){
+ShaderProgram *ShaderProgram::CreateShaderProgramFromSources(std::string vertexShader,std::string fragmentShader,std::vector<std::string> defines){
 	ShaderProgram *p = new ShaderProgram();chkGLErr();
 	p->init();chkGLErr();
-	p->setShader(VertexShader::CreateNewFromFile(vertexShader));chkGLErr();
-	p->setShader(FragmentShader::CreateNewFromFile(fragmentShader));chkGLErr();
+	p->setShader(VertexShader::CreateNewFromFile(vertexShader,defines));chkGLErr();
+	p->setShader(FragmentShader::CreateNewFromFile(fragmentShader,defines));chkGLErr();
 	p->link();chkGLErr();
 	p->loadLocations();chkGLErr();
 	return p;

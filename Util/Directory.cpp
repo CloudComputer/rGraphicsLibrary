@@ -39,3 +39,7 @@ std::vector<std::string> Directory::getAllFilesInFolder(std::string dir,std::str
 void Directory::createFolder(std::string dir){
 	create_directory(dir);
 }
+
+bool Directory::exists(std::string path){
+	return boost::filesystem::exists(path);
+}

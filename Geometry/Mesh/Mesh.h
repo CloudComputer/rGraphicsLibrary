@@ -25,7 +25,7 @@ public:
 	virtual float distance (glm::vec3 &worldPos , bool signedDistance) = 0;
 	virtual BoundingAABB getBoundingAABB()const = 0;
 
-
+	virtual float getArea()const{return -1;}
 
 	template<typename MeshType>
 	static Mesh* LoadWavefront(const char* filename);

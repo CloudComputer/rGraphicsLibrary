@@ -130,7 +130,7 @@ class GausianRBF : public RBF{
 	}
 	float _a;
 public:
-	GausianRBF(float cx,float cy,float cz,float weight = 1.0,float a = 50.0):RBF(cx,cy,cz,weight),_a(a*a){}
+	GausianRBF(float cx,float cy,float cz,float weight = 1.0,float a = 10):RBF(cx,cy,cz,weight),_a(a*a){}
 	virtual void save(tinyxml2::XMLNode *parent){
 		auto element = parent->GetDocument()->NewElement("GausianRBF");
 		parent->InsertEndChild(element);
@@ -202,7 +202,14 @@ public:
 
 	template <typename KernelType> static RBFSystem *HFromPoints(std::vector<glm::vec4> &points);
 	template <typename KernelType> static RBFSystem *CreateFromPoints(std::vector<glm::vec4> &points,float w = 0);
-	template <typename KernelType,class Solver> static RBFSystem *FastFitting(std::vector<glm::vec4> &points,float smoothNess,float accuracy,int minInnerSize = 500,float outerSize = 2.0f,int coarseGridSize = 4, int maxIterations = 1000);
+	template <typename KernelType,class Solver> static RBFSystem *FastFitting(std::vector<glm::vec4> &points,
+																				float smoothNess,
+																				float accuracy,
+																				int minInnerSize = 500,
+																				float outerSize = 2.0f,
+																				int coarseGridSize = 4, 
+																				int maxIterations = 1000
+																				);
 };
 
 

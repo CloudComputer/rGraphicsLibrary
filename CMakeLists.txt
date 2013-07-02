@@ -25,6 +25,7 @@ include_directories("${PROJECT_SOURCE_DIR}/ext/")
 include_directories("${PROJECT_SOURCE_DIR}/ext/im/include")
 include_directories("${PROJECT_SOURCE_DIR}/ext/eigen")
 include_directories("${PROJECT_SOURCE_DIR}/ext/glfw/include")
+include_directories("${PROJECT_SOURCE_DIR}/ext/glfw-3.0/include")
 include_directories("${PROJECT_SOURCE_DIR}/ext/openEXR/include/")
 include_directories(${PROJECT_SOURCE_DIR} )
 
@@ -62,6 +63,7 @@ add_subdirectory(glsl)
 
 add_subdirectory(Base)
 add_subdirectory(Engine)
+add_subdirectory(rEngine)
 add_subdirectory(FluidSimulator)
 add_subdirectory(Image)
 add_subdirectory(OpenEXRHelpers)
@@ -83,6 +85,7 @@ endif()
 
 if(BUILD_GLFW)
 	add_subdirectory(ext/glfw)
+	add_subdirectory(ext/glfw-3.0)
 endif()
 
 

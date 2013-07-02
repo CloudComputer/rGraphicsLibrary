@@ -106,3 +106,11 @@ Face *IndexedMesh::addTriangle(const glm::vec3 &p0,const glm::vec3 &p1,const glm
 	p.push_back(p2);
 	return addFace(p);
 }
+
+float IndexedMesh::getArea()const{
+	float area = 0;
+	for(auto tri = _triangles.begin();tri != _triangles.end();++tri){
+		area += tri->area();
+	}
+	return area;
+}

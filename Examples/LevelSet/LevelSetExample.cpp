@@ -35,7 +35,7 @@
 
 void Raycast();
 
-FBO *fboBackFace;
+FBOa *fboBackFace;
 
 ColorCube *colorCube;
 ShaderProgram *pgm;
@@ -198,7 +198,7 @@ void init(){DBG();
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_TEXTURE_3D);
 	chkGLErr();
-	fboBackFace  = new FBO();
+	fboBackFace  = new FBOa();
 	chkGLErr();
 
 	pgm = ShaderProgram::CreateShaderProgramFromSources( GLSL_DIR "/levelset.vert", GLSL_DIR "/levelset.frag");

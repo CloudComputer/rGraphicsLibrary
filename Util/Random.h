@@ -4,7 +4,10 @@
 #include <vector>
 #include <glm\glm.hpp>
 
+
+
 #include <Geometry\BoundingGeometry\BoundingVolume.h>
+#include <Geometry\Mesh\Triangle.h>
 
 class Random{
 	Random(int seed = 0);
@@ -29,6 +32,13 @@ public:
 	glm::vec4 randomPointCloseToCubeSurface(float dist);
 	std::vector<glm::vec4> randomPointsCloseToCubeSurface(int amount,float dist = 0.1);
 	
+	glm::vec3 inTriangle(Triangle &t){
+		return inTriangle(glm::vec3(t.v0()->getPosition()),
+						  glm::vec3(t.v1()->getPosition()),
+						  glm::vec3(t.v2()->getPosition()));
+	}
+	glm::vec3 inTriangle(const glm::vec3 &v0,const glm::vec3 &v1,const glm::vec3 &v2);
+
 	glm::vec3 randomPointOnSphereSurface();
 	glm::vec4 randomPointCloseToSphereSurface(float dist);
 	std::vector<glm::vec4> randomPointsCloseToSphereSurface(int amount,float dist = 0.1);

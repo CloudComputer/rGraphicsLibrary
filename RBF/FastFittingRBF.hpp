@@ -440,7 +440,7 @@ RBFSystem *RBFSystem::FastFitting(std::vector<glm::vec4> &points,float smoothNes
 			//ii++;
 			#ifdef RBF_DEBUG
 				sw.stop();
-				std::cout << '\t' << "Subspace Solver "<< ii << "/" << subspace.size() <<" done:  ( " << sw.getFractionElapsedSeconds() << " sec)"  << std::endl;
+				std::cout << '\t' << "Subspace Solver "<< ii << "/" << subspace.size() <<" done("<<  s->sizeInner()  <<"/ " <<  s->sizeOuter() <<" ):  ( " << sw.getFractionElapsedSeconds() << " sec)"  << std::endl;
 				sw.reset();sw.start();
 			#endif
 		}catch(...){
@@ -473,7 +473,7 @@ RBFSystem *RBFSystem::FastFitting(std::vector<glm::vec4> &points,float smoothNes
 			} //(4)
 		} //(5)
 
-		//TODO missing (6)
+		//TODO missing (6)?
 
 		int pointssize = points.size();
 		for(int i = 0;i<pointssize;i++){ //(8)
