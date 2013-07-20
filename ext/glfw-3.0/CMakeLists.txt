@@ -1,35 +1,76 @@
-project(GLFW-3.0 C)
+project(GLFW3 C)
 
 cmake_minimum_required(VERSION 2.8)
 
-set(GLFW_VERSION_MAJOR "3")
-set(GLFW_VERSION_MINOR "0")
-set(GLFW_VERSION_PATCH "0")
-set(GLFW_VERSION_EXTRA "")
-set(GLFW_VERSION "${GLFW_VERSION_MAJOR}.${GLFW_VERSION_MINOR}")
-set(GLFW_VERSION_FULL "${GLFW_VERSION}.${GLFW_VERSION_PATCH}${GLFW_VERSION_EXTRA}")
+set(GLFW3_VERSION_MAJOR "3")
+set(GLFW3_VERSION_MINOR "0")
+set(GLFW3_VERSION_PATCH "1")
+set(GLFW3_VERSION_EXTRA "")
+set(GLFW3_VERSION "${GLFW3_VERSION_MAJOR}.${GLFW3_VERSION_MINOR}")
+set(GLFW3_VERSION_FULL "${GLFW3_VERSION}.${GLFW3_VERSION_PATCH}${GLFW3_VERSION_EXTRA}")
 set(LIB_SUFFIX "" CACHE STRING "Takes an empty string or 64. Directory where lib will be installed: lib or lib64")
 
+option(GLFW3_BUILD_EXAMPLES "Build the GLFW example programs" ON)
+option(GLFW3_BUILD_TESTS "Build the GLFW test programs" ON)
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+option(GLFW3_INSTALL "Generate installation target" ON)
 
 
 if (APPLE)
-    option(GLFW_USE_CHDIR "Make glfwInit chdir to Contents/Resources" ON)
-    option(GLFW_USE_MENUBAR "Populate the menu bar on first window creation" ON)
+    option(GLFW3_USE_CHDIR "Make glfwInit chdir to Contents/Resources" ON)
+    option(GLFW3_USE_MENUBAR "Populate the menu bar on first window creation" ON)
+else()
+    option(GLFW3_USE_EGL "Use EGL for context creation" OFF)
 endif()
 
+if (GLFW3_USE_EGL)
+    set(GLFW3_CLIENT_LIBRARY "opengl" CACHE STRING
+        "The client library to use; one of opengl, glesv1 or glesv2")
 
-set(_GLFW_USE_OPENGL 1)
+    if (${GLFW3_CLIENT_LIBRARY} STREQUAL "opengl")
+        set(_GLFW3_USE_OPENGL 1)
+    elseif (${GLFW3_CLIENT_LIBRARY} STREQUAL "glesv1")
+        set(_GLFW3_USE_GLESV1 1)
+    elseif (${GLFW3_CLIENT_LIBRARY} STREQUAL "glesv2")
+        set(_GLFW3_USE_GLESV2 1)
+    else()
+        message(FATAL_ERROR "Unsupported client library")
+    endif()
 
-find_package(OpenGL REQUIRED)
+    set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake/modules)
+    find_package(EGL REQUIRED)
+
+    if (NOT _GLFW3_USE_OPENGL)
+        set(GLFW3_BUILD_EXAMPLES OFF)
+        set(GLFW3_BUILD_TESTS OFF)
+        message(STATUS "NOTE: Examples and tests require OpenGL")
+    endif()
+else()
+    set(_GLFW3_USE_OPENGL 1)
+endif()
+
+if (_GLFW3_USE_OPENGL)
+    find_package(OpenGL REQUIRED)
+elseif (_GLFW3_USE_GLESV1)
+    find_package(GLESv1 REQUIRED)
+elseif (_GLFW3_USE_GLESV2)
+    find_package(GLESv2 REQUIRED)
+endif()
+
 find_package(Threads REQUIRED)
 
-
+#--------------------------------------------------------------------
+# Enable all warnings on GCC, regardless of OS
+#--------------------------------------------------------------------
+if (CMAKE_COMPILER_IS_GNUCC)
+    add_definitions(-Wall)
+endif()
 
 #--------------------------------------------------------------------
 # Export shared library / dynamic library / DLL build option
 #--------------------------------------------------------------------
 if (BUILD_SHARED_LIBS)
-    set(_GLFW_BUILD_DLL 1)
+    set(_GLFW3_BUILD_DLL 1)
     if (UNIX)
         add_definitions(-fvisibility=hidden)
     endif()
@@ -39,25 +80,30 @@ endif()
 # Detect and select backend APIs
 #--------------------------------------------------------------------
 if (WIN32)
-    set(_GLFW_WIN32 1)
+    set(_GLFW3_WIN32 1)
     message(STATUS "Using Win32 for window creation") 
 
-    set(_GLFW_WGL 1)
-    message(STATUS "Using WGL for context creation")
-elseif (APPLE)
-    set(_GLFW_COCOA 1)
-    message(STATUS "Using Cocoa for window creation")
-    set(_GLFW_NSGL 1)
-    message(STATUS "Using NSGL for context creation")
-elseif (UNIX)
-    set(_GLFW_X11 1)
-    message(STATUS "Using X11 for window creation") 
-
-    if (GLFW_USE_EGL)
-        set(_GLFW_EGL 1)
+    if (GLFW3_USE_EGL)
+        set(_GLFW3_EGL 1)
         message(STATUS "Using EGL for context creation")
     else()
-        set(_GLFW_GLX 1)
+        set(_GLFW3_WGL 1)
+        message(STATUS "Using WGL for context creation")
+    endif()
+elseif (APPLE)
+    set(_GLFW3_COCOA 1)
+    message(STATUS "Using Cocoa for window creation")
+    set(_GLFW3_NSGL 1)
+    message(STATUS "Using NSGL for context creation")
+elseif (UNIX)
+    set(_GLFW3_X11 1)
+    message(STATUS "Using X11 for window creation") 
+
+    if (GLFW3_USE_EGL)
+        set(_GLFW3_EGL 1)
+        message(STATUS "Using EGL for context creation")
+    else()
+        set(_GLFW3_GLX 1)
         message(STATUS "Using GLX for context creation")
     endif()
 else()
@@ -67,12 +113,12 @@ endif()
 #--------------------------------------------------------------------
 # Use Win32 for window creation
 #--------------------------------------------------------------------
-if (_GLFW_WIN32)
+if (_GLFW3_WIN32)
 
     if (MSVC)
-        option(GLFW_USE_MSVC_RUNTIME_LIBRARY_DLL "Use MSVC runtime library DLL" ON)
-		
-        if (NOT GLFW_USE_MSVC_RUNTIME_LIBRARY_DLL)
+        option(USE_MSVC_RUNTIME_LIBRARY_DLL "Use MSVC runtime library DLL" ON)
+
+        if (NOT USE_MSVC_RUNTIME_LIBRARY_DLL)
             foreach (flag CMAKE_C_FLAGS
                           CMAKE_C_FLAGS_DEBUG
                           CMAKE_C_FLAGS_RELEASE
@@ -90,35 +136,35 @@ if (_GLFW_WIN32)
         endif()
     endif()
 
-    set(_GLFW_NO_DLOAD_WINMM ${BUILD_SHARED_LIBS})
+    set(_GLFW3_NO_DLOAD_WINMM ${BUILD_SHARED_LIBS})
 
     if (BUILD_SHARED_LIBS)
-        list(APPEND glfw_LIBRARIES winmm)
+        list(APPEND GLFW3_LIBRARIES winmm)
     endif()
 endif()
 
 #--------------------------------------------------------------------
 # Use WGL for context creation
 #--------------------------------------------------------------------
-if (_GLFW_WGL)
-    list(APPEND glfw_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
-    list(APPEND glfw_LIBRARIES ${OPENGL_gl_LIBRARY})
+if (_GLFW3_WGL)
+    list(APPEND GLFW3_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
+    list(APPEND GLFW3_LIBRARIES ${OPENGL_gl_LIBRARY})
 endif()
 
 #--------------------------------------------------------------------
 # Use X11 for window creation
 #--------------------------------------------------------------------
-if (_GLFW_X11)
+if (_GLFW3_X11)
 
     find_package(X11 REQUIRED)
 
-    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} x11")
+    set(GLFW3_PKG_DEPS "${GLFW3_PKG_DEPS} x11")
 
     # Set up library and include paths
-    list(APPEND glfw_INCLUDE_DIRS ${X11_X11_INCLUDE_PATH})
-    list(APPEND glfw_LIBRARIES ${X11_X11_LIB} ${CMAKE_THREAD_LIBS_INIT})
+    list(APPEND GLFW3_INCLUDE_DIRS ${X11_X11_INCLUDE_PATH})
+    list(APPEND GLFW3_LIBRARIES ${X11_X11_LIB} ${CMAKE_THREAD_LIBS_INIT})
     if (UNIX AND NOT APPLE)
-        list(APPEND glfw_LIBRARIES ${RT_LIBRARY})
+        list(APPEND GLFW3_LIBRARIES ${RT_LIBRARY})
     endif()
 
     # Check for XRandR (modern resolution switching and gamma control)
@@ -126,33 +172,32 @@ if (_GLFW_X11)
         message(FATAL_ERROR "The RandR library and headers were not found")
     endif()
 
-    list(APPEND glfw_INCLUDE_DIRS ${X11_Xrandr_INCLUDE_PATH})
-    list(APPEND glfw_LIBRARIES ${X11_Xrandr_LIB})
-    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} xrandr")
+    list(APPEND GLFW3_INCLUDE_DIRS ${X11_Xrandr_INCLUDE_PATH})
+    list(APPEND GLFW3_LIBRARIES ${X11_Xrandr_LIB})
+    set(GLFW3_PKG_DEPS "${GLFW3_PKG_DEPS} xrandr")
 
     # Check for XInput (high-resolution cursor motion)
     if (NOT X11_Xinput_FOUND)
         message(FATAL_ERROR "The XInput library and headers were not found")
     endif()
 
-    list(APPEND glfw_INCLUDE_DIRS ${X11_Xinput_INCLUDE_PATH})
-    list(APPEND glfw_LIBRARIES ${X11_Xinput_LIB})
-    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} xi")
+    list(APPEND GLFW3_INCLUDE_DIRS ${X11_Xinput_INCLUDE_PATH})
+    list(APPEND GLFW3_LIBRARIES ${X11_Xinput_LIB})
+    set(GLFW3_PKG_DEPS "${GLFW3_PKG_DEPS} xi")
 
     # Check for Xf86VidMode (fallback gamma control)
     if (NOT X11_xf86vmode_FOUND)
         message(FATAL_ERROR "The Xf86VidMode library and headers were not found")
     endif()
 
-    list(APPEND glfw_INCLUDE_DIRS ${X11_xf86vmode_INCLUDE_PATH})
-    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} xxf86vm")
+    list(APPEND GLFW3_INCLUDE_DIRS ${X11_xf86vmode_INCLUDE_PATH})
+    set(GLFW3_PKG_DEPS "${GLFW3_PKG_DEPS} xxf86vm")
 
-    # NOTE: This is a workaround for CMake bug 0006976 (missing
-    # X11_xf86vmode_LIB variable)
-    if (X11_xf86vmode_LIB)
-        list(APPEND glfw_LIBRARIES ${X11_xf86vmode_LIB})
+    if (X11_Xxf86vm_LIB)
+        list(APPEND GLFW3_LIBRARIES ${X11_Xxf86vm_LIB})
     else()
-        list(APPEND glfw_LIBRARIES Xxf86vm)
+        # Backwards compatibility (see CMake bug 0006976)
+        list(APPEND GLFW3_LIBRARIES Xxf86vm)
     endif()
 
     # Check for Xkb (X keyboard extension)
@@ -160,20 +205,20 @@ if (_GLFW_X11)
         message(FATAL_ERROR "The X keyboard extension headers were not found")
     endif() 
 
-    list(APPEND glfw_INCLUDE_DIR ${X11_Xkb_INCLUDE_PATH})
+    list(APPEND GLFW3_INCLUDE_DIR ${X11_Xkb_INCLUDE_PATH})
 
     find_library(RT_LIBRARY rt)
     mark_as_advanced(RT_LIBRARY)
     if (RT_LIBRARY)
-        list(APPEND glfw_LIBRARIES ${RT_LIBRARY})
-        set(GLFW_PKG_LIBS "${GLFW_PKG_LIBS} -lrt")
+        list(APPEND GLFW3_LIBRARIES ${RT_LIBRARY})
+        set(GLFW3_PKG_LIBS "${GLFW3_PKG_LIBS} -lrt")
     endif()
 
     find_library(MATH_LIBRARY m)
     mark_as_advanced(MATH_LIBRARY)
     if (MATH_LIBRARY)
-        list(APPEND glfw_LIBRARIES ${MATH_LIBRARY})
-        set(GLFW_PKG_LIBS "${GLFW_PKG_LIBS} -lm")
+        list(APPEND GLFW3_LIBRARIES ${MATH_LIBRARY})
+        set(GLFW3_PKG_LIBS "${GLFW3_PKG_LIBS} -lm")
     endif()
 
 endif()
@@ -181,30 +226,30 @@ endif()
 #--------------------------------------------------------------------
 # Use GLX for context creation
 #--------------------------------------------------------------------
-if (_GLFW_GLX)
+if (_GLFW3_GLX)
 
-    list(APPEND glfw_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
-    list(APPEND glfw_LIBRARIES ${OPENGL_gl_LIBRARY})
+    list(APPEND GLFW3_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
+    list(APPEND GLFW3_LIBRARIES ${OPENGL_gl_LIBRARY})
 
-    set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} gl")
+    set(GLFW3_PKG_DEPS "${GLFW3_PKG_DEPS} gl")
 
     include(CheckFunctionExists)
 
     set(CMAKE_REQUIRED_LIBRARIES ${OPENGL_gl_LIBRARY})
 
-    check_function_exists(glXGetProcAddress _GLFW_HAS_GLXGETPROCADDRESS)
+    check_function_exists(glXGetProcAddress _GLFW3_HAS_GLXGETPROCADDRESS)
 
-    if (NOT _GLFW_HAS_GLXGETPROCADDRESS)
-        check_function_exists(glXGetProcAddressARB _GLFW_HAS_GLXGETPROCADDRESSARB)
+    if (NOT _GLFW3_HAS_GLXGETPROCADDRESS)
+        check_function_exists(glXGetProcAddressARB _GLFW3_HAS_GLXGETPROCADDRESSARB)
     endif()
 
-    if (NOT _GLFW_HAS_GLXGETPROCADDRESS AND NOT _GLFW_HAS_GLXGETPROCADDRESSARB)
-        check_function_exists(glXGetProcAddressEXT _GLFW_HAS_GLXGETPROCADDRESSEXT)
+    if (NOT _GLFW3_HAS_GLXGETPROCADDRESS AND NOT _GLFW3_HAS_GLXGETPROCADDRESSARB)
+        check_function_exists(glXGetProcAddressEXT _GLFW3_HAS_GLXGETPROCADDRESSEXT)
     endif()
 
-    if (NOT _GLFW_HAS_GLXGETPROCADDRESS AND
-        NOT _GLFW_HAS_GLXGETPROCADDRESSARB AND
-        NOT _GLFW_HAS_GLXGETPROCADDRESSEXT)
+    if (NOT _GLFW3_HAS_GLXGETPROCADDRESS AND
+        NOT _GLFW3_HAS_GLXGETPROCADDRESSARB AND
+        NOT _GLFW3_HAS_GLXGETPROCADDRESSEXT)
         message(WARNING "No glXGetProcAddressXXX variant found")
 
         # Check for dlopen support as a fallback
@@ -217,15 +262,15 @@ if (_GLFW_GLX)
             set(CMAKE_REQUIRED_LIBRARIES "")
         endif()
 
-        check_function_exists(dlopen _GLFW_HAS_DLOPEN)
+        check_function_exists(dlopen _GLFW3_HAS_DLOPEN)
 
-        if (NOT _GLFW_HAS_DLOPEN)
+        if (NOT _GLFW3_HAS_DLOPEN)
             message(FATAL_ERROR "No entry point retrieval mechanism found")
         endif()
 
         if (DL_LIBRARY)
-            list(APPEND glfw_LIBRARIES ${DL_LIBRARY})
-            set(GLFW_PKG_LIBS "${GLFW_PKG_LIBS} -ldl")
+            list(APPEND GLFW3_LIBRARIES ${DL_LIBRARY})
+            set(GLFW3_PKG_LIBS "${GLFW3_PKG_LIBS} -ldl")
         endif()
     endif()
 
@@ -234,29 +279,29 @@ endif()
 #--------------------------------------------------------------------
 # Use EGL for context creation
 #--------------------------------------------------------------------
-if (_GLFW_EGL)
+if (_GLFW3_EGL)
 
-    list(APPEND glfw_INCLUDE_DIRS ${EGL_INCLUDE_DIR})
-    list(APPEND glfw_LIBRARIES ${EGL_LIBRARY})
+    list(APPEND GLFW3_INCLUDE_DIRS ${EGL_INCLUDE_DIR})
+    list(APPEND GLFW3_LIBRARIES ${EGL_LIBRARY})
 
     set(CMAKE_REQUIRED_LIBRARIES ${EGL_LIBRARY})
 
     if (UNIX)
-        set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} egl")
+        set(GLFW3_PKG_DEPS "${GLFW3_PKG_DEPS} egl")
     endif()
 
-    if (_GLFW_USE_OPENGL)
-        list(APPEND glfw_LIBRARIES ${OPENGL_gl_LIBRARY})
-        list(APPEND glfw_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
-        set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} gl")
-    elseif (_GLFW_USE_GLESV1)
-        list(APPEND glfw_LIBRARIES ${GLESv1_LIBRARY})
-        list(APPEND glfw_INCLUDE_DIRS ${GLESv1_INCLUDE_DIR})
-        set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} glesv1_cm")
-    elseif (_GLFW_USE_GLESV2)
-        list(APPEND glfw_LIBRARIES ${GLESv2_LIBRARY})
-        list(APPEND glfw_INCLUDE_DIRS ${GLESv2_INCLUDE_DIR})
-        set(GLFW_PKG_DEPS "${GLFW_PKG_DEPS} glesv2")
+    if (_GLFW3_USE_OPENGL)
+        list(APPEND GLFW3_LIBRARIES ${OPENGL_gl_LIBRARY})
+        list(APPEND GLFW3_INCLUDE_DIRS ${OPENGL_INCLUDE_DIR})
+        set(GLFW3_PKG_DEPS "${GLFW3_PKG_DEPS} gl")
+    elseif (_GLFW3_USE_GLESV1)
+        list(APPEND GLFW3_LIBRARIES ${GLESv1_LIBRARY})
+        list(APPEND GLFW3_INCLUDE_DIRS ${GLESv1_INCLUDE_DIR})
+        set(GLFW3_PKG_DEPS "${GLFW3_PKG_DEPS} glesv1_cm")
+    elseif (_GLFW3_USE_GLESV2)
+        list(APPEND GLFW3_LIBRARIES ${GLESv2_LIBRARY})
+        list(APPEND GLFW3_INCLUDE_DIRS ${GLESv2_INCLUDE_DIR})
+        set(GLFW3_PKG_DEPS "${GLFW3_PKG_DEPS} glesv2")
     endif()
 
 endif()
@@ -264,20 +309,20 @@ endif()
 #--------------------------------------------------------------------
 # Use Cocoa for window creation and NSOpenGL for context creation
 #--------------------------------------------------------------------
-if (_GLFW_COCOA AND _GLFW_NSGL)
+if (_GLFW3_COCOA AND _GLFW3_NSGL)
         
-    option(GLFW_BUILD_UNIVERSAL "Build GLFW as a Universal Binary" OFF)
+    option(GLFW3_BUILD_UNIVERSAL "Build GLFW as a Universal Binary" OFF)
 
-    if (GLFW_USE_MENUBAR)
-        set(_GLFW_USE_MENUBAR 1)
+    if (GLFW3_USE_MENUBAR)
+        set(_GLFW3_USE_MENUBAR 1)
     endif()
 
-    if (GLFW_USE_CHDIR)
-        set(_GLFW_USE_CHDIR 1)
+    if (GLFW3_USE_CHDIR)
+        set(_GLFW3_USE_CHDIR 1)
     endif()
 
     # Universal build
-    if (GLFW_BUILD_UNIVERSAL)
+    if (GLFW3_BUILD_UNIVERSAL)
         message(STATUS "Building GLFW as Universal Binaries")
         set(CMAKE_OSX_ARCHITECTURES i386;x86_64)
     else()
@@ -288,28 +333,28 @@ if (_GLFW_COCOA AND _GLFW_NSGL)
     find_library(COCOA_FRAMEWORK Cocoa)
     find_library(IOKIT_FRAMEWORK IOKit)
     find_library(CORE_FOUNDATION_FRAMEWORK CoreFoundation)
-    list(APPEND glfw_LIBRARIES ${COCOA_FRAMEWORK}
+    list(APPEND GLFW3_LIBRARIES ${COCOA_FRAMEWORK}
                                ${OPENGL_gl_LIBRARY}
                                ${IOKIT_FRAMEWORK}
                                ${CORE_FOUNDATION_FRAMEWORK})
 
-    set(GLFW_PKG_DEPS "")
-    set(GLFW_PKG_LIBS "-framework Cocoa -framework OpenGL -framework IOKit -framework CoreFoundation")
+    set(GLFW3_PKG_DEPS "")
+    set(GLFW3_PKG_LIBS "-framework Cocoa -framework OpenGL -framework IOKit -framework CoreFoundation")
 endif()
 
 #--------------------------------------------------------------------
 # Export GLFW library dependencies
 #--------------------------------------------------------------------
-set(GLFW_LIBRARIES ${glfw_LIBRARIES} CACHE STRING "Dependencies of GLFW")
+set(GLFW3_LIBRARIES ${GLFW3_LIBRARIES} CACHE STRING "Dependencies of GLFW")
 
 #--------------------------------------------------------------------
 # Choose library output name
 #--------------------------------------------------------------------
 if (BUILD_SHARED_LIBS AND UNIX)
     # On Unix-like systems, shared libraries can use the soname system.
-    set(GLFW_LIB_NAME glfw)
+    set(GLFW3_LIB_NAME glfw)
 else()
-    set(GLFW_LIB_NAME glfw3)
+    set(GLFW3_LIB_NAME glfw3)
 endif()
 
 #--------------------------------------------------------------------
@@ -321,53 +366,49 @@ add_subdirectory(src)
 # Create generated files
 #--------------------------------------------------------------------
 
-configure_file(${GLFW_SOURCE_DIR}/src/config.h.in 
-               ${GLFW_BINARY_DIR}/src/config.h @ONLY)
+configure_file(${GLFW3_SOURCE_DIR}/src/config.h.in 
+               ${GLFW3_BINARY_DIR}/src/config.h @ONLY)
 
-#--------------------------------------------------------------------
-# Install the public headers
-# The src directory's CMakeLists.txt file installs the library
-#--------------------------------------------------------------------
-install(DIRECTORY include/GLFW DESTINATION include 
-        FILES_MATCHING PATTERN glfw3.h PATTERN glfw3native.h)
+configure_file(${GLFW3_SOURCE_DIR}/src/glfwConfig.cmake.in
+               ${GLFW3_BINARY_DIR}/src/glfwConfig.cmake @ONLY)
 
-#--------------------------------------------------------------------
-# Create and install glfwConfig.cmake and glfwConfigVersion files
-#--------------------------------------------------------------------
-configure_file(${GLFW_SOURCE_DIR}/src/glfwConfig.cmake.in
-               ${GLFW_BINARY_DIR}/src/glfwConfig.cmake @ONLY)
-configure_file(${GLFW_SOURCE_DIR}/src/glfwConfigVersion.cmake.in
-               ${GLFW_BINARY_DIR}/src/glfwConfigVersion.cmake @ONLY)
-
-install(FILES ${GLFW_BINARY_DIR}/src/glfwConfig.cmake
-              ${GLFW_BINARY_DIR}/src/glfwConfigVersion.cmake
-		DESTINATION lib${LIB_SUFFIX}/cmake/glfw)
+configure_file(${GLFW3_SOURCE_DIR}/src/glfwConfigVersion.cmake.in
+               ${GLFW3_BINARY_DIR}/src/glfwConfigVersion.cmake @ONLY)
 
 if (UNIX)
-    install(EXPORT glfwTargets DESTINATION lib${LIB_SUFFIX}/cmake/glfw)
+    configure_file(${GLFW3_SOURCE_DIR}/src/glfw3.pc.in
+                   ${GLFW3_BINARY_DIR}/src/glfw3.pc @ONLY)
 endif()
 
 #--------------------------------------------------------------------
-# Create and install pkg-config file on supported platforms
+# Install files
+# The library is installed by src/CMakeLists.txt
 #--------------------------------------------------------------------
-if (UNIX)
-    configure_file(${GLFW_SOURCE_DIR}/src/glfw3.pc.in
-                   ${GLFW_BINARY_DIR}/src/glfw3.pc @ONLY)
+if (GLFW3_INSTALL)
+    install(DIRECTORY include/GLFW DESTINATION include 
+            FILES_MATCHING PATTERN glfw3.h PATTERN glfw3native.h)
 
-    install(FILES ${GLFW_BINARY_DIR}/src/glfw3.pc
-            DESTINATION lib${LIB_SUFFIX}/pkgconfig)
+    install(FILES ${GLFW3_BINARY_DIR}/src/glfwConfig.cmake
+                  ${GLFW3_BINARY_DIR}/src/glfwConfigVersion.cmake
+            DESTINATION lib${LIB_SUFFIX}/cmake/glfw)
+
+    if (UNIX)
+        install(EXPORT glfwTargets DESTINATION lib${LIB_SUFFIX}/cmake/glfw)
+        install(FILES ${GLFW3_BINARY_DIR}/src/glfw3.pc
+                DESTINATION lib${LIB_SUFFIX}/pkgconfig)
+    endif()
 endif()
 
 #--------------------------------------------------------------------
 # Uninstall operation
 # Don't generate this target if a higher-level project already has
 #--------------------------------------------------------------------
-if (NOT TARGET uninstall)
-    configure_file(${GLFW_SOURCE_DIR}/cmake_uninstall.cmake.in
-                   ${GLFW_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
+# if (GLFW3_INSTALL AND NOT TARGET uninstall)
+    # configure_file(${GLFW3_SOURCE_DIR}/cmake_uninstall.cmake.in
+                   # ${GLFW3_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 
-    add_custom_target(uninstall
-                      ${CMAKE_COMMAND} -P
-                      ${GLFW_BINARY_DIR}/cmake_uninstall.cmake)
-endif()
+    # add_custom_target(uninstall
+                      # ${CMAKE_COMMAND} -P
+                      # ${GLFW3_BINARY_DIR}/cmake_uninstall.cmake)
+# endif()
 

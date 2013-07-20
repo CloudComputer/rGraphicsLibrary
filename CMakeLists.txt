@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.4) 
+cmake_minimum_required (VERSION 2.8.11.2) 
 project (rGraphicsLibrary) 
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
