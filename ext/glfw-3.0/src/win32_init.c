@@ -39,7 +39,7 @@
 #endif // __BORLANDC__
 
 
-#if defined(_GLFW_BUILD_DLL)
+#if defined(_GLFW3_BUILD_DLL)
 
 // GLFW DLL entry point
 //
@@ -48,13 +48,13 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
     return TRUE;
 }
 
-#endif // _GLFW_BUILD_DLL
+#endif // _GLFW3_BUILD_DLL
 
 // Load necessary libraries (DLLs)
 //
 static GLboolean initLibraries(void)
 {
-#ifndef _GLFW_NO_DLOAD_WINMM
+#ifndef _GLFW3_NO_DLOAD_WINMM
     // winmm.dll (for joystick and timer support)
 
     _glfw.win32.winmm.instance = LoadLibrary(L"winmm.dll");
@@ -77,7 +77,7 @@ static GLboolean initLibraries(void)
     {
         return GL_FALSE;
     }
-#endif // _GLFW_NO_DLOAD_WINMM
+#endif // _GLFW3_NO_DLOAD_WINMM
 
     _glfw.win32.user32.instance = LoadLibrary(L"user32.dll");
     if (_glfw.win32.user32.instance)
@@ -100,13 +100,13 @@ static GLboolean initLibraries(void)
 //
 static void freeLibraries(void)
 {
-#ifndef _GLFW_NO_DLOAD_WINMM
+#ifndef _GLFW3_NO_DLOAD_WINMM
     if (_glfw.win32.winmm.instance != NULL)
     {
         FreeLibrary(_glfw.win32.winmm.instance);
         _glfw.win32.winmm.instance = NULL;
     }
-#endif // _GLFW_NO_DLOAD_WINMM
+#endif // _GLFW3_NO_DLOAD_WINMM
 }
 
 
@@ -120,10 +120,10 @@ BOOL _glfwIsCompositionEnabled(void)
 {
     BOOL enabled;
 
-    if (!_glfw_DwmIsCompositionEnabled)
+    if (!_GLFW3_DwmIsCompositionEnabled)
         return FALSE;
 
-    if (_glfw_DwmIsCompositionEnabled(&enabled) != S_OK)
+    if (_GLFW3_DwmIsCompositionEnabled(&enabled) != S_OK)
         return FALSE;
 
     return enabled;
@@ -191,8 +191,8 @@ int _glfwPlatformInit(void)
     if (!initLibraries())
         return GL_FALSE;
 
-    if (_glfw_SetProcessDPIAware)
-        _glfw_SetProcessDPIAware();
+    if (_GLFW3_SetProcessDPIAware)
+        _GLFW3_SetProcessDPIAware();
 
 #ifdef __BORLANDC__
     // With the Borland C++ compiler, we want to disable FPU exceptions
@@ -214,7 +214,7 @@ void _glfwPlatformTerminate(void)
 {
     if (_glfw.win32.classAtom)
     {
-        UnregisterClass(_GLFW_WNDCLASSNAME, GetModuleHandle(NULL));
+        UnregisterClass(_GLFW3_WNDCLASSNAME, GetModuleHandle(NULL));
         _glfw.win32.classAtom = 0;
     }
 
@@ -232,10 +232,10 @@ void _glfwPlatformTerminate(void)
 
 const char* _glfwPlatformGetVersionString(void)
 {
-    const char* version = _GLFW_VERSION_FULL " Win32"
-#if defined(_GLFW_WGL)
+    const char* version = _GLFW3_VERSION_FULL " Win32"
+#if defined(_GLFW3_WGL)
         " WGL"
-#elif defined(_GLFW_EGL)
+#elif defined(_GLFW3_EGL)
         " EGL"
 #endif
 #if defined(__MINGW32__)
@@ -245,10 +245,10 @@ const char* _glfwPlatformGetVersionString(void)
 #elif defined(__BORLANDC__)
         " BorlandC"
 #endif
-#if !defined(_GLFW_NO_DLOAD_WINMM)
+#if !defined(_GLFW3_NO_DLOAD_WINMM)
         " LoadLibrary(winmm)"
 #endif
-#if defined(_GLFW_BUILD_DLL)
+#if defined(_GLFW3_BUILD_DLL)
         " DLL"
 #endif
         ;

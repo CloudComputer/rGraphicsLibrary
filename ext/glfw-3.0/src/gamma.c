@@ -70,11 +70,11 @@ GLFWAPI void glfwSetGamma(GLFWmonitor* handle, float gamma)
     unsigned short values[256];
     GLFWgammaramp ramp;
 
-    _GLFW_REQUIRE_INIT();
+    _GLFW3_REQUIRE_INIT();
 
     if (gamma <= 0.f)
     {
-        _glfwInputError(GLFW_INVALID_VALUE,
+        _glfwInputError(GLFW3_INVALID_VALUE,
                         "Gamma value must be greater than zero");
         return;
     }
@@ -109,7 +109,7 @@ GLFWAPI const GLFWgammaramp* glfwGetGammaRamp(GLFWmonitor* handle)
 {
     _GLFWmonitor* monitor = (_GLFWmonitor*) handle;
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW3_REQUIRE_INIT_OR_RETURN(NULL);
 
     _glfwFreeGammaRamp(&monitor->currentRamp);
     _glfwPlatformGetGammaRamp(monitor, &monitor->currentRamp);
@@ -121,7 +121,7 @@ GLFWAPI void glfwSetGammaRamp(GLFWmonitor* handle, const GLFWgammaramp* ramp)
 {
     _GLFWmonitor* monitor = (_GLFWmonitor*) handle;
 
-    _GLFW_REQUIRE_INIT();
+    _GLFW3_REQUIRE_INIT();
 
     if (!monitor->originalRamp.size)
         _glfwPlatformGetGammaRamp(monitor, &monitor->originalRamp);

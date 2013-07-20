@@ -40,14 +40,14 @@
 GLFWAPI void glfwSetClipboardString(GLFWwindow* handle, const char* string)
 {
     _GLFWwindow* window = (_GLFWwindow*) handle;
-    _GLFW_REQUIRE_INIT();
+    _GLFW3_REQUIRE_INIT();
     _glfwPlatformSetClipboardString(window, string);
 }
 
 GLFWAPI const char* glfwGetClipboardString(GLFWwindow* handle)
 {
     _GLFWwindow* window = (_GLFWwindow*) handle;
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW3_REQUIRE_INIT_OR_RETURN(NULL);
     return _glfwPlatformGetClipboardString(window);
 }
 

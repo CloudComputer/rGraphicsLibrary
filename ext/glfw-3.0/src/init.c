@@ -56,23 +56,23 @@ static const char* getErrorString(int error)
 {
     switch (error)
     {
-        case GLFW_NOT_INITIALIZED:
+        case GLFW3_NOT_INITIALIZED:
             return "The GLFW library is not initialized";
-        case GLFW_NO_CURRENT_CONTEXT:
+        case GLFW3_NO_CURRENT_CONTEXT:
             return "There is no current context";
-        case GLFW_INVALID_ENUM:
+        case GLFW3_INVALID_ENUM:
             return "Invalid argument for enum parameter";
-        case GLFW_INVALID_VALUE:
+        case GLFW3_INVALID_VALUE:
             return "Invalid value for parameter";
-        case GLFW_OUT_OF_MEMORY:
+        case GLFW3_OUT_OF_MEMORY:
             return "Out of memory";
-        case GLFW_API_UNAVAILABLE:
+        case GLFW3_API_UNAVAILABLE:
             return "The requested client API is unavailable";
-        case GLFW_VERSION_UNAVAILABLE:
+        case GLFW3_VERSION_UNAVAILABLE:
             return "The requested client API version is unavailable";
-        case GLFW_PLATFORM_ERROR:
+        case GLFW3_PLATFORM_ERROR:
             return "A platform-specific error occurred";
-        case GLFW_FORMAT_UNAVAILABLE:
+        case GLFW3_FORMAT_UNAVAILABLE:
             return "The requested format is unavailable";
     }
 
@@ -133,7 +133,7 @@ GLFWAPI int glfwInit(void)
     _glfw.monitors = _glfwPlatformGetMonitors(&_glfw.monitorCount);
     if (_glfw.monitors == NULL)
     {
-        _glfwErrorCallback(GLFW_PLATFORM_ERROR, "No monitors found");
+        _glfwErrorCallback(GLFW3_PLATFORM_ERROR, "No monitors found");
         _glfwPlatformTerminate();
         return GL_FALSE;
     }
@@ -176,13 +176,13 @@ GLFWAPI void glfwTerminate(void)
 GLFWAPI void glfwGetVersion(int* major, int* minor, int* rev)
 {
     if (major != NULL)
-        *major = GLFW_VERSION_MAJOR;
+        *major = GLFW3_VERSION_MAJOR;
 
     if (minor != NULL)
-        *minor = GLFW_VERSION_MINOR;
+        *minor = GLFW3_VERSION_MINOR;
 
     if (rev != NULL)
-        *rev = GLFW_VERSION_REVISION;
+        *rev = GLFW3_VERSION_REVISION;
 }
 
 GLFWAPI const char* glfwGetVersionString(void)

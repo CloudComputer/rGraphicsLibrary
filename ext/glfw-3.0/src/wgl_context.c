@@ -168,7 +168,7 @@ static GLboolean choosePixelFormat(_GLFWwindow* window,
 
     if (!nativeCount)
     {
-        _glfwInputError(GLFW_API_UNAVAILABLE, "WGL: No pixel formats found");
+        _glfwInputError(GLFW3_API_UNAVAILABLE, "WGL: No pixel formats found");
         return GL_FALSE;
     }
 
@@ -300,7 +300,7 @@ int _glfwInitContextAPI(void)
     _glfw.wgl.current = TlsAlloc();
     if (_glfw.wgl.current == TLS_OUT_OF_INDEXES)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _glfwInputError(GLFW3_PLATFORM_ERROR,
                         "WGL: Failed to allocate TLS index");
         return GL_FALSE;
     }
@@ -342,21 +342,21 @@ int _glfwCreateContext(_GLFWwindow* window,
     window->wgl.dc = GetDC(window->win32.handle);
     if (!window->wgl.dc)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _glfwInputError(GLFW3_PLATFORM_ERROR,
                         "Win32: Failed to retrieve DC for window");
         return GL_FALSE;
     }
 
     if (!choosePixelFormat(window, fbconfig, &pixelFormat))
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _glfwInputError(GLFW3_PLATFORM_ERROR,
                         "WGL: Failed to find a suitable pixel format");
         return GL_FALSE;
     }
 
     if (!DescribePixelFormat(window->wgl.dc, pixelFormat, sizeof(pfd), &pfd))
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _glfwInputError(GLFW3_PLATFORM_ERROR,
                         "Win32: Failed to retrieve PFD for selected pixel "
                         "format");
         return GL_FALSE;
@@ -364,7 +364,7 @@ int _glfwCreateContext(_GLFWwindow* window,
 
     if (!SetPixelFormat(window->wgl.dc, pixelFormat, &pfd))
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _glfwInputError(GLFW3_PLATFORM_ERROR,
                         "Win32: Failed to set selected pixel format");
         return GL_FALSE;
     }
@@ -373,7 +373,7 @@ int _glfwCreateContext(_GLFWwindow* window,
     {
         int index = 0, mask = 0, flags = 0, strategy = 0;
 
-        if (wndconfig->clientAPI == GLFW_OPENGL_API)
+        if (wndconfig->clientAPI == GLFW3_OPENGL_API)
         {
             if (wndconfig->glForward)
                 flags |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
@@ -383,9 +383,9 @@ int _glfwCreateContext(_GLFWwindow* window,
 
             if (wndconfig->glProfile)
             {
-                if (wndconfig->glProfile == GLFW_OPENGL_CORE_PROFILE)
+                if (wndconfig->glProfile == GLFW3_OPENGL_CORE_PROFILE)
                     mask |= WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-                else if (wndconfig->glProfile == GLFW_OPENGL_COMPAT_PROFILE)
+                else if (wndconfig->glProfile == GLFW3_OPENGL_COMPAT_PROFILE)
                     mask |= WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
             }
         }
@@ -396,9 +396,9 @@ int _glfwCreateContext(_GLFWwindow* window,
         {
             if (window->wgl.ARB_create_context_robustness)
             {
-                if (wndconfig->glRobustness == GLFW_NO_RESET_NOTIFICATION)
+                if (wndconfig->glRobustness == GLFW3_NO_RESET_NOTIFICATION)
                     strategy = WGL_NO_RESET_NOTIFICATION_ARB;
-                else if (wndconfig->glRobustness == GLFW_LOSE_CONTEXT_ON_RESET)
+                else if (wndconfig->glRobustness == GLFW3_LOSE_CONTEXT_ON_RESET)
                     strategy = WGL_LOSE_CONTEXT_ON_RESET_ARB;
 
                 flags |= WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB;
@@ -427,7 +427,7 @@ int _glfwCreateContext(_GLFWwindow* window,
                                                                   attribs);
         if (!window->wgl.context)
         {
-            _glfwInputError(GLFW_VERSION_UNAVAILABLE,
+            _glfwInputError(GLFW3_VERSION_UNAVAILABLE,
                             "WGL: Failed to create OpenGL context");
             return GL_FALSE;
         }
@@ -437,7 +437,7 @@ int _glfwCreateContext(_GLFWwindow* window,
         window->wgl.context = wglCreateContext(window->wgl.dc);
         if (!window->wgl.context)
         {
-            _glfwInputError(GLFW_PLATFORM_ERROR,
+            _glfwInputError(GLFW3_PLATFORM_ERROR,
                             "WGL: Failed to create OpenGL context");
             return GL_FALSE;
         }
@@ -446,7 +446,7 @@ int _glfwCreateContext(_GLFWwindow* window,
         {
             if (!wglShareLists(share, window->wgl.context))
             {
-                _glfwInputError(GLFW_PLATFORM_ERROR,
+                _glfwInputError(GLFW3_PLATFORM_ERROR,
                                 "WGL: Failed to enable sharing with specified "
                                 "OpenGL context");
                 return GL_FALSE;
@@ -487,17 +487,17 @@ int _glfwAnalyzeContext(const _GLFWwindow* window,
 {
     GLboolean required = GL_FALSE;
 
-    if (wndconfig->clientAPI == GLFW_OPENGL_API)
+    if (wndconfig->clientAPI == GLFW3_OPENGL_API)
     {
         if (wndconfig->glForward)
         {
             if (!window->wgl.ARB_create_context)
             {
-                _glfwInputError(GLFW_VERSION_UNAVAILABLE,
+                _glfwInputError(GLFW3_VERSION_UNAVAILABLE,
                                 "WGL: A forward compatible OpenGL context "
                                 "requested but WGL_ARB_create_context is "
                                 "unavailable");
-                return _GLFW_RECREATION_IMPOSSIBLE;
+                return _GLFW3_RECREATION_IMPOSSIBLE;
             }
 
             required = GL_TRUE;
@@ -507,10 +507,10 @@ int _glfwAnalyzeContext(const _GLFWwindow* window,
         {
             if (!window->wgl.ARB_create_context_profile)
             {
-                _glfwInputError(GLFW_VERSION_UNAVAILABLE,
+                _glfwInputError(GLFW3_VERSION_UNAVAILABLE,
                                 "WGL: OpenGL profile requested but "
                                 "WGL_ARB_create_context_profile is unavailable");
-                return _GLFW_RECREATION_IMPOSSIBLE;
+                return _GLFW3_RECREATION_IMPOSSIBLE;
             }
 
             required = GL_TRUE;
@@ -522,10 +522,10 @@ int _glfwAnalyzeContext(const _GLFWwindow* window,
             !window->wgl.ARB_create_context_profile ||
             !window->wgl.EXT_create_context_es2_profile)
         {
-            _glfwInputError(GLFW_VERSION_UNAVAILABLE,
+            _glfwInputError(GLFW3_VERSION_UNAVAILABLE,
                             "WGL: OpenGL ES requested but "
                             "WGL_ARB_create_context_es2_profile is unavailable");
-            return _GLFW_RECREATION_IMPOSSIBLE;
+            return _GLFW3_RECREATION_IMPOSSIBLE;
         }
 
         required = GL_TRUE;
@@ -556,9 +556,9 @@ int _glfwAnalyzeContext(const _GLFWwindow* window,
     }
 
     if (required)
-        return _GLFW_RECREATION_REQUIRED;
+        return _GLFW3_RECREATION_REQUIRED;
 
-    return _GLFW_RECREATION_NOT_NEEDED;
+    return _GLFW3_RECREATION_NOT_NEEDED;
 }
 
 
@@ -643,7 +643,7 @@ GLFWglproc _glfwPlatformGetProcAddress(const char* procname)
 GLFWAPI HGLRC glfwGetWGLContext(GLFWwindow* handle)
 {
     _GLFWwindow* window = (_GLFWwindow*) handle;
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW3_REQUIRE_INIT_OR_RETURN(NULL);
     return window->wgl.context;
 }
 

@@ -51,7 +51,7 @@ void _glfwInitTimer(void)
     {
         _glfw.win32.timer.hasPC = GL_FALSE;
         _glfw.win32.timer.resolution = 0.001; // winmm resolution is 1 ms
-        _glfw.win32.timer.t0_32 = _glfw_timeGetTime();
+        _glfw.win32.timer.t0_32 = _GLFW3_timeGetTime();
     }
 }
 
@@ -71,7 +71,7 @@ double _glfwPlatformGetTime(void)
         t =  (double)(t_64 - _glfw.win32.timer.t0_64);
     }
     else
-        t = (double)(_glfw_timeGetTime() - _glfw.win32.timer.t0_32);
+        t = (double)(_GLFW3_timeGetTime() - _glfw.win32.timer.t0_32);
 
     return t * _glfw.win32.timer.resolution;
 }
@@ -86,6 +86,6 @@ void _glfwPlatformSetTime(double t)
         _glfw.win32.timer.t0_64 = t_64 - (__int64) (t / _glfw.win32.timer.resolution);
     }
     else
-        _glfw.win32.timer.t0_32 = _glfw_timeGetTime() - (int)(t * 1000.0);
+        _glfw.win32.timer.t0_32 = _GLFW3_timeGetTime() - (int)(t * 1000.0);
 }
 

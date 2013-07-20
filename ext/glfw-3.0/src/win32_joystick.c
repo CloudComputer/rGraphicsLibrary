@@ -65,7 +65,7 @@ void _glfwTerminateJoysticks(void)
 {
     int i;
 
-    for (i = 0;  i < GLFW_JOYSTICK_LAST;  i++)
+    for (i = 0;  i < GLFW3_JOYSTICK_LAST;  i++)
         free(_glfw.win32.joystick[i].name);
 }
 
@@ -78,7 +78,7 @@ int _glfwPlatformJoystickPresent(int joy)
 {
     JOYINFO ji;
 
-    if (_glfw_joyGetPos(joy, &ji) != JOYERR_NOERROR)
+    if (_GLFW3_joyGetPos(joy, &ji) != JOYERR_NOERROR)
         return GL_FALSE;
 
     return GL_TRUE;
@@ -90,13 +90,13 @@ const float* _glfwPlatformGetJoystickAxes(int joy, int* count)
     JOYINFOEX ji;
     float* axes = _glfw.win32.joystick[joy].axes;
 
-    if (_glfw_joyGetDevCaps(joy, &jc, sizeof(JOYCAPS)) != JOYERR_NOERROR)
+    if (_GLFW3_joyGetDevCaps(joy, &jc, sizeof(JOYCAPS)) != JOYERR_NOERROR)
         return NULL;
 
     ji.dwSize = sizeof(JOYINFOEX);
     ji.dwFlags = JOY_RETURNX | JOY_RETURNY | JOY_RETURNZ |
                  JOY_RETURNR | JOY_RETURNU | JOY_RETURNV;
-    if (_glfw_joyGetPosEx(joy, &ji) != JOYERR_NOERROR)
+    if (_GLFW3_joyGetPosEx(joy, &ji) != JOYERR_NOERROR)
         return NULL;
 
     axes[(*count)++] = calcJoystickPos(ji.dwXpos, jc.wXmin, jc.wXmax);
@@ -123,18 +123,18 @@ const unsigned char* _glfwPlatformGetJoystickButtons(int joy, int* count)
     JOYINFOEX ji;
     unsigned char* buttons = _glfw.win32.joystick[joy].buttons;
 
-    if (_glfw_joyGetDevCaps(joy, &jc, sizeof(JOYCAPS)) != JOYERR_NOERROR)
+    if (_GLFW3_joyGetDevCaps(joy, &jc, sizeof(JOYCAPS)) != JOYERR_NOERROR)
         return NULL;
 
     ji.dwSize = sizeof(JOYINFOEX);
     ji.dwFlags = JOY_RETURNBUTTONS | JOY_RETURNPOV;
-    if (_glfw_joyGetPosEx(joy, &ji) != JOYERR_NOERROR)
+    if (_GLFW3_joyGetPosEx(joy, &ji) != JOYERR_NOERROR)
         return NULL;
 
     while (*count < (int) jc.wNumButtons)
     {
         buttons[*count] = (unsigned char)
-            (ji.dwButtons & (1UL << *count) ? GLFW_PRESS : GLFW_RELEASE);
+            (ji.dwButtons & (1UL << *count) ? GLFW3_PRESS : GLFW3_RELEASE);
         (*count)++;
     }
 
@@ -156,9 +156,9 @@ const unsigned char* _glfwPlatformGetJoystickButtons(int joy, int* count)
         for (i = 0;  i < 4;  i++)
         {
             if (directions[value] & (1 << i))
-                buttons[(*count)++] = GLFW_PRESS;
+                buttons[(*count)++] = GLFW3_PRESS;
             else
-                buttons[(*count)++] = GLFW_RELEASE;
+                buttons[(*count)++] = GLFW3_RELEASE;
         }
     }
 
@@ -169,7 +169,7 @@ const char* _glfwPlatformGetJoystickName(int joy)
 {
     JOYCAPS jc;
 
-    if (_glfw_joyGetDevCaps(joy, &jc, sizeof(JOYCAPS)) != JOYERR_NOERROR)
+    if (_GLFW3_joyGetDevCaps(joy, &jc, sizeof(JOYCAPS)) != JOYERR_NOERROR)
         return NULL;
 
     free(_glfw.win32.joystick[joy].name);

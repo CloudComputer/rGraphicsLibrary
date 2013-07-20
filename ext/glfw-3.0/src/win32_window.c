@@ -34,7 +34,7 @@
 #include <malloc.h>
 #include <windowsx.h>
 
-#define _GLFW_KEY_INVALID -2
+#define _GLFW3_KEY_INVALID -2
 
 
 // Updates the cursor clip rect
@@ -113,13 +113,13 @@ static int getKeyMods(void)
     int mods = 0;
 
     if (GetKeyState(VK_SHIFT) & (1 << 31))
-        mods |= GLFW_MOD_SHIFT;
+        mods |= GLFW3_MOD_SHIFT;
     if (GetKeyState(VK_CONTROL) & (1 << 31))
-        mods |= GLFW_MOD_CONTROL;
+        mods |= GLFW3_MOD_CONTROL;
     if (GetKeyState(VK_MENU) & (1 << 31))
-        mods |= GLFW_MOD_ALT;
+        mods |= GLFW3_MOD_ALT;
     if ((GetKeyState(VK_LWIN) | GetKeyState(VK_RWIN)) & (1 << 31))
-        mods |= GLFW_MOD_SUPER;
+        mods |= GLFW3_MOD_SUPER;
 
     return mods;
 }
@@ -131,13 +131,13 @@ static int getAsyncKeyMods(void)
     int mods = 0;
 
     if (GetAsyncKeyState(VK_SHIFT) & (1 << 31))
-        mods |= GLFW_MOD_SHIFT;
+        mods |= GLFW3_MOD_SHIFT;
     if (GetAsyncKeyState(VK_CONTROL) & (1 << 31))
-        mods |= GLFW_MOD_CONTROL;
+        mods |= GLFW3_MOD_CONTROL;
     if (GetAsyncKeyState(VK_MENU) & (1 << 31))
-        mods |= GLFW_MOD_ALT;
+        mods |= GLFW3_MOD_ALT;
     if ((GetAsyncKeyState(VK_LWIN) | GetAsyncKeyState(VK_RWIN)) & (1 << 31))
-        mods |= GLFW_MOD_SUPER;
+        mods |= GLFW3_MOD_SUPER;
 
     return mods;
 }
@@ -153,21 +153,21 @@ static int translateKey(WPARAM wParam, LPARAM lParam)
     {
         switch (MapVirtualKey(HIWORD(lParam) & 0xFF, 1))
         {
-            case VK_INSERT:   return GLFW_KEY_KP_0;
-            case VK_END:      return GLFW_KEY_KP_1;
-            case VK_DOWN:     return GLFW_KEY_KP_2;
-            case VK_NEXT:     return GLFW_KEY_KP_3;
-            case VK_LEFT:     return GLFW_KEY_KP_4;
-            case VK_CLEAR:    return GLFW_KEY_KP_5;
-            case VK_RIGHT:    return GLFW_KEY_KP_6;
-            case VK_HOME:     return GLFW_KEY_KP_7;
-            case VK_UP:       return GLFW_KEY_KP_8;
-            case VK_PRIOR:    return GLFW_KEY_KP_9;
-            case VK_DIVIDE:   return GLFW_KEY_KP_DIVIDE;
-            case VK_MULTIPLY: return GLFW_KEY_KP_MULTIPLY;
-            case VK_SUBTRACT: return GLFW_KEY_KP_SUBTRACT;
-            case VK_ADD:      return GLFW_KEY_KP_ADD;
-            case VK_DELETE:   return GLFW_KEY_KP_DECIMAL;
+            case VK_INSERT:   return GLFW3_KEY_KP_0;
+            case VK_END:      return GLFW3_KEY_KP_1;
+            case VK_DOWN:     return GLFW3_KEY_KP_2;
+            case VK_NEXT:     return GLFW3_KEY_KP_3;
+            case VK_LEFT:     return GLFW3_KEY_KP_4;
+            case VK_CLEAR:    return GLFW3_KEY_KP_5;
+            case VK_RIGHT:    return GLFW3_KEY_KP_6;
+            case VK_HOME:     return GLFW3_KEY_KP_7;
+            case VK_UP:       return GLFW3_KEY_KP_8;
+            case VK_PRIOR:    return GLFW3_KEY_KP_9;
+            case VK_DIVIDE:   return GLFW3_KEY_KP_DIVIDE;
+            case VK_MULTIPLY: return GLFW3_KEY_KP_MULTIPLY;
+            case VK_SUBTRACT: return GLFW3_KEY_KP_SUBTRACT;
+            case VK_ADD:      return GLFW3_KEY_KP_ADD;
+            case VK_DELETE:   return GLFW3_KEY_KP_DECIMAL;
             default:          break;
         }
     }
@@ -183,9 +183,9 @@ static int translateKey(WPARAM wParam, LPARAM lParam)
             // right)
             const DWORD scancode = MapVirtualKey(VK_RSHIFT, 0);
             if ((DWORD) ((lParam & 0x01ff0000) >> 16) == scancode)
-                return GLFW_KEY_RIGHT_SHIFT;
+                return GLFW3_KEY_RIGHT_SHIFT;
 
-            return GLFW_KEY_LEFT_SHIFT;
+            return GLFW3_KEY_LEFT_SHIFT;
         }
 
         // The CTRL keys require special handling
@@ -196,7 +196,7 @@ static int translateKey(WPARAM wParam, LPARAM lParam)
 
             // Is this an extended key (i.e. right key)?
             if (lParam & 0x01000000)
-                return GLFW_KEY_RIGHT_CONTROL;
+                return GLFW3_KEY_RIGHT_CONTROL;
 
             // Here is a trick: "Alt Gr" sends LCTRL, then RALT. We only
             // want the RALT message, so we try to see if the next message
@@ -216,12 +216,12 @@ static int translateKey(WPARAM wParam, LPARAM lParam)
                     {
                         // Next message is a RALT down message, which
                         // means that this is not a proper LCTRL message
-                        return _GLFW_KEY_INVALID;
+                        return _GLFW3_KEY_INVALID;
                     }
                 }
             }
 
-            return GLFW_KEY_LEFT_CONTROL;
+            return GLFW3_KEY_LEFT_CONTROL;
         }
 
         // The ALT keys require special handling
@@ -229,9 +229,9 @@ static int translateKey(WPARAM wParam, LPARAM lParam)
         {
             // Is this an extended key (i.e. right key)?
             if (lParam & 0x01000000)
-                return GLFW_KEY_RIGHT_ALT;
+                return GLFW3_KEY_RIGHT_ALT;
 
-            return GLFW_KEY_LEFT_ALT;
+            return GLFW3_KEY_LEFT_ALT;
         }
 
         // The ENTER keys require special handling
@@ -239,131 +239,131 @@ static int translateKey(WPARAM wParam, LPARAM lParam)
         {
             // Is this an extended key (i.e. right key)?
             if (lParam & 0x01000000)
-                return GLFW_KEY_KP_ENTER;
+                return GLFW3_KEY_KP_ENTER;
 
-            return GLFW_KEY_ENTER;
+            return GLFW3_KEY_ENTER;
         }
 
         // Funcion keys (non-printable keys)
-        case VK_ESCAPE:        return GLFW_KEY_ESCAPE;
-        case VK_TAB:           return GLFW_KEY_TAB;
-        case VK_BACK:          return GLFW_KEY_BACKSPACE;
-        case VK_HOME:          return GLFW_KEY_HOME;
-        case VK_END:           return GLFW_KEY_END;
-        case VK_PRIOR:         return GLFW_KEY_PAGE_UP;
-        case VK_NEXT:          return GLFW_KEY_PAGE_DOWN;
-        case VK_INSERT:        return GLFW_KEY_INSERT;
-        case VK_DELETE:        return GLFW_KEY_DELETE;
-        case VK_LEFT:          return GLFW_KEY_LEFT;
-        case VK_UP:            return GLFW_KEY_UP;
-        case VK_RIGHT:         return GLFW_KEY_RIGHT;
-        case VK_DOWN:          return GLFW_KEY_DOWN;
-        case VK_F1:            return GLFW_KEY_F1;
-        case VK_F2:            return GLFW_KEY_F2;
-        case VK_F3:            return GLFW_KEY_F3;
-        case VK_F4:            return GLFW_KEY_F4;
-        case VK_F5:            return GLFW_KEY_F5;
-        case VK_F6:            return GLFW_KEY_F6;
-        case VK_F7:            return GLFW_KEY_F7;
-        case VK_F8:            return GLFW_KEY_F8;
-        case VK_F9:            return GLFW_KEY_F9;
-        case VK_F10:           return GLFW_KEY_F10;
-        case VK_F11:           return GLFW_KEY_F11;
-        case VK_F12:           return GLFW_KEY_F12;
-        case VK_F13:           return GLFW_KEY_F13;
-        case VK_F14:           return GLFW_KEY_F14;
-        case VK_F15:           return GLFW_KEY_F15;
-        case VK_F16:           return GLFW_KEY_F16;
-        case VK_F17:           return GLFW_KEY_F17;
-        case VK_F18:           return GLFW_KEY_F18;
-        case VK_F19:           return GLFW_KEY_F19;
-        case VK_F20:           return GLFW_KEY_F20;
-        case VK_F21:           return GLFW_KEY_F21;
-        case VK_F22:           return GLFW_KEY_F22;
-        case VK_F23:           return GLFW_KEY_F23;
-        case VK_F24:           return GLFW_KEY_F24;
-        case VK_NUMLOCK:       return GLFW_KEY_NUM_LOCK;
-        case VK_CAPITAL:       return GLFW_KEY_CAPS_LOCK;
-        case VK_SNAPSHOT:      return GLFW_KEY_PRINT_SCREEN;
-        case VK_SCROLL:        return GLFW_KEY_SCROLL_LOCK;
-        case VK_PAUSE:         return GLFW_KEY_PAUSE;
-        case VK_LWIN:          return GLFW_KEY_LEFT_SUPER;
-        case VK_RWIN:          return GLFW_KEY_RIGHT_SUPER;
-        case VK_APPS:          return GLFW_KEY_MENU;
+        case VK_ESCAPE:        return GLFW3_KEY_ESCAPE;
+        case VK_TAB:           return GLFW3_KEY_TAB;
+        case VK_BACK:          return GLFW3_KEY_BACKSPACE;
+        case VK_HOME:          return GLFW3_KEY_HOME;
+        case VK_END:           return GLFW3_KEY_END;
+        case VK_PRIOR:         return GLFW3_KEY_PAGE_UP;
+        case VK_NEXT:          return GLFW3_KEY_PAGE_DOWN;
+        case VK_INSERT:        return GLFW3_KEY_INSERT;
+        case VK_DELETE:        return GLFW3_KEY_DELETE;
+        case VK_LEFT:          return GLFW3_KEY_LEFT;
+        case VK_UP:            return GLFW3_KEY_UP;
+        case VK_RIGHT:         return GLFW3_KEY_RIGHT;
+        case VK_DOWN:          return GLFW3_KEY_DOWN;
+        case VK_F1:            return GLFW3_KEY_F1;
+        case VK_F2:            return GLFW3_KEY_F2;
+        case VK_F3:            return GLFW3_KEY_F3;
+        case VK_F4:            return GLFW3_KEY_F4;
+        case VK_F5:            return GLFW3_KEY_F5;
+        case VK_F6:            return GLFW3_KEY_F6;
+        case VK_F7:            return GLFW3_KEY_F7;
+        case VK_F8:            return GLFW3_KEY_F8;
+        case VK_F9:            return GLFW3_KEY_F9;
+        case VK_F10:           return GLFW3_KEY_F10;
+        case VK_F11:           return GLFW3_KEY_F11;
+        case VK_F12:           return GLFW3_KEY_F12;
+        case VK_F13:           return GLFW3_KEY_F13;
+        case VK_F14:           return GLFW3_KEY_F14;
+        case VK_F15:           return GLFW3_KEY_F15;
+        case VK_F16:           return GLFW3_KEY_F16;
+        case VK_F17:           return GLFW3_KEY_F17;
+        case VK_F18:           return GLFW3_KEY_F18;
+        case VK_F19:           return GLFW3_KEY_F19;
+        case VK_F20:           return GLFW3_KEY_F20;
+        case VK_F21:           return GLFW3_KEY_F21;
+        case VK_F22:           return GLFW3_KEY_F22;
+        case VK_F23:           return GLFW3_KEY_F23;
+        case VK_F24:           return GLFW3_KEY_F24;
+        case VK_NUMLOCK:       return GLFW3_KEY_NUM_LOCK;
+        case VK_CAPITAL:       return GLFW3_KEY_CAPS_LOCK;
+        case VK_SNAPSHOT:      return GLFW3_KEY_PRINT_SCREEN;
+        case VK_SCROLL:        return GLFW3_KEY_SCROLL_LOCK;
+        case VK_PAUSE:         return GLFW3_KEY_PAUSE;
+        case VK_LWIN:          return GLFW3_KEY_LEFT_SUPER;
+        case VK_RWIN:          return GLFW3_KEY_RIGHT_SUPER;
+        case VK_APPS:          return GLFW3_KEY_MENU;
 
         // Numeric keypad
-        case VK_NUMPAD0:       return GLFW_KEY_KP_0;
-        case VK_NUMPAD1:       return GLFW_KEY_KP_1;
-        case VK_NUMPAD2:       return GLFW_KEY_KP_2;
-        case VK_NUMPAD3:       return GLFW_KEY_KP_3;
-        case VK_NUMPAD4:       return GLFW_KEY_KP_4;
-        case VK_NUMPAD5:       return GLFW_KEY_KP_5;
-        case VK_NUMPAD6:       return GLFW_KEY_KP_6;
-        case VK_NUMPAD7:       return GLFW_KEY_KP_7;
-        case VK_NUMPAD8:       return GLFW_KEY_KP_8;
-        case VK_NUMPAD9:       return GLFW_KEY_KP_9;
-        case VK_DIVIDE:        return GLFW_KEY_KP_DIVIDE;
-        case VK_MULTIPLY:      return GLFW_KEY_KP_MULTIPLY;
-        case VK_SUBTRACT:      return GLFW_KEY_KP_SUBTRACT;
-        case VK_ADD:           return GLFW_KEY_KP_ADD;
-        case VK_DECIMAL:       return GLFW_KEY_KP_DECIMAL;
+        case VK_NUMPAD0:       return GLFW3_KEY_KP_0;
+        case VK_NUMPAD1:       return GLFW3_KEY_KP_1;
+        case VK_NUMPAD2:       return GLFW3_KEY_KP_2;
+        case VK_NUMPAD3:       return GLFW3_KEY_KP_3;
+        case VK_NUMPAD4:       return GLFW3_KEY_KP_4;
+        case VK_NUMPAD5:       return GLFW3_KEY_KP_5;
+        case VK_NUMPAD6:       return GLFW3_KEY_KP_6;
+        case VK_NUMPAD7:       return GLFW3_KEY_KP_7;
+        case VK_NUMPAD8:       return GLFW3_KEY_KP_8;
+        case VK_NUMPAD9:       return GLFW3_KEY_KP_9;
+        case VK_DIVIDE:        return GLFW3_KEY_KP_DIVIDE;
+        case VK_MULTIPLY:      return GLFW3_KEY_KP_MULTIPLY;
+        case VK_SUBTRACT:      return GLFW3_KEY_KP_SUBTRACT;
+        case VK_ADD:           return GLFW3_KEY_KP_ADD;
+        case VK_DECIMAL:       return GLFW3_KEY_KP_DECIMAL;
 
         // Printable keys are mapped according to US layout
-        case VK_SPACE:         return GLFW_KEY_SPACE;
-        case 0x30:             return GLFW_KEY_0;
-        case 0x31:             return GLFW_KEY_1;
-        case 0x32:             return GLFW_KEY_2;
-        case 0x33:             return GLFW_KEY_3;
-        case 0x34:             return GLFW_KEY_4;
-        case 0x35:             return GLFW_KEY_5;
-        case 0x36:             return GLFW_KEY_6;
-        case 0x37:             return GLFW_KEY_7;
-        case 0x38:             return GLFW_KEY_8;
-        case 0x39:             return GLFW_KEY_9;
-        case 0x41:             return GLFW_KEY_A;
-        case 0x42:             return GLFW_KEY_B;
-        case 0x43:             return GLFW_KEY_C;
-        case 0x44:             return GLFW_KEY_D;
-        case 0x45:             return GLFW_KEY_E;
-        case 0x46:             return GLFW_KEY_F;
-        case 0x47:             return GLFW_KEY_G;
-        case 0x48:             return GLFW_KEY_H;
-        case 0x49:             return GLFW_KEY_I;
-        case 0x4A:             return GLFW_KEY_J;
-        case 0x4B:             return GLFW_KEY_K;
-        case 0x4C:             return GLFW_KEY_L;
-        case 0x4D:             return GLFW_KEY_M;
-        case 0x4E:             return GLFW_KEY_N;
-        case 0x4F:             return GLFW_KEY_O;
-        case 0x50:             return GLFW_KEY_P;
-        case 0x51:             return GLFW_KEY_Q;
-        case 0x52:             return GLFW_KEY_R;
-        case 0x53:             return GLFW_KEY_S;
-        case 0x54:             return GLFW_KEY_T;
-        case 0x55:             return GLFW_KEY_U;
-        case 0x56:             return GLFW_KEY_V;
-        case 0x57:             return GLFW_KEY_W;
-        case 0x58:             return GLFW_KEY_X;
-        case 0x59:             return GLFW_KEY_Y;
-        case 0x5A:             return GLFW_KEY_Z;
-        case 0xBD:             return GLFW_KEY_MINUS;
-        case 0xBB:             return GLFW_KEY_EQUAL;
-        case 0xDB:             return GLFW_KEY_LEFT_BRACKET;
-        case 0xDD:             return GLFW_KEY_RIGHT_BRACKET;
-        case 0xDC:             return GLFW_KEY_BACKSLASH;
-        case 0xBA:             return GLFW_KEY_SEMICOLON;
-        case 0xDE:             return GLFW_KEY_APOSTROPHE;
-        case 0xC0:             return GLFW_KEY_GRAVE_ACCENT;
-        case 0xBC:             return GLFW_KEY_COMMA;
-        case 0xBE:             return GLFW_KEY_PERIOD;
-        case 0xBF:             return GLFW_KEY_SLASH;
-        case 0xDF:             return GLFW_KEY_WORLD_1;
-        case 0xE2:             return GLFW_KEY_WORLD_2;
+        case VK_SPACE:         return GLFW3_KEY_SPACE;
+        case 0x30:             return GLFW3_KEY_0;
+        case 0x31:             return GLFW3_KEY_1;
+        case 0x32:             return GLFW3_KEY_2;
+        case 0x33:             return GLFW3_KEY_3;
+        case 0x34:             return GLFW3_KEY_4;
+        case 0x35:             return GLFW3_KEY_5;
+        case 0x36:             return GLFW3_KEY_6;
+        case 0x37:             return GLFW3_KEY_7;
+        case 0x38:             return GLFW3_KEY_8;
+        case 0x39:             return GLFW3_KEY_9;
+        case 0x41:             return GLFW3_KEY_A;
+        case 0x42:             return GLFW3_KEY_B;
+        case 0x43:             return GLFW3_KEY_C;
+        case 0x44:             return GLFW3_KEY_D;
+        case 0x45:             return GLFW3_KEY_E;
+        case 0x46:             return GLFW3_KEY_F;
+        case 0x47:             return GLFW3_KEY_G;
+        case 0x48:             return GLFW3_KEY_H;
+        case 0x49:             return GLFW3_KEY_I;
+        case 0x4A:             return GLFW3_KEY_J;
+        case 0x4B:             return GLFW3_KEY_K;
+        case 0x4C:             return GLFW3_KEY_L;
+        case 0x4D:             return GLFW3_KEY_M;
+        case 0x4E:             return GLFW3_KEY_N;
+        case 0x4F:             return GLFW3_KEY_O;
+        case 0x50:             return GLFW3_KEY_P;
+        case 0x51:             return GLFW3_KEY_Q;
+        case 0x52:             return GLFW3_KEY_R;
+        case 0x53:             return GLFW3_KEY_S;
+        case 0x54:             return GLFW3_KEY_T;
+        case 0x55:             return GLFW3_KEY_U;
+        case 0x56:             return GLFW3_KEY_V;
+        case 0x57:             return GLFW3_KEY_W;
+        case 0x58:             return GLFW3_KEY_X;
+        case 0x59:             return GLFW3_KEY_Y;
+        case 0x5A:             return GLFW3_KEY_Z;
+        case 0xBD:             return GLFW3_KEY_MINUS;
+        case 0xBB:             return GLFW3_KEY_EQUAL;
+        case 0xDB:             return GLFW3_KEY_LEFT_BRACKET;
+        case 0xDD:             return GLFW3_KEY_RIGHT_BRACKET;
+        case 0xDC:             return GLFW3_KEY_BACKSLASH;
+        case 0xBA:             return GLFW3_KEY_SEMICOLON;
+        case 0xDE:             return GLFW3_KEY_APOSTROPHE;
+        case 0xC0:             return GLFW3_KEY_GRAVE_ACCENT;
+        case 0xBC:             return GLFW3_KEY_COMMA;
+        case 0xBE:             return GLFW3_KEY_PERIOD;
+        case 0xBF:             return GLFW3_KEY_SLASH;
+        case 0xDF:             return GLFW3_KEY_WORLD_1;
+        case 0xE2:             return GLFW3_KEY_WORLD_2;
         default:               break;
     }
 
     // No matching translation was found
-    return GLFW_KEY_UNKNOWN;
+    return GLFW3_KEY_UNKNOWN;
 }
 
 // Window callback function (handles window events)
@@ -401,7 +401,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
             {
                 // The window was defocused (or iconified, see above)
 
-                if (window->cursorMode != GLFW_CURSOR_NORMAL)
+                if (window->cursorMode != GLFW3_CURSOR_NORMAL)
                     showCursor(window);
 
                 if (window->monitor)
@@ -420,9 +420,9 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
             {
                 // The window was focused
 
-                if (window->cursorMode == GLFW_CURSOR_DISABLED)
+                if (window->cursorMode == GLFW3_CURSOR_DISABLED)
                     captureCursor(window);
-                else if (window->cursorMode == GLFW_CURSOR_HIDDEN)
+                else if (window->cursorMode == GLFW3_CURSOR_HIDDEN)
                     hideCursor(window);
 
                 if (window->monitor)
@@ -475,10 +475,10 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
         {
             const int scancode = (lParam >> 16) & 0xff;
             const int key = translateKey(wParam, lParam);
-            if (key == _GLFW_KEY_INVALID)
+            if (key == _GLFW3_KEY_INVALID)
                 break;
 
-            _glfwInputKey(window, key, scancode, GLFW_PRESS, getKeyMods());
+            _glfwInputKey(window, key, scancode, GLFW3_PRESS, getKeyMods());
             break;
         }
 
@@ -509,24 +509,24 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
             const int mods = getKeyMods();
             const int scancode = (lParam >> 16) & 0xff;
             const int key = translateKey(wParam, lParam);
-            if (key == _GLFW_KEY_INVALID)
+            if (key == _GLFW3_KEY_INVALID)
                 break;
 
             if (wParam == VK_SHIFT)
             {
                 // Release both Shift keys on Shift up event, as only one event
                 // is sent even if both keys are released
-                _glfwInputKey(window, GLFW_KEY_LEFT_SHIFT, scancode, GLFW_RELEASE, mods);
-                _glfwInputKey(window, GLFW_KEY_RIGHT_SHIFT, scancode, GLFW_RELEASE, mods);
+                _glfwInputKey(window, GLFW3_KEY_LEFT_SHIFT, scancode, GLFW3_RELEASE, mods);
+                _glfwInputKey(window, GLFW3_KEY_RIGHT_SHIFT, scancode, GLFW3_RELEASE, mods);
             }
             else if (wParam == VK_SNAPSHOT)
             {
                 // Key down is not reported for the print screen key
-                _glfwInputKey(window, key, scancode, GLFW_PRESS, mods);
-                _glfwInputKey(window, key, scancode, GLFW_RELEASE, mods);
+                _glfwInputKey(window, key, scancode, GLFW3_PRESS, mods);
+                _glfwInputKey(window, key, scancode, GLFW3_RELEASE, mods);
             }
             else
-                _glfwInputKey(window, key, scancode, GLFW_RELEASE, mods);
+                _glfwInputKey(window, key, scancode, GLFW3_RELEASE, mods);
 
             break;
         }
@@ -541,17 +541,17 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
             SetCapture(hWnd);
 
             if (uMsg == WM_LBUTTONDOWN)
-                _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, mods);
+                _glfwInputMouseClick(window, GLFW3_MOUSE_BUTTON_LEFT, GLFW3_PRESS, mods);
             else if (uMsg == WM_RBUTTONDOWN)
-                _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_RIGHT, GLFW_PRESS, mods);
+                _glfwInputMouseClick(window, GLFW3_MOUSE_BUTTON_RIGHT, GLFW3_PRESS, mods);
             else if (uMsg == WM_MBUTTONDOWN)
-                _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_MIDDLE, GLFW_PRESS, mods);
+                _glfwInputMouseClick(window, GLFW3_MOUSE_BUTTON_MIDDLE, GLFW3_PRESS, mods);
             else
             {
                 if (HIWORD(wParam) == XBUTTON1)
-                    _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_4, GLFW_PRESS, mods);
+                    _glfwInputMouseClick(window, GLFW3_MOUSE_BUTTON_4, GLFW3_PRESS, mods);
                 else if (HIWORD(wParam) == XBUTTON2)
-                    _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_5, GLFW_PRESS, mods);
+                    _glfwInputMouseClick(window, GLFW3_MOUSE_BUTTON_5, GLFW3_PRESS, mods);
 
                 return TRUE;
             }
@@ -569,17 +569,17 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
             ReleaseCapture();
 
             if (uMsg == WM_LBUTTONUP)
-                _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_LEFT, GLFW_RELEASE, mods);
+                _glfwInputMouseClick(window, GLFW3_MOUSE_BUTTON_LEFT, GLFW3_RELEASE, mods);
             else if (uMsg == WM_RBUTTONUP)
-                _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_RIGHT, GLFW_RELEASE, mods);
+                _glfwInputMouseClick(window, GLFW3_MOUSE_BUTTON_RIGHT, GLFW3_RELEASE, mods);
             else if (uMsg == WM_MBUTTONUP)
-                _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_MIDDLE, GLFW_RELEASE, mods);
+                _glfwInputMouseClick(window, GLFW3_MOUSE_BUTTON_MIDDLE, GLFW3_RELEASE, mods);
             else
             {
                 if (HIWORD(wParam) == XBUTTON1)
-                    _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_4, GLFW_RELEASE, mods);
+                    _glfwInputMouseClick(window, GLFW3_MOUSE_BUTTON_4, GLFW3_RELEASE, mods);
                 else if (HIWORD(wParam) == XBUTTON2)
-                    _glfwInputMouseClick(window, GLFW_MOUSE_BUTTON_5, GLFW_RELEASE, mods);
+                    _glfwInputMouseClick(window, GLFW3_MOUSE_BUTTON_5, GLFW3_RELEASE, mods);
 
                 return TRUE;
             }
@@ -597,7 +597,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
             {
                 double x, y;
 
-                if (window->cursorMode == GLFW_CURSOR_DISABLED)
+                if (window->cursorMode == GLFW3_CURSOR_DISABLED)
                 {
                     if (_glfw.focusedWindow != window)
                         return 0;
@@ -656,7 +656,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 
         case WM_SIZE:
         {
-            if (window->cursorMode == GLFW_CURSOR_DISABLED)
+            if (window->cursorMode == GLFW3_CURSOR_DISABLED)
                 updateClipRect(window);
 
             _glfwInputFramebufferSize(window, LOWORD(lParam), HIWORD(lParam));
@@ -666,7 +666,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 
         case WM_MOVE:
         {
-            if (window->cursorMode == GLFW_CURSOR_DISABLED)
+            if (window->cursorMode == GLFW3_CURSOR_DISABLED)
                 updateClipRect(window);
 
             _glfwInputWindowPos(window, LOWORD(lParam), HIWORD(lParam));
@@ -681,7 +681,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
 
         case WM_SETCURSOR:
         {
-            if (window->cursorMode == GLFW_CURSOR_HIDDEN &&
+            if (window->cursorMode == GLFW3_CURSOR_HIDDEN &&
                 window->win32.handle == GetForegroundWindow() &&
                 LOWORD(lParam) == HTCLIENT)
             {
@@ -749,10 +749,10 @@ static ATOM registerWindowClass(void)
     wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = NULL;                        // No background
     wc.lpszMenuName  = NULL;                        // No menu
-    wc.lpszClassName = _GLFW_WNDCLASSNAME;
+    wc.lpszClassName = _GLFW3_WNDCLASSNAME;
 
     // Load user-provided icon if available
-    wc.hIcon = LoadIcon(GetModuleHandle(NULL), L"GLFW_ICON");
+    wc.hIcon = LoadIcon(GetModuleHandle(NULL), L"GLFW3_ICON");
     if (!wc.hIcon)
     {
         // No user-provided icon found, load default icon
@@ -762,7 +762,7 @@ static ATOM registerWindowClass(void)
     classAtom = RegisterClass(&wc);
     if (!classAtom)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _glfwInputError(GLFW3_PLATFORM_ERROR,
                         "Win32: Failed to register window class");
         return 0;
     }
@@ -816,13 +816,13 @@ static int createWindow(_GLFWwindow* window,
     wideTitle = _glfwCreateWideStringFromUTF8(wndconfig->title);
     if (!wideTitle)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _glfwInputError(GLFW3_PLATFORM_ERROR,
                         "Win32: Failed to convert title to wide string");
         return GL_FALSE;
     }
 
     window->win32.handle = CreateWindowEx(window->win32.dwExStyle,
-                                          _GLFW_WNDCLASSNAME,
+                                          _GLFW3_WNDCLASSNAME,
                                           wideTitle,
                                           window->win32.dwStyle,
                                           xpos, ypos,
@@ -836,7 +836,7 @@ static int createWindow(_GLFWwindow* window,
 
     if (!window->win32.handle)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR, "Win32: Failed to create window");
+        _glfwInputError(GLFW3_PLATFORM_ERROR, "Win32: Failed to create window");
         return GL_FALSE;
     }
 
@@ -882,10 +882,10 @@ int _glfwPlatformCreateWindow(_GLFWwindow* window,
 
     status = _glfwAnalyzeContext(window, wndconfig, fbconfig);
 
-    if (status == _GLFW_RECREATION_IMPOSSIBLE)
+    if (status == _GLFW3_RECREATION_IMPOSSIBLE)
         return GL_FALSE;
 
-    if (status == _GLFW_RECREATION_REQUIRED)
+    if (status == _GLFW3_RECREATION_REQUIRED)
     {
         // Some window hints require us to re-create the context using WGL
         // extensions retrieved through the current context, as we cannot check
@@ -943,7 +943,7 @@ void _glfwPlatformSetWindowTitle(_GLFWwindow* window, const char* title)
     WCHAR* wideTitle = _glfwCreateWideStringFromUTF8(title);
     if (!wideTitle)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _glfwInputError(GLFW3_PLATFORM_ERROR,
                         "Win32: Failed to convert title to wide string");
         return;
     }
@@ -1074,15 +1074,15 @@ void _glfwPlatformPollEvents(void)
 
             // See if this differs from our belief of what has happened
             // (we only have to check for lost key up events)
-            if (!lshiftDown && window->key[GLFW_KEY_LEFT_SHIFT] == 1)
-                _glfwInputKey(window, GLFW_KEY_LEFT_SHIFT, 0, GLFW_RELEASE, mods);
+            if (!lshiftDown && window->key[GLFW3_KEY_LEFT_SHIFT] == 1)
+                _glfwInputKey(window, GLFW3_KEY_LEFT_SHIFT, 0, GLFW3_RELEASE, mods);
 
-            if (!rshiftDown && window->key[GLFW_KEY_RIGHT_SHIFT] == 1)
-                _glfwInputKey(window, GLFW_KEY_RIGHT_SHIFT, 0, GLFW_RELEASE, mods);
+            if (!rshiftDown && window->key[GLFW3_KEY_RIGHT_SHIFT] == 1)
+                _glfwInputKey(window, GLFW3_KEY_RIGHT_SHIFT, 0, GLFW3_RELEASE, mods);
         }
 
         // Did the cursor move in an focused window that has captured the cursor
-        if (window->cursorMode == GLFW_CURSOR_DISABLED &&
+        if (window->cursorMode == GLFW3_CURSOR_DISABLED &&
             !window->win32.cursorCentered)
         {
             int width, height;
@@ -1114,13 +1114,13 @@ void _glfwPlatformSetCursorMode(_GLFWwindow* window, int mode)
 {
     switch (mode)
     {
-        case GLFW_CURSOR_NORMAL:
+        case GLFW3_CURSOR_NORMAL:
             showCursor(window);
             break;
-        case GLFW_CURSOR_HIDDEN:
+        case GLFW3_CURSOR_HIDDEN:
             hideCursor(window);
             break;
-        case GLFW_CURSOR_DISABLED:
+        case GLFW3_CURSOR_DISABLED:
             captureCursor(window);
             break;
     }
@@ -1134,7 +1134,7 @@ void _glfwPlatformSetCursorMode(_GLFWwindow* window, int mode)
 GLFWAPI HWND glfwGetWin32Window(GLFWwindow* handle)
 {
     _GLFWwindow* window = (_GLFWwindow*) handle;
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW3_REQUIRE_INIT_OR_RETURN(NULL);
     return window->win32.handle;
 }
 

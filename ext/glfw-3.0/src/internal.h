@@ -34,12 +34,12 @@
 
 #include "config.h"
 
-#if defined(_GLFW_USE_OPENGL)
+#if defined(_GLFW3_USE_OPENGL)
  // This is the default for glfw3.h
-#elif defined(_GLFW_USE_GLESV1)
- #define GLFW_INCLUDE_ES1
-#elif defined(_GLFW_USE_GLESV2)
- #define GLFW_INCLUDE_ES2
+#elif defined(_GLFW3_USE_GLESV1)
+ #define GLFW3_INCLUDE_ES1
+#elif defined(_GLFW3_USE_GLESV2)
+ #define GLFW3_INCLUDE_ES2
 #else
  #error "No supported client library selected"
 #endif
@@ -50,7 +50,7 @@
 
 #include "../include/GLFW/glfw3.h"
 
-#if defined(_GLFW_USE_OPENGL)
+#if defined(_GLFW3_USE_OPENGL)
  // This path may need to be changed if you build GLFW using your own setup
  // GLFW comes with its own copy of glext.h since it uses fairly new extensions
  // and not all development environments come with an up-to-date version
@@ -64,11 +64,11 @@ typedef struct _GLFWwindow      _GLFWwindow;
 typedef struct _GLFWlibrary     _GLFWlibrary;
 typedef struct _GLFWmonitor     _GLFWmonitor;
 
-#if defined(_GLFW_COCOA)
+#if defined(_GLFW3_COCOA)
  #include "cocoa_platform.h"
-#elif defined(_GLFW_WIN32)
+#elif defined(_GLFW3_WIN32)
  #include "win32_platform.h"
-#elif defined(_GLFW_X11)
+#elif defined(_GLFW3_X11)
  #include "x11_platform.h"
 #else
  #error "No supported window creation API selected"
@@ -107,16 +107,16 @@ typedef struct _GLFWmonitor     _GLFWmonitor;
 //========================================================================
 
 // Checks for whether the library has been intitalized
-#define _GLFW_REQUIRE_INIT()                         \
+#define _GLFW3_REQUIRE_INIT()                         \
     if (!_glfwInitialized)                           \
     {                                                \
-        _glfwInputError(GLFW_NOT_INITIALIZED, NULL); \
+        _glfwInputError(GLFW3_NOT_INITIALIZED, NULL); \
         return;                                      \
     }
-#define _GLFW_REQUIRE_INIT_OR_RETURN(x)              \
+#define _GLFW3_REQUIRE_INIT_OR_RETURN(x)              \
     if (!_glfwInitialized)                           \
     {                                                \
-        _glfwInputError(GLFW_NOT_INITIALIZED, NULL); \
+        _glfwInputError(GLFW3_NOT_INITIALIZED, NULL); \
         return x;                                    \
     }
 
@@ -177,7 +177,7 @@ struct _GLFWfbconfig
     GLboolean   sRGB;
 
     // This is defined in the context API's platform.h
-    _GLFW_PLATFORM_FBCONFIG;
+    _GLFW3_PLATFORM_FBCONFIG;
 };
 
 
@@ -202,8 +202,8 @@ struct _GLFWwindow
     GLboolean           stickyMouseButtons;
     double              cursorPosX, cursorPosY;
     int                 cursorMode;
-    char                mouseButton[GLFW_MOUSE_BUTTON_LAST + 1];
-    char                key[GLFW_KEY_LAST + 1];
+    char                mouseButton[GLFW3_MOUSE_BUTTON_LAST + 1];
+    char                key[GLFW3_KEY_LAST + 1];
 
     // OpenGL extensions and context attributes
     int                 clientAPI;
@@ -211,7 +211,7 @@ struct _GLFWwindow
     GLboolean           glForward, glDebug;
     int                 glProfile;
     int                 glRobustness;
-#if defined(_GLFW_USE_OPENGL)
+#if defined(_GLFW3_USE_OPENGL)
     PFNGLGETSTRINGIPROC GetStringi;
 #endif
 
@@ -232,9 +232,9 @@ struct _GLFWwindow
     } callbacks;
 
     // This is defined in the window API's platform.h
-    _GLFW_PLATFORM_WINDOW_STATE;
+    _GLFW3_PLATFORM_WINDOW_STATE;
     // This is defined in the context API's platform.h
-    _GLFW_PLATFORM_CONTEXT_STATE;
+    _GLFW3_PLATFORM_CONTEXT_STATE;
 };
 
 
@@ -255,7 +255,7 @@ struct _GLFWmonitor
     GLFWgammaramp   currentRamp;
 
     // This is defined in the window API's platform.h
-    _GLFW_PLATFORM_MONITOR_STATE;
+    _GLFW3_PLATFORM_MONITOR_STATE;
 };
 
 
@@ -301,9 +301,9 @@ struct _GLFWlibrary
     GLFWmonitorfun  monitorCallback;
 
     // This is defined in the window API's platform.h
-    _GLFW_PLATFORM_LIBRARY_WINDOW_STATE;
+    _GLFW3_PLATFORM_LIBRARY_WINDOW_STATE;
     // This is defined in the context API's platform.h
-    _GLFW_PLATFORM_LIBRARY_OPENGL_STATE;
+    _GLFW3_PLATFORM_LIBRARY_OPENGL_STATE;
 };
 
 
@@ -607,7 +607,7 @@ void _glfwInputWindowCloseRequest(_GLFWwindow* window);
  *  @param[in] window The window that received the event.
  *  @param[in] key The key that was pressed or released.
  *  @param[in] scancode The system-specific scan code of the key.
- *  @param[in] action @ref GLFW_PRESS or @ref GLFW_RELEASE.
+ *  @param[in] action @ref GLFW3_PRESS or @ref GLFW3_RELEASE.
  *  @param[in] mods The modifiers pressed when the event was generated.
  *  @ingroup event
  */
@@ -631,7 +631,7 @@ void _glfwInputScroll(_GLFWwindow* window, double x, double y);
 /*! @brief Notifies shared code of a mouse button click event.
  *  @param[in] window The window that received the event.
  *  @param[in] button The button that was pressed or released.
- *  @param[in] action @ref GLFW_PRESS or @ref GLFW_RELEASE.
+ *  @param[in] action @ref GLFW3_PRESS or @ref GLFW3_RELEASE.
  *  @ingroup event
  */
 void _glfwInputMouseClick(_GLFWwindow* window, int button, int action, int mods);

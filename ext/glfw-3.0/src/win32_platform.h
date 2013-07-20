@@ -82,58 +82,58 @@
 //========================================================================
 
 // winmm.dll function pointer typedefs
-#ifndef _GLFW_NO_DLOAD_WINMM
+#ifndef _GLFW3_NO_DLOAD_WINMM
 typedef MMRESULT (WINAPI * JOYGETDEVCAPS_T) (UINT,LPJOYCAPS,UINT);
 typedef MMRESULT (WINAPI * JOYGETPOS_T) (UINT,LPJOYINFO);
 typedef MMRESULT (WINAPI * JOYGETPOSEX_T) (UINT,LPJOYINFOEX);
 typedef DWORD (WINAPI * TIMEGETTIME_T) (void);
-#endif // _GLFW_NO_DLOAD_WINMM
+#endif // _GLFW3_NO_DLOAD_WINMM
 
 
 // winmm.dll shortcuts
-#ifndef _GLFW_NO_DLOAD_WINMM
- #define _glfw_joyGetDevCaps _glfw.win32.winmm.joyGetDevCaps
- #define _glfw_joyGetPos     _glfw.win32.winmm.joyGetPos
- #define _glfw_joyGetPosEx   _glfw.win32.winmm.joyGetPosEx
- #define _glfw_timeGetTime   _glfw.win32.winmm.timeGetTime
+#ifndef _GLFW3_NO_DLOAD_WINMM
+ #define _GLFW3_joyGetDevCaps _glfw.win32.winmm.joyGetDevCaps
+ #define _GLFW3_joyGetPos     _glfw.win32.winmm.joyGetPos
+ #define _GLFW3_joyGetPosEx   _glfw.win32.winmm.joyGetPosEx
+ #define _GLFW3_timeGetTime   _glfw.win32.winmm.timeGetTime
 #else
- #define _glfw_joyGetDevCaps joyGetDevCaps
- #define _glfw_joyGetPos     joyGetPos
- #define _glfw_joyGetPosEx   joyGetPosEx
- #define _glfw_timeGetTime   timeGetTime
-#endif // _GLFW_NO_DLOAD_WINMM
+ #define _GLFW3_joyGetDevCaps joyGetDevCaps
+ #define _GLFW3_joyGetPos     joyGetPos
+ #define _GLFW3_joyGetPosEx   joyGetPosEx
+ #define _GLFW3_timeGetTime   timeGetTime
+#endif // _GLFW3_NO_DLOAD_WINMM
 
 // user32.dll function pointer typedefs
 typedef BOOL (WINAPI * SETPROCESSDPIAWARE_T)(void);
-#define _glfw_SetProcessDPIAware _glfw.win32.user32.SetProcessDPIAware
+#define _GLFW3_SetProcessDPIAware _glfw.win32.user32.SetProcessDPIAware
 
 // dwmapi.dll function pointer typedefs
 typedef HRESULT (WINAPI * DWMISCOMPOSITIONENABLED_T)(BOOL*);
-#define _glfw_DwmIsCompositionEnabled _glfw.win32.dwmapi.DwmIsCompositionEnabled
+#define _GLFW3_DwmIsCompositionEnabled _glfw.win32.dwmapi.DwmIsCompositionEnabled
 
 
 // We use versioned window class names in order not to cause conflicts
 // between applications using different versions of GLFW
-#define _GLFW_WNDCLASSNAME L"GLFW30"
+#define _GLFW3_WNDCLASSNAME L"GLFW30"
 
-#define _GLFW_RECREATION_NOT_NEEDED 0
-#define _GLFW_RECREATION_REQUIRED   1
-#define _GLFW_RECREATION_IMPOSSIBLE 2
+#define _GLFW3_RECREATION_NOT_NEEDED 0
+#define _GLFW3_RECREATION_REQUIRED   1
+#define _GLFW3_RECREATION_IMPOSSIBLE 2
 
 
-#if defined(_GLFW_WGL)
+#if defined(_GLFW3_WGL)
  #include "wgl_platform.h"
-#elif defined(_GLFW_EGL)
- #define _GLFW_EGL_NATIVE_WINDOW  window->win32.handle
- #define _GLFW_EGL_NATIVE_DISPLAY EGL_DEFAULT_DISPLAY
+#elif defined(_GLFW3_EGL)
+ #define _GLFW3_EGL_NATIVE_WINDOW  window->win32.handle
+ #define _GLFW3_EGL_NATIVE_DISPLAY EGL_DEFAULT_DISPLAY
  #include "egl_platform.h"
 #else
  #error "No supported context creation API selected"
 #endif
 
-#define _GLFW_PLATFORM_WINDOW_STATE         _GLFWwindowWin32  win32
-#define _GLFW_PLATFORM_LIBRARY_WINDOW_STATE _GLFWlibraryWin32 win32
-#define _GLFW_PLATFORM_MONITOR_STATE        _GLFWmonitorWin32 win32
+#define _GLFW3_PLATFORM_WINDOW_STATE         _GLFWwindowWin32  win32
+#define _GLFW3_PLATFORM_LIBRARY_WINDOW_STATE _GLFWlibraryWin32 win32
+#define _GLFW3_PLATFORM_MONITOR_STATE        _GLFWmonitorWin32 win32
 
 
 //========================================================================
@@ -176,7 +176,7 @@ typedef struct _GLFWlibraryWin32
         __int64         t0_64;
     } timer;
 
-#ifndef _GLFW_NO_DLOAD_WINMM
+#ifndef _GLFW3_NO_DLOAD_WINMM
     // winmm.dll
     struct {
         HINSTANCE       instance;
@@ -185,7 +185,7 @@ typedef struct _GLFWlibraryWin32
         JOYGETPOSEX_T   joyGetPosEx;
         TIMEGETTIME_T   timeGetTime;
     } winmm;
-#endif // _GLFW_NO_DLOAD_WINMM
+#endif // _GLFW3_NO_DLOAD_WINMM
 
     // user32.dll
     struct {
@@ -203,7 +203,7 @@ typedef struct _GLFWlibraryWin32
         float           axes[6];
         unsigned char   buttons[36]; // 32 buttons plus one hat
         char*           name;
-    } joystick[GLFW_JOYSTICK_LAST + 1];
+    } joystick[GLFW3_JOYSTICK_LAST + 1];
 
 } _GLFWlibraryWin32;
 

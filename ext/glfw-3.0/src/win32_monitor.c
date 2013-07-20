@@ -80,7 +80,7 @@ GLboolean _glfwSetVideoMode(_GLFWmonitor* monitor, const GLFWvidmode* desired)
                                 CDS_FULLSCREEN,
                                 NULL) != DISP_CHANGE_SUCCESSFUL)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR, "Win32: Failed to set video mode");
+        _glfwInputError(GLFW3_PLATFORM_ERROR, "Win32: Failed to set video mode");
         return GL_FALSE;
     }
 
@@ -152,7 +152,7 @@ _GLFWmonitor** _glfwPlatformGetMonitors(int* count)
         if (!name)
         {
             _glfwDestroyMonitors(monitors, found);
-            _glfwInputError(GLFW_PLATFORM_ERROR,
+            _glfwInputError(GLFW3_PLATFORM_ERROR,
                             "Failed to convert string to UTF-8");
 
             free(monitors);

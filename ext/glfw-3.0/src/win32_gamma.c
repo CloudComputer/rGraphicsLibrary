@@ -65,7 +65,7 @@ void _glfwPlatformSetGammaRamp(_GLFWmonitor* monitor, const GLFWgammaramp* ramp)
 
     if (ramp->size != 256)
     {
-        _glfwInputError(GLFW_PLATFORM_ERROR,
+        _glfwInputError(GLFW3_PLATFORM_ERROR,
                         "Win32: Gamma ramp size must be 256");
         return;
     }

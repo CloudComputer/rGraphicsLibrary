@@ -37,11 +37,11 @@
 
 GLFWAPI int glfwJoystickPresent(int joy)
 {
-    _GLFW_REQUIRE_INIT_OR_RETURN(0);
+    _GLFW3_REQUIRE_INIT_OR_RETURN(0);
 
-    if (joy < 0 || joy > GLFW_JOYSTICK_LAST)
+    if (joy < 0 || joy > GLFW3_JOYSTICK_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, NULL);
+        _glfwInputError(GLFW3_INVALID_ENUM, NULL);
         return 0;
     }
 
@@ -52,11 +52,11 @@ GLFWAPI const float* glfwGetJoystickAxes(int joy, int* count)
 {
     *count = 0;
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW3_REQUIRE_INIT_OR_RETURN(NULL);
 
-    if (joy < 0 || joy > GLFW_JOYSTICK_LAST)
+    if (joy < 0 || joy > GLFW3_JOYSTICK_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, NULL);
+        _glfwInputError(GLFW3_INVALID_ENUM, NULL);
         return NULL;
     }
 
@@ -67,11 +67,11 @@ GLFWAPI const unsigned char* glfwGetJoystickButtons(int joy, int* count)
 {
     *count = 0;
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW3_REQUIRE_INIT_OR_RETURN(NULL);
 
-    if (joy < 0 || joy > GLFW_JOYSTICK_LAST)
+    if (joy < 0 || joy > GLFW3_JOYSTICK_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, NULL);
+        _glfwInputError(GLFW3_INVALID_ENUM, NULL);
         return NULL;
     }
 
@@ -80,11 +80,11 @@ GLFWAPI const unsigned char* glfwGetJoystickButtons(int joy, int* count)
 
 GLFWAPI const char* glfwGetJoystickName(int joy)
 {
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW3_REQUIRE_INIT_OR_RETURN(NULL);
 
-    if (joy < 0 || joy > GLFW_JOYSTICK_LAST)
+    if (joy < 0 || joy > GLFW3_JOYSTICK_LAST)
     {
-        _glfwInputError(GLFW_INVALID_ENUM, NULL);
+        _glfwInputError(GLFW3_INVALID_ENUM, NULL);
         return NULL;
     }
 

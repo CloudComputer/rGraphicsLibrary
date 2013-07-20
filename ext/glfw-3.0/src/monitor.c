@@ -145,7 +145,7 @@ void _glfwInputMonitorChange(void)
         }
 
         if (_glfw.monitorCallback)
-            _glfw.monitorCallback((GLFWmonitor*) monitors[i], GLFW_DISCONNECTED);
+            _glfw.monitorCallback((GLFWmonitor*) monitors[i], GLFW3_DISCONNECTED);
     }
 
     // Find and report newly connected monitors (not in the old list)
@@ -167,7 +167,7 @@ void _glfwInputMonitorChange(void)
             continue;
 
         if (_glfw.monitorCallback)
-            _glfw.monitorCallback((GLFWmonitor*) _glfw.monitors[i], GLFW_CONNECTED);
+            _glfw.monitorCallback((GLFWmonitor*) _glfw.monitors[i], GLFW3_CONNECTED);
     }
 
     _glfwDestroyMonitors(monitors, monitorCount);
@@ -288,7 +288,7 @@ GLFWAPI GLFWmonitor** glfwGetMonitors(int* count)
 {
     *count = 0;
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW3_REQUIRE_INIT_OR_RETURN(NULL);
 
     *count = _glfw.monitorCount;
     return (GLFWmonitor**) _glfw.monitors;
@@ -296,14 +296,14 @@ GLFWAPI GLFWmonitor** glfwGetMonitors(int* count)
 
 GLFWAPI GLFWmonitor* glfwGetPrimaryMonitor(void)
 {
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW3_REQUIRE_INIT_OR_RETURN(NULL);
     return (GLFWmonitor*) _glfw.monitors[0];
 }
 
 GLFWAPI void glfwGetMonitorPos(GLFWmonitor* handle, int* xpos, int* ypos)
 {
     _GLFWmonitor* monitor = (_GLFWmonitor*) handle;
-    _GLFW_REQUIRE_INIT();
+    _GLFW3_REQUIRE_INIT();
     _glfwPlatformGetMonitorPos(monitor, xpos, ypos);
 }
 
@@ -311,7 +311,7 @@ GLFWAPI void glfwGetMonitorPhysicalSize(GLFWmonitor* handle, int* width, int* he
 {
     _GLFWmonitor* monitor = (_GLFWmonitor*) handle;
 
-    _GLFW_REQUIRE_INIT();
+    _GLFW3_REQUIRE_INIT();
 
     if (width)
         *width = monitor->widthMM;
@@ -322,14 +322,14 @@ GLFWAPI void glfwGetMonitorPhysicalSize(GLFWmonitor* handle, int* width, int* he
 GLFWAPI const char* glfwGetMonitorName(GLFWmonitor* handle)
 {
     _GLFWmonitor* monitor = (_GLFWmonitor*) handle;
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW3_REQUIRE_INIT_OR_RETURN(NULL);
     return monitor->name;
 }
 
 GLFWAPI GLFWmonitorfun glfwSetMonitorCallback(GLFWmonitorfun cbfun)
 {
     GLFWmonitorfun previous;
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW3_REQUIRE_INIT_OR_RETURN(NULL);
 
     previous = _glfw.monitorCallback;
     _glfw.monitorCallback = cbfun;
@@ -342,7 +342,7 @@ GLFWAPI const GLFWvidmode* glfwGetVideoModes(GLFWmonitor* handle, int* count)
 
     *count = 0;
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW3_REQUIRE_INIT_OR_RETURN(NULL);
 
     if (!refreshVideoModes(monitor))
         return NULL;
@@ -355,7 +355,7 @@ GLFWAPI const GLFWvidmode* glfwGetVideoMode(GLFWmonitor* handle)
 {
     _GLFWmonitor* monitor = (_GLFWmonitor*) handle;
 
-    _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
+    _GLFW3_REQUIRE_INIT_OR_RETURN(NULL);
 
     _glfwPlatformGetVideoMode(monitor, &monitor->currentMode);
     return &monitor->currentMode;
