@@ -14,10 +14,10 @@ SET(MODELS_FOLDER "${PROJECT_SOURCE_DIR}/models" CACHE PATH "MODELS_FOLDER")
 
 option(BUILD_EXAMPLES "Build Examples" ON)
 option(BUILD_OPENGL_HELPERS "Build Classes to handle some opengl features" ON)
-option(BUILD_UNIT_TEST "Build tests" ON)
+option(BUILD_UNIT_TEST "Build tests" OFF)
 option(BUILD_GLEW "Build glew" ON)
 option(BUILD_GLFW "Build glfw" ON)
-option(BUILD_TOOLS "Build tools" ON)
+option(BUILD_TOOLS "Build tools" OFF)
 
 #SET(OPENEXRLIBS "Half Iex IlmImf IlmThread Imath")
 
