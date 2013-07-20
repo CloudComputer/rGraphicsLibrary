@@ -28,7 +28,7 @@ struct RBFHints{
 
 
 	RBFHints(){
-		offSurfPointDistnace = 0.02;
+		offSurfPointDistnace = 0.01;
 		smoothness = 0;
 		minPointsForIterativeFitting = 4000;
 
@@ -38,7 +38,7 @@ struct RBFHints{
 		centerReductionFitingAccuracy = 5*10e-2;
 
 
-		fastFitAccuracy = 10e-7;
+		fastFitAccuracy = 10e-6;
 		fastFitMinInnerSize = 1000;
 		fastFitOuterSize = 0.1f;
 		fastFitCoarseGridSize = 60; 

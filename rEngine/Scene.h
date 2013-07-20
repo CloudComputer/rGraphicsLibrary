@@ -9,14 +9,26 @@
 class rObject;
 class FBO;
 class Camera;
+class Light;
+class ShaderProgram;
 
 class Scene : public IDObject{
 	bool _active;
 	Camera *_cam;
-
+	
 	FBO *_fbo;
+	FBO *_lightFBO;
+	FBO *_combineFBO;
+	ShaderProgram *_LightsShader;
+	ShaderProgram *_CombieShader;
 
 	std::vector<rObject*> _objects;
+	std::vector<Light*> _lights;
+	void createLight(tinyxml2::XMLElement *light);
+	
+	void PassScene();
+	void PassLight();
+	void PassCombine();
 
 public:
 	Scene();
@@ -29,6 +41,7 @@ public:
 
 	void update(float dt);
 	void render();
+
 
 	static Scene* CreateScene(tinyxml2::XMLElement *ele);
 };

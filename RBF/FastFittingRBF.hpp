@@ -53,11 +53,11 @@ public:
 	bool notDone(float accuracy){
 		float v = 0;
 		for(unsigned int i = 0;i<_size;i++){
-			v += _r[i]*_r[i];
+			if(_r[i]>accuracy){
+				return true;
+			}
 		}
-		v = std::sqrt(v) / _size;
-		std::cout << "Current ||rg||:" << v << "||rg|| - e = "  << v - accuracy << std::endl;
-		return v>accuracy;
+		return false;
 	}
 
 	float* R(){return _r;}
@@ -112,7 +112,7 @@ public:
 	void buildMatrix(RBFSystem *s,std::vector<glm::vec4> &points,float smoothNess,bool usePolynomial = false){
 		int sizeI = sizeInner();
 		int sizeO = sizeOuter();
-		int extra = usePolynomial ? 4 : 0;
+		int extra = usePolynomial ? 1 : 0;
 		Eigen::MatrixXf A = Eigen::MatrixXf::Zero(sizeI+sizeO+extra,sizeI+sizeO+extra);
 		for(int i = 0;i<sizeI;i++){
 			auto k = sampleInner(s->_kernels,i);
@@ -128,15 +128,15 @@ public:
 			A(i,i) -= smoothNess;
 
 			if(usePolynomial){
-				A(i,sizeI+sizeO+0) = 1;
+				A(i,sizeI+sizeO+0) = 1;/*
 				A(i,sizeI+sizeO+1) = sampleInner(points,i).x;
 				A(i,sizeI+sizeO+2) = sampleInner(points,i).y;
-				A(i,sizeI+sizeO+3) = sampleInner(points,i).z;
+				A(i,sizeI+sizeO+3) = sampleInner(points,i).z;*/
 
-				A(sizeI+sizeO+0,i) = 1;
+				A(sizeI+sizeO+0,i) = 1;/*
 				A(sizeI+sizeO+1,i) = sampleInner(points,i).x;
 				A(sizeI+sizeO+2,i) = sampleInner(points,i).y;
-				A(sizeI+sizeO+3,i) = sampleInner(points,i).z;
+				A(sizeI+sizeO+3,i) = sampleInner(points,i).z;*/
 			}
 		}
 
@@ -152,15 +152,15 @@ public:
 			}
 
 			if(usePolynomial){
-				A(i,sizeI+sizeO+0) = 1;
+				A(i,sizeI+sizeO+0) = 1;/*
 				A(i,sizeI+sizeO+1) = sampleOuter(points,i).x;
 				A(i,sizeI+sizeO+2) = sampleOuter(points,i).y;
-				A(i,sizeI+sizeO+3) = sampleOuter(points,i).z;
+				A(i,sizeI+sizeO+3) = sampleOuter(points,i).z;*/
 
-				A(sizeI+sizeO+0,i) = 1;
+				A(sizeI+sizeO+0,i) = 1;/*
 				A(sizeI+sizeO+1,i) = sampleOuter(points,i).x;
 				A(sizeI+sizeO+2,i) = sampleOuter(points,i).y;
-				A(sizeI+sizeO+3,i) = sampleOuter(points,i).z;
+				A(sizeI+sizeO+3,i) = sampleOuter(points,i).z;*/
 			}
 		}
 		
@@ -173,7 +173,7 @@ public:
 	void buildVector(__rbf_Residual &r,bool usePolynomial = false){
 		int size1 = sizeInner();
 		int size2 = sizeOuter();
-		int extra = usePolynomial ? 4 : 0;
+		int extra = usePolynomial ? 1 : 0;
 		b = Eigen::VectorXf::Zero(size1+size2+extra);
 
 		for(int i = 0;i<size1;i++){
@@ -499,9 +499,9 @@ RBFSystem *RBFSystem::FastFitting(std::vector<glm::vec4> &points,float smoothNes
 		
 		//*
 		sg->_trend._c[0] += x1(coarseGrid.sizeInner()+0);
-		sg->_trend._c[1] += x1(coarseGrid.sizeInner()+1);
-		sg->_trend._c[2] += x1(coarseGrid.sizeInner()+2);
-		sg->_trend._c[3] += x1(coarseGrid.sizeInner()+3);
+		//sg->_trend._c[1] += x1(coarseGrid.sizeInner()+1);
+		//sg->_trend._c[2] += x1(coarseGrid.sizeInner()+2);
+		//sg->_trend._c[3] += x1(coarseGrid.sizeInner()+3);
 		//*/
 
 		for(int i = 0;i<pointssize;i++){
@@ -510,6 +510,7 @@ RBFSystem *RBFSystem::FastFitting(std::vector<glm::vec4> &points,float smoothNes
 				//std::cout << residual[i] << std::endl;
 			}
 		}
+		std::cout << "Iterations:" <<  maxIterations - _maxIterations << " mean sq error: " <<  sg->meanSqError(points) << std::endl;
 		//std::cout << sg->meanSqError(points) << std::endl;
 			
 #ifdef RBF_DEBUG
@@ -520,7 +521,7 @@ RBFSystem *RBFSystem::FastFitting(std::vector<glm::vec4> &points,float smoothNes
 
 	}while(--_maxIterations&&residual.notDone(accuracy));
 	
-	std::cout << "Iterations:" <<  maxIterations - _maxIterations << std::endl;
+	std::cout << "Iterations:" <<  maxIterations - _maxIterations << " mean sq error: " <<  sg->meanSqError(points) << std::endl;
 	return sg;
 }
 

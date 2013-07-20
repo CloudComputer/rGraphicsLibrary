@@ -27,7 +27,7 @@ public:
 	void bind();
 	void clear();
 
-	static void unbind();
+	void unbind();
 
 	void fboerror();
 

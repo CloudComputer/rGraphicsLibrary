@@ -96,6 +96,22 @@ public:
 };
 
 
+template<class N> class PolyHarmonic : public RBF{
+	virtual float _eval(float r2) const{
+		return std::powf(std::sqrtf(r2),2*N+1);
+	}
+public:
+	virtual void save(tinyxml2::XMLNode *parent){
+		auto element = parent->GetDocument()->NewElement("PolyHarmonic");
+		element->
+		parent->InsertEndChild(element);
+		element->SetAttribute("n",N);
+		addXMLTags(element);
+	}
+	PolyHarmonic(float cx,float cy,float cz,float weight = 1):RBF(cx,cy,cz,weight){}
+	virtual std::string toString()const{return std::string("PolyHarmonic_") + N;}
+};
+
 class Biharmonic : public RBF{
 	virtual float _eval(float r2) const{
 		return std::sqrt(r2);

@@ -466,6 +466,7 @@ struct solve_retval<FullPivHouseholderQR<_MatrixType>, Rhs>
   template<typename Dest> void evalTo(Dest& dst) const
   {
     const Index rows = dec().rows(), cols = dec().cols();
+	int debRHSrow = rhs().rows();
     eigen_assert(rhs().rows() == rows);
 
     // FIXME introduce nonzeroPivots() and use it here. and more generally,

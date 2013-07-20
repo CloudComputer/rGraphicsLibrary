@@ -42,7 +42,7 @@ class PointRenderer : public DrawableObject{
 
 public:
 	PointRenderer(){
-		mesh = static_cast<IndexedMesh*>(Mesh::LoadWavefront<IndexedMesh>(MODELS_DIR "/cow.obj"));
+		mesh = static_cast<IndexedMesh*>(Mesh::LoadWavefront<IndexedMesh>(MODELS_DIR "/suzanne.obj"));
 		float area = mesh->getArea();
 
 		int numPoints = 20000;
@@ -66,14 +66,16 @@ public:
 		rbfHelper.hints.useCentersReduction = !true;
 		rbfHelper.hints.centerReductionStartWith = 0.3;
 		
-		rbfHelper.hints.fastFitMinInnerSize = 2700;
-		rbfHelper.hints.fastFitOuterSize = 0.01;
+		rbfHelper.hints.fastFitMinInnerSize = 500;
+		rbfHelper.hints.fastFitOuterSize = 0.02;
 		rbfHelper.hints.minPointsForIterativeFitting = 0.001;
-		rbfHelper.hints.fastFitCoarseGridSize = 220;
+		rbfHelper.hints.fastFitCoarseGridSize = 50;
 
-
-		rbfHelper.fit<GausianRBF>();
-		rbfMesh = rbfHelper.getMesh<IndexedMesh>(40);
+		rbfHelper.hints.fastFitMaxIterations = 1;
+		
+		//rbfHelper.fit<PolyHarmonic<2>>();
+		rbfHelper.fit<Biharmonic>();
+		rbfMesh = rbfHelper.getMesh<IndexedMesh>(80);
 
 		std::cout << rbfMesh->getArea()  << " " << rbfMesh->getFaces().size() << " " << rbfMesh->getNumVertices() << " " << std::endl;
 

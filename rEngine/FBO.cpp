@@ -103,6 +103,13 @@ void FBO::onResize(glm::ivec2 newSize){
 }
 
 void FBO::bind(){
+	
+	
+	
+	glBindTexture(GL_TEXTURE_2D, _depthTex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
 	chkGLErr();
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
 	chkGLErr();
@@ -117,6 +124,7 @@ void FBO::bind(){
 void FBO::clear(){
 	chkGLErr();
 	bind();
+	chkGLErr();
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -125,7 +133,13 @@ void FBO::clear(){
 	chkGLErr();
 }
 
-void FBO::unbind(){glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);}
+void FBO::unbind(){
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	
+	glBindTexture(GL_TEXTURE_2D, _depthTex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
 
 void FBO::fboerror(){
 	chkGLErr();
