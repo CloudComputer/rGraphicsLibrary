@@ -11,6 +11,8 @@ public:
 
 	static void createFolder(std::string dir);
 
+	static bool exists(std::string path);
+
 };
 
 #endif

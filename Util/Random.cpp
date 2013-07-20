@@ -103,6 +103,18 @@ std::vector<glm::vec4> Random::randomPointsCloseToCubeSurface(int amount,float d
 }
 
 
+glm::vec3 Random::inTriangle(const glm::vec3 &v0,const glm::vec3 &v1,const glm::vec3 &v2){
+	float u,v,a,b,c;
+	u = std::sqrtf(getFloat());
+	v = getFloat();
+	
+	a = 1 - u;
+	b = u*(1-v);
+	c = u*v;
+
+	return a*v0 + b*v1 + c*v2;
+}
+
 glm::vec3 Random::randomPointOnSphereSurface(){
 	float theta = getFloat(0,2*M_PI);
 	float phi   = std::acosf(getFloat(-1,1));

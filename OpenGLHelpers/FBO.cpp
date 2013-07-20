@@ -32,20 +32,20 @@ ShaderProgram *shader = 0;
 #define DBG() 
 #endif
 
-FBO::FBO(){
+FBOa::FBOa(){
 	DBG();
 	isInit = false;
 	_w = -1;
 	_h = -1;
 }
 
-FBO::~FBO(){
+FBOa::~FBOa(){
 	DBG();
 	if(isInit){
 		glDeleteFramebuffersEXT(1,&_fbo);
 	}
 }
-void FBO::init(){
+void FBOa::init(){
 	chkGLErr();
 	if(shader == 0){
 		chkGLErr();
@@ -113,7 +113,7 @@ void FBO::init(){
 
 }
 
-void FBO::setSize(uint16_t w,uint16_t h){
+void FBOa::setSize(uint16_t w,uint16_t h){
 	_w = w;
 	_h = h;
 	std::cout << _w << " " << _h << std::endl;
@@ -126,9 +126,9 @@ void FBO::setSize(uint16_t w,uint16_t h){
 	}
 }
 
-GLuint FBO::getTexture(){return _texID;}
+GLuint FBOa::getTexture(){return _texID;}
 
-void FBO::bind(){
+void FBOa::bind(){
 	DBG();
 	fboerror();
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);fboerror();
@@ -137,7 +137,7 @@ void FBO::bind(){
 	DBG();
 }
 
-void FBO::clear(){
+void FBOa::clear(){
 	DBG();
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbo);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
@@ -149,7 +149,7 @@ void FBO::clear(){
 }
 
 
-void FBO::unbind(){
+void FBOa::unbind(){
 	DBG();
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 	glDrawBuffer(GL_BACK);
@@ -157,7 +157,7 @@ void FBO::unbind(){
 	DBG();
 }
 
-void FBO::render()
+void FBOa::render()
 {
 	DBG();chkGLErr();
 	AttribPusher(GL_ALL_ATTRIB_BITS);
@@ -201,7 +201,7 @@ void FBO::render()
 	shader->unbind();
 }
 
-void FBO::fboerror()
+void FBOa::fboerror()
 {
 	DBG();
 	chkGLErr();

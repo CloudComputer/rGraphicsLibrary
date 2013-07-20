@@ -96,6 +96,22 @@ public:
 };
 
 
+template<class N> class PolyHarmonic : public RBF{
+	virtual float _eval(float r2) const{
+		return std::powf(std::sqrtf(r2),2*N+1);
+	}
+public:
+	virtual void save(tinyxml2::XMLNode *parent){
+		auto element = parent->GetDocument()->NewElement("PolyHarmonic");
+		element->
+		parent->InsertEndChild(element);
+		element->SetAttribute("n",N);
+		addXMLTags(element);
+	}
+	PolyHarmonic(float cx,float cy,float cz,float weight = 1):RBF(cx,cy,cz,weight){}
+	virtual std::string toString()const{return std::string("PolyHarmonic_") + N;}
+};
+
 class Biharmonic : public RBF{
 	virtual float _eval(float r2) const{
 		return std::sqrt(r2);
@@ -130,7 +146,7 @@ class GausianRBF : public RBF{
 	}
 	float _a;
 public:
-	GausianRBF(float cx,float cy,float cz,float weight = 1.0,float a = 50.0):RBF(cx,cy,cz,weight),_a(a*a){}
+	GausianRBF(float cx,float cy,float cz,float weight = 1.0,float a = 10):RBF(cx,cy,cz,weight),_a(a*a){}
 	virtual void save(tinyxml2::XMLNode *parent){
 		auto element = parent->GetDocument()->NewElement("GausianRBF");
 		parent->InsertEndChild(element);
@@ -202,7 +218,14 @@ public:
 
 	template <typename KernelType> static RBFSystem *HFromPoints(std::vector<glm::vec4> &points);
 	template <typename KernelType> static RBFSystem *CreateFromPoints(std::vector<glm::vec4> &points,float w = 0);
-	template <typename KernelType,class Solver> static RBFSystem *FastFitting(std::vector<glm::vec4> &points,float smoothNess,float accuracy,int minInnerSize = 500,float outerSize = 2.0f,int coarseGridSize = 4, int maxIterations = 1000);
+	template <typename KernelType,class Solver> static RBFSystem *FastFitting(std::vector<glm::vec4> &points,
+																				float smoothNess,
+																				float accuracy,
+																				int minInnerSize = 500,
+																				float outerSize = 2.0f,
+																				int coarseGridSize = 4, 
+																				int maxIterations = 1000
+																				);
 };
 
 

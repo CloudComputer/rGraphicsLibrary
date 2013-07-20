@@ -1,0 +1,7 @@
+#RGL MATH
+#RGL PI
+
+vec3 screenSpace2ViewSpace(in vec3 pos,in mat4 projectionMatrix,in mat4 cameraMatrix){
+	vec4 p = (inverse(cameraMatrix) * inverse(projectionMatrix) * vec4(pos*2-1,1.0));
+	return p.xyz / p.w;
+}

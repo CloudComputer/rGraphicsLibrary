@@ -13,7 +13,7 @@ file(GLOB CSG_SRC
 
 add_library(CSG ${CSG_SRC})
 
-target_link_libraries(CSG Base Mesh)
+target_link_libraries(CSG Volume BoundingGeometry RBF Base Mesh)
 
 set_target_properties(CSG
   PROPERTIES

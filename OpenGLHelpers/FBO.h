@@ -8,13 +8,13 @@
 #include <GL/GL.h>
 #include <glm/glm.hpp>
 
-class FBO{
+class FBOa{
 	uint16_t _w,_h;
 	bool isInit;
 	GLuint _fbo,_texID,_depthTex;
 public:
-	FBO();
-	virtual ~FBO();
+	FBOa();
+	virtual ~FBOa();
 	void init();
 	void setSize(uint16_t w,uint16_t h);
 	glm::ivec2 getSize(){return glm::ivec2(_w,_h);}

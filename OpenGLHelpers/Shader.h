@@ -12,6 +12,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 
 class Shader{
 protected:
@@ -21,8 +22,8 @@ protected:
 
 public:
 	virtual ~Shader();
-	void setSourceFromFile(std::string filename);
-	void setSouce(std::string source);
+	void setSourceFromFile(std::string filename,std::vector<std::string> defines = std::vector<std::string>());
+	void setSouce(std::string source,std::vector<std::string> defines = std::vector<std::string>());
 
 	GLuint getShader();
 
@@ -37,7 +38,7 @@ public:
 	virtual ~VertexShader(){}
 	virtual void init();
 
-	static VertexShader* CreateNewFromFile(std::string filename);
+	static VertexShader* CreateNewFromFile(std::string filename,std::vector<std::string> defines = std::vector<std::string>());
 };
 
 
@@ -47,7 +48,7 @@ public:
 	virtual ~FragmentShader(){}
 	virtual void init();
 
-	static FragmentShader* CreateNewFromFile(std::string filename);
+	static FragmentShader* CreateNewFromFile(std::string filename,std::vector<std::string> defines = std::vector<std::string>());
 };
 
 
@@ -69,11 +70,14 @@ public:
 
 	GLint getLocation(std::string loc);
 
+	GLuint getProgramID()const{return _programID;}
+
 	static void reReadFunctionSubbs();
 	void init();
 	void setShader(VertexShader *v);
 	void setShader(FragmentShader *f);
 	void link();
+	void relink();
 
 	void bind();
 	void unbind();
@@ -146,7 +150,7 @@ public:
 
 	void loadLocations();
 
-	static ShaderProgram * CreateShaderProgramFromSources(std::string vertexShader,std::string fragmentShader);
+	static ShaderProgram * CreateShaderProgramFromSources(std::string vertexShader,std::string fragmentShader,std::vector<std::string> defines = std::vector<std::string>());
 	void setTexture( std::string location, GLenum textureType, int activeTexture, GLuint texture );
 };
 

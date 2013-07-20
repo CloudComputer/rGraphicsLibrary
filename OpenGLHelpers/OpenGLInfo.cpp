@@ -29,7 +29,7 @@ std::string OpenGLInfo::getOpenGLVersion(){
 	s << glGetString(GL_VERSION);
 	return s.str();
 }
-
+  
 std::string OpenGLInfo::getOpenGLMaxLights(){
 	int param;
 	glGetIntegerv(GL_MAX_LIGHTS, &param);

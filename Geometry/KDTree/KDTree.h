@@ -136,25 +136,6 @@ public:
 	virtual std::string toString() const;
 };
 
-template <typename dataType,typename floatPrecision = float> class K3DTree : public KDTree<dataType,3,floatPrecision>{
-public:
-	K3DTree():KDTree(){}
-	virtual ~K3DTree(){}
-
-	Node *insert(const glm::vec3 pos, const dataType &data){
-		return KDTree<dataType,3,floatPrecision>::insert((const float *)glm::value_ptr(pos),data);
-	}
-	Node *find(const glm::vec3 pos){
-		return KDTree<dataType,3,floatPrecision>::find((const float *)glm::value_ptr(pos));
-	}
-	
-	Node *findNearest(const glm::vec3 pos){
-		return KDTree<dataType,3,floatPrecision>::findNearest((const float *)glm::value_ptr(pos));
-	}
-	std::vector<Node*> findCloseTo(const glm::vec3 pos,const floatPrecision distance){
-		return KDTree<dataType,3,floatPrecision>::findCloseTo((const float *)glm::value_ptr(pos),distance);
-	}
-};
 
 template <typename dataType,typename floatPrecision = float> class K2DTree : public KDTree<dataType,2,floatPrecision>{
 public:
@@ -173,6 +154,26 @@ public:
 	}
 	std::vector<Node*> findCloseTo(const glm::vec2 pos,const floatPrecision distance){
 		return KDTree<dataType,2,floatPrecision>::findCloseTo((const float *)glm::value_ptr(pos),distance);
+	}
+};
+
+template <typename dataType,typename floatPrecision = float> class K3DTree : public KDTree<dataType,3,floatPrecision>{
+public:
+	K3DTree():KDTree(){}
+	virtual ~K3DTree(){}
+
+	Node *insert(const glm::vec3 pos, const dataType &data){
+		return KDTree<dataType,3,floatPrecision>::insert((const float *)glm::value_ptr(pos),data);
+	}
+	Node *find(const glm::vec3 pos){
+		return KDTree<dataType,3,floatPrecision>::find((const float *)glm::value_ptr(pos));
+	}
+	
+	Node *findNearest(const glm::vec3 pos){
+		return KDTree<dataType,3,floatPrecision>::findNearest((const float *)glm::value_ptr(pos));
+	}
+	std::vector<Node*> findCloseTo(const glm::vec3 pos,const floatPrecision distance){
+		return KDTree<dataType,3,floatPrecision>::findCloseTo((const float *)glm::value_ptr(pos),distance);
 	}
 };
 

@@ -49,6 +49,7 @@ class BoundingAABB : public BoundingVolume{
 	glm::vec3 _maxPos;
 
 public:
+	BoundingAABB(){}
 	BoundingAABB(glm::vec3 minPos,glm::vec3 maxPos){
 		_minPos = minPos;
 		_maxPos = maxPos;

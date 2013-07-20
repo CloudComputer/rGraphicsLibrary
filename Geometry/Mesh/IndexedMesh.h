@@ -27,6 +27,8 @@ public:
 
 	unsigned int getNumVertices(){return _vertices.size();}
 
+	virtual float getArea()const;
+
 	void clear(bool onlyFaces = false);
 
 	virtual void calculateNormals();

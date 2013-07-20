@@ -84,10 +84,16 @@ bool SuperEngine::init(){
 		return false;
 	}
 
-	if (glfwOpenWindow(_winSize.x, _winSize.y, 8, 8, 8, 8, 32, 0, GLFW_WINDOW) != GL_TRUE){
+	bool fullscreen = !true;
+	if(fullscreen){
+		_winSize = glm::ivec2(1920,1080);
+	}
+
+	if (glfwOpenWindow(_winSize.x, _winSize.y, 8, 8, 8, 8, 32, 0,fullscreen ? GLFW_FULLSCREEN  : GLFW_WINDOW) != GL_TRUE){
 		std::cout << "Could not create window"<< std::endl;
 		return false;
 	}
+
 	glfwSetWindowTitle (_title.c_str());
 
 	if(glewInit() != GLEW_OK)
@@ -97,6 +103,9 @@ bool SuperEngine::init(){
 	}
 
 	chkGLErr();
+	int maj,min,rev;
+	glfwGetVersion(&maj,&min,&rev);
+	std::cout << "GLFW Version: " << maj << "." << min << "." << rev  << std::endl;
 	std::cout << "OpenGL Version: " << OpenGLInfo::getOpenGLVersion() << std::endl;
 	std::cout << "Glew   Version: " << OpenGLInfo::getGlewVersion()   << std::endl;
 	std::cout << "GLSL   Version: " << OpenGLInfo::getGLSLVersion()   << std::endl;

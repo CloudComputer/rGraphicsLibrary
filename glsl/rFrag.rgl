@@ -1,0 +1,14 @@
+#RGL RFRAG
+#version 430
+layout(location = 0) out vec4 outDiffuse;
+layout(location = 1) out vec4 outSpecular;
+layout(location = 2) out vec4 outAmbient;
+layout(location = 3) out vec4 outNormal;
+
+
+void setOutput(in vec4 diffuse,in vec3 specular,in vec3 ambient,in vec3 normal,in float depth,float specularity){
+	outDiffuse = diffuse;
+	outSpecular = vec4(specular,1.0-1.0/specularity);
+	outAmbient = vec4(ambient,1.0);
+	outNormal = vec4((normal+1.0)*0.5,depth);
+}
