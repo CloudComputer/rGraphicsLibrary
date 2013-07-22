@@ -1,0 +1,145 @@
+<rEngine>
+<texturePath>
+	<path>textures</path>
+</texturePath>
+<window id="win1">
+	<size>800 600</size>
+	<title>Main window</title>
+	<viewport type="fullscreen">
+		<texture name="scene_combine" />
+	</viewport>
+</window>
+
+<texture name="red"  src="textures/red.jpg" />
+<texture name="colors"  src="textures/colors.jpg" />
+<texture name="floor" src="textures/floor.jpg" />
+<texture name="green" src="textures/green.jpg" />
+<texture name="blue"  src="textures/blue.jpg" />
+<texture name="yellow" src="textures/yellow.jpg" />
+<texture name="trans" src="textures/trans.png" />
+<texture name="white" src="textures/white.jpg" />
+<texture name="lorem" src="textures/lorem.jpg" />
+
+  <scene id="scene" window="win1">
+    <camera type="FPS">
+      <projection type="perspective" near="2" far="10" fov="45" />
+      <position>0 1.25 -3.8</position>
+      <direction>0 0 1</direction>
+      <allowFlying />
+    </camera>
+
+    <light type="point">
+      <position>0 1.25 2</position>
+      <color>255 255 255</color>
+    </light>
+
+    <mesh id="floor" primitive="quads">
+      <vertices>
+        <!-- vx vy vz nx ny nz tx ty  -->
+        2 0 0 0 1 0 1 0
+        2 0 4 0 1 0 1 1
+        -2 0 4 0 1 0 0 1
+        -2 0 0 0 1 0 0 0
+      </vertices>
+      <indices>0 1 2 3</indices>
+      <texture name="floor" />
+      <material>
+        <specular>0 0 0</specular>
+        <ambient>255 255 255</ambient>
+        <specularity>40</specularity>
+      </material>
+    </mesh>
+
+    <mesh id="roof" primitive="quads">
+      <vertices>
+        <!-- vx vy vz nx ny nz tx ty  -->
+        2 2.5 0 0 -1 0 1 0
+        2 2.5 4 0 -1 0 1 1
+        -2 2.5 4 0 -1 0 0 1
+        -2 2.5 0 0 -1 0 0 0
+      </vertices>
+      <indices>0 1 2 3</indices>
+      <material>
+        <diffuse>255 255 255</diffuse>
+        <specular>0 0 0</specular>
+        <ambient>255 255 255</ambient>
+        <specularity>40</specularity>
+      </material>
+    </mesh>
+
+    <mesh id="leftWall" primitive="quads">
+      <vertices>
+        2 0.0 0 -1 0 0 1 0
+        2 0.0 4 -1 0 0 1 1
+        2 2.5 4 -1 0 0 1 1
+        2 2.5 0 -1 0 0 1 0
+      </vertices>
+      <indices>0 1 2 3</indices>
+      <material>
+        <diffuse>255 50 50</diffuse>
+        <specular>0 0 0</specular>
+        <ambient>255 50 50</ambient>
+        <specularity>40</specularity>
+      </material>
+    </mesh>
+
+    <mesh id="rightWall" primitive="quads">
+      <vertices>
+        -2 0.0 0 1 0 0 1 0
+        -2 0.0 4 1 0 0 1 1
+        -2 2.5 4 1 0 0 1 1
+        -2 2.5 0 1 0 0 1 0
+      </vertices>
+      <indices>0 1 2 3</indices>
+      <material>
+        <diffuse>50 255 50</diffuse>
+        <specular>0 0 0</specular>
+        <ambient>50 255 50</ambient>
+        <specularity>40</specularity>
+      </material>
+    </mesh>
+
+    <mesh id="backWall" primitive="quads">
+      <vertices>
+        2 0 4 0 0 -1 1 1
+        -2 0 4 0 0 -1 0 1
+        -2 2.5 4 0 0 -1 0 1
+        2 2.5 4 0 0 -1 1 1
+      </vertices>
+      <indices>0 1 2 3</indices>
+      <material>
+        <diffuse>50 50 255</diffuse>
+        <ambient>50 50 255</ambient>
+        <specular>0 0 0</specular>
+        <specularity>40</specularity>
+      </material>
+    </mesh>
+
+    <csg>
+      <pointCloud>
+        <points mesh="F:\cpp\rGraphicsLibrary\models\cow.obj" amount="16000" />
+      </pointCloud>
+      <bounds>
+        <min>0 0 0</min>
+        <max>1 1 0.5</max>
+      </bounds>
+      <resolution>180</resolution>
+
+      <material>
+        <specular>0 0 0</specular>
+        <ambient>255 255 255</ambient>
+        <specularity>40</specularity>
+      </material>
+
+      <transform>
+        <rotate>30 1 0 0</rotate>
+        <translate>0 1 1</translate>
+        <scale>2 2 2</scale>
+      </transform>
+    </csg>
+    
+    
+    
+  </scene>
+    
+</rEngine>
