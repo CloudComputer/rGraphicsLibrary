@@ -5,47 +5,58 @@
 
 #include <Geometry\KDTree\KDTree.h>
 
-class SubPointCloud;
-struct PointCloudPoint{
-	float shift;
-	glm::vec3 N,P;
-	PointCloudPoint(const glm::vec3 &P,const glm::vec3 &N);
-	float G(const glm::vec3 &p);
-	void init(SubPointCloud *owner);
-	float phi(float r,float supportSize);
-private:
+class PointCloudInterpolation;
+
+struct PointCloudInterpolationHints{
+	PointCloudInterpolationHints():
+		K(20),
+		m(15),
+		TOverlap(1.5),
+		Tsa(2.0e-5),
+		Treg(1.0e-5),
+		supportSize(0.05){}
+	int K;
+	int m;
+	float TOverlap;
+	float Tsa;
+	float Treg;
+	float supportSize; //TODO remove this and make it auto
+};
+
+struct Point{
+	Point(const glm::vec3 &P):P(P),N(0,0,0),density(0),overlap(0){
+	
+	}
+	glm::vec3 P;
+	glm::vec3 N;
+	float overlap;
+	float density;
+};
+
+
+struct Center{
+	Center(const Point& p,PointCloudInterpolation *cloud,const PointCloudInterpolationHints &hints);
+	glm::vec3 P;
+	float supportSize,A,B,C,D,E,F,lambda;
 	glm::vec3 u,v,w;
-	float A,B,C;
+	float g(const glm::vec3 &worldPos);
 };
-
-class SubPointCloud {
-	friend class PointCloudPoint;
-	friend class PointCloudInterpolation;
-	K3DTree<PointCloudPoint> _points;
-	SubPointCloud *_childs[8];
-	BoundingAABB _aabb;
-	float supportSize;
-public:
-	SubPointCloud(K3DTree<glm::vec3> &points);
-	SubPointCloud();
-	~SubPointCloud();
-
-	bool hasChilds();
-
-	float eval(const glm::vec3 &worldPos);
-
-	void init();
-	void subdivide();
-};
-
 
 class PointCloudInterpolation : public CSG{
-	SubPointCloud _points;
+	friend class Center;
+	K3DTree<Point> _points;
+	K3DTree<Center> _centers;
+	float L;
+	float maxSupportSize;
+	BoundingAABB _aabb;
 public:
-	PointCloudInterpolation(K3DTree<glm::vec3> &points);
-	virtual ~PointCloudInterpolation();
+	PointCloudInterpolation(std::vector<glm::vec3> pointCloud, PointCloudInterpolationHints hints = PointCloudInterpolationHints());
+	virtual ~PointCloudInterpolation(){}
 
-	const BoundingAABB &getAABB(){return _points._aabb;}
+	K3DTree<Center> *getCenters(){return &_centers;}
+	float getMaxSupportSize(){return maxSupportSize;}
+
+	const BoundingAABB &getAABB(){return _aabb;}
 
 	virtual float eval(const glm::vec3 &worldPos);
 

@@ -21,7 +21,7 @@ class MarchingTetrahedra : public Object{
 public:
 	template<typename MeshType> static Mesh* March(ImplicitFunction *function,const BoundingAABB &box,const glm::ivec3 &resultion);
 	template<typename MeshType> static Mesh* March(RBFSystem *rbf,const int &resultion);
-	template<typename MeshType> static Mesh* March(PointCloudInterpolation *pci,const int &resultion,K3DTree<glm::vec3> &pointCloud);
+	template<typename MeshType> static Mesh* March(PointCloudInterpolation *pci,const int &resultion);
 };
 
 template<typename MeshType>
@@ -116,10 +116,11 @@ Mesh* MarchingTetrahedra::March(RBFSystem *rbf, const int &resultion){
 
 
 template<typename MeshType>
-Mesh* MarchingTetrahedra::March(PointCloudInterpolation *pci, const int &resultion,K3DTree<glm::vec3> &tree){
+Mesh* MarchingTetrahedra::March(PointCloudInterpolation *pci, const int &resultion){
 	Mesh *mesh = new MeshType();
+	auto tree = pci->getCenters();
 	CSGCache pciEval(pci);
-	
+
 	BoundingAABB box = pci->getAABB();
 	float x,y,z,w,h,d,dm;
 	auto minPos = box.getPosition(glm::vec3(0,0,0));
@@ -135,6 +136,8 @@ Mesh* MarchingTetrahedra::March(PointCloudInterpolation *pci, const int &resulti
 	res.y = std::ceil(h/dm);
 	res.z = std::ceil(d/dm);
 	
+	std::cout << res.x << " " << res.y << " " << res.z << std::endl;
+
 	float v[8];
 	glm::vec3 p[8];
 	unsigned int tets[6][4] = {
@@ -146,7 +149,7 @@ Mesh* MarchingTetrahedra::March(PointCloudInterpolation *pci, const int &resulti
 		{7,6,5,3}
 	};
 
-	float d3 = 4*std::sqrt(3*dm*dm);
+	float d3 = 1.5*std::sqrt(3*dm*dm);
 	glm::vec3 center;
 	for(int k = -1;k<res.z+1;k++){ //plus/minus one since our bounding box fits the centers of the rbf prefectly
 		for(int j = -1;j<res.y+1;j++){
@@ -160,9 +163,8 @@ Mesh* MarchingTetrahedra::March(PointCloudInterpolation *pci, const int &resulti
 				center.z = minPos.z + dm * (k+0.5);
 
 								
-				auto n = tree.findNearest(center);
-				glm::vec3 closest(n->getPosition()[0],n->getPosition()[1],n->getPosition()[2]);
-				if(glm::distance(center,closest) > d3)
+				auto n = tree->findNearest(center);
+				if(glm::distance(center,n->get().P) > d3)
 					continue;
 				
 				p[0] = glm::vec3(x,y,z);
@@ -233,7 +235,6 @@ Mesh* MarchingTetrahedra::March(ImplicitFunction *function,const BoundingAABB &b
 				for(int a = 0;a<8;a++){
 					v[a] = function->eval(p[a]);
 				}
-
 				for(int a = 0;a<6;a++){
 					_evaluateTetra(m,	p[tets[a][0]],v[tets[a][0]],
 										p[tets[a][1]],v[tets[a][1]],

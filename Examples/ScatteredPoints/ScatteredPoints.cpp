@@ -78,7 +78,7 @@ public:
 		}
 
 		
-		PointCloudInterpolation csg(pointCloud);
+		//PointCloudInterpolation csg(pointCloud);
 
 		/*CSGSphere s0(0.2,glm::vec3(0.5,0.5,0.5));
 		CSGSphere s1(0.1,glm::vec3(0.7,0.5,0.5));
@@ -99,8 +99,8 @@ public:
 
 		glm::vec3 _min(0,0,0),_max(1,1,1);
 		int dim = 80;
-		auto m = MarchingTetrahedra::March<IndexedMesh>(&csg,dim,pointCloud);
-		mesh = dynamic_cast<IndexedMesh*>(m);
+		//auto m = MarchingTetrahedra::March<IndexedMesh>(&csg,dim,pointCloud);
+		//mesh = dynamic_cast<IndexedMesh*>(m);
 	}
 
 

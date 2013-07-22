@@ -8,8 +8,11 @@
 
 #include <glm\gtc\matrix_transform.hpp>
 
+#include <Util\Macros.h>
+
 #include "Scene.h"
 #include "Camera.h"
+#include "CSGReader.h"
 
 rObject::rObject(){
 }
@@ -45,6 +48,8 @@ rObject* rObject::CreateObject(tinyxml2::XMLElement *ele){
 		MeshRenderer::CreateObject(obj,ele);
 	}else if(type == "fractal"){
 		MeshRenderer::CreateFractal(obj,ele);
+	}else if(type == "csg"){
+		CSGReader::ReadXML(obj,ele);
 	}
 
 	if(!obj)
@@ -57,6 +62,31 @@ rObject* rObject::CreateObject(tinyxml2::XMLElement *ele){
 	if(id.length() != 0)
 		obj->setID(id);
 
+	auto transform = ele->FirstChildElement("transform");
+	if(transform){
+		FOR_XML_ALL_ELE(transform,e){
+			auto name = e->Name();
+			if(strcmp(name,"translate") == 0){
+				std::istringstream iss(e->GetText());
+				glm::vec3 offSet = glm::vec3(0,0,0);
+				iss >> offSet.x>>offSet.y>>offSet.z;
+				obj->_model = glm::translate(obj->_model,offSet);
+			}
+			if(strcmp(name,"scale") == 0){
+				std::istringstream iss(e->GetText());
+				glm::vec3 scale = glm::vec3(0,0,0);
+				iss >> scale.x>>scale.y>>scale.z;
+				obj->_model = glm::scale(obj->_model,scale);
+			}
+			if(strcmp(name,"rotate") == 0){
+				std::istringstream iss(e->GetText());
+				glm::vec3 axis = glm::vec3(0,0,0);
+				float angle;
+				iss >> angle >> axis.x>>axis.y>>axis.z;
+				obj->_model = glm::rotate(obj->_model,angle,axis);
+			}
+		}
+	}
 
 
 	return obj;

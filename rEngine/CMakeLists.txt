@@ -9,7 +9,7 @@ file(GLOB SuperEngine_SRC
 
 add_library(rEngine ${SuperEngine_SRC})
 
-target_link_libraries(rEngine glfw3 glew TinyXML2 Util OpenGLHelpers IMHelpers Mesh)
+target_link_libraries(rEngine glfw3 glew TinyXML2 Util OpenGLHelpers IMHelpers Mesh CSG Math)
 
 set_target_properties(rEngine
   PROPERTIES

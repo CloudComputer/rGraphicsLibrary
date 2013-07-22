@@ -9,6 +9,8 @@
 
 #include <Geometry/BoundingGeometry/BoundingVolume.h>
 
+#include <fstream>
+
 #include "Vertex.h"
 #include "Face.h"
 

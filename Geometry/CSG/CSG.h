@@ -24,11 +24,14 @@ enum CSGOperation{
 };
 
 class CSGCombine : public CSG{
-	CSG *_c0,*_c1;
+	std::vector<CSG*> _subs;
 	CSGOperation _operation;
 public:
+	CSGCombine(CSGOperation _operation);
 	CSGCombine(CSG *c0, CSG *c1,CSGOperation _operation);
 	virtual float eval(const glm::vec3 &worldPos);
+
+	void addCSG(CSG *c);
 
 	virtual std::string toString()const;
 };

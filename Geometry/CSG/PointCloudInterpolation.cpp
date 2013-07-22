@@ -6,242 +6,168 @@
 
 #include <Util\Macros.h>
 
-#define DBG() std::cout << __FUNCTION__ << ":" << __LINE__ << std::endl;
+#include <Math\Plane.h>
 
-PointCloudPoint::PointCloudPoint(const glm::vec3 &P,const glm::vec3 &N):P(P),N(N),shift(0){
-	w = N;
+float phi(const float &r){
+	if(r>=1) return 0;
+	if(r<=Eigen::NumTraits<float>::epsilon()) return 1;
+	return std::powf(1-r,4)*(4*r+1);
+}
+
+float phi(const glm::vec3 x0,const glm::vec3 x1,const float &supportSize){
+	return phi(glm::distance(x0,x1)/supportSize);
+}
+
+bool sortOverlap (K3DTree<Point>::Node* a,K3DTree<Point>::Node* &b) { 
+	return a->get().overlap < b->get().overlap;
+}
+
+
+Center::Center(const Point& p,PointCloudInterpolation *cloud,const PointCloudInterpolationHints &hints):lambda(0),w(0,0,0),P(p.P){
+	supportSize = hints.supportSize;
+	cloud->maxSupportSize = std::max(cloud->maxSupportSize,supportSize);
+	
+	auto nodes = cloud->_points.findCloseTo(P,supportSize);
+	IT_FOR(nodes,node){
+		float ph = phi((*node)->get().P,P,supportSize);
+		//w += (*node)->get().N * ph * (*node)->get().density;
+		(*node)->get().overlap += ph;
+	}
+	w = glm::normalize(p.N);
 	if(glm::dot(w,glm::vec3(0,0,1)) != 1){
 		u = glm::cross(glm::vec3(0,0,1),w);
 	}else{
-		u = glm::normalize(glm::cross(glm::vec3(0,1,0),w));
+		u =glm::cross(glm::vec3(0,1,0),w);
 	}
-	v = glm::normalize(glm::cross(u,w));
-}
 
-float PointCloudPoint::G(const glm::vec3 &p){
-	glm::vec3 uvw;
-	uvw.x = glm::dot(u,p-P);
-	uvw.y = glm::dot(v,p-P);
-	uvw.z = glm::dot(w,p-P);
-	
-	return uvw.z - (A*uvw.x*uvw.x + B*uvw.x*uvw.y + C*uvw.y*uvw.y);
-}
+	v = glm::cross(u,w);
 
-void PointCloudPoint::init(SubPointCloud *owner){
-	Eigen::Matrix3f M;
-	Eigen::Vector3f C;
-	M(0,0) = M(0,1) = M(0,2) = 0;
-	M(1,0) = M(1,1) = M(1,2) = 0;
-	M(2,0) = M(2,1) = M(2,2) = 0;
-	C(0) = C(1) = C(2) = 0;
+	Eigen::MatrixXf M(6,6);
+	Eigen::VectorXf b(6),x(6);
+	for(int i = 0;i<6;i++){
+		b(i) = 0;
+		for(int j = 0;j<6;j++){
+			M(i,j) = 0;
+		}
+	}
 
-	IT_FOR(owner->_points,point){
-		glm::vec3 p;
-		float ph,x,y,z;
-		p.x = point->getPosition()[0];
-		p.y = point->getPosition()[1];
-		p.z = point->getPosition()[2];
+	IT_FOR(nodes,node){
+		glm::vec3 p = (*node)->get().P;
+		float ph,x,y,z,d = (*node)->get().density;
 		x = glm::dot(u,p-P);
 		y = glm::dot(v,p-P);
 		z = glm::dot(w,p-P);
-		ph = phi(glm::length(glm::vec3(x,y,z)),owner->supportSize);
+		ph = phi(p,P,supportSize)*d;
 		
-		M(0,0) += x*x*x*x*ph; M(0,1) += x*x*x*y*ph; M(0,2) += x*x*y*y*ph;
-		M(1,0) += x*x*x*y*ph; M(1,1) += x*x*y*y*ph; M(1,2) += x*y*y*y*ph;
-		M(2,0) += x*x*y*y*ph; M(2,1) += x*y*y*y*ph; M(2,2) += y*y*y*y*ph;
+		M(0,0) += x*x*x*x*ph;	M(0,1) += x*x*y*x*ph;	M(0,2) += x*x*y*y*ph;	M(0,3) += x*x*x*ph;	M(0,4) += x*x*y*ph;	M(0,5) += x*x*ph;
+		M(1,0) += 2*x*y*x*x*ph;	M(1,1) += 2*x*y*y*x*ph;	M(1,2) += 2*x*y*y*y*ph;	M(1,3) += 2*x*y*x*ph;	M(1,4) += 2*x*y*y*ph;	M(1,5) += 2*x*y*ph;
+		M(2,0) += y*y*x*x*ph;	M(2,1) += y*y*y*x*ph;	M(2,2) += y*y*y*y*ph;	M(2,3) += y*y*x*ph;	M(2,4) += y*y*y*ph;	M(2,5) += y*y*ph;
+		M(3,0) += 1*x*x*x*ph;	M(3,1) += 1*x*y*x*ph;	M(3,2) += 1*x*y*y*ph;	M(3,3) += 1*x*x*ph;	M(3,4) += 1*x*y*ph;	M(3,5) += 1*x*ph;
+		M(4,0) += 1*y*x*x*ph;	M(4,1) += 1*y*y*x*ph;	M(4,2) += 1*y*y*y*ph;	M(4,3) += 1*y*x*ph;	M(4,4) += 1*y*y*ph;	M(4,5) += 1*y*ph;
+		M(5,0) += 1*1*x*x*ph;	M(5,1) += 1*1*y*x*ph;	M(5,2) += 1*1*y*y*ph;	M(5,3) += 1*1*x*ph;	M(5,4) += 1*1*y*ph;	M(5,5) += 1*1*ph;
 		
-		C(0) += (x*x*z)*ph;
-		C(1) += (x*y*z)*ph;
-		C(2) += (y*y*z)*ph;
+		b(0) += ph*z*x*x;
+		b(1) += 2*ph*z*x*y;
+		b(2) += ph*z*y*y;
+		b(3) += ph*z*x;
+		b(4) += ph*z*y;
+		b(5) += ph*z*1;
 	}
-	Eigen::Vector3f ABC = Eigen::FullPivHouseholderQR<Eigen::Matrix3f>(M).solve(C);
-	this->A = ABC(0);
-	this->B = ABC(1);
-	this->C = ABC(2);
 
+	x = M.llt().solve(b);
+	A = x(0);
+	B = x(1);
+	C = x(2);
+	D = x(3);
+	E = x(4);
+	F = x(5);
 }
 
-float PointCloudPoint::phi(float _r,float supportSize){
-	float r = _r / supportSize;
-	if(r>=1) return 0;
-	if(r<=Eigen::NumTraits<float>::epsilon()) return 1;
-	return std::powf((1-r),4) * (4*r+1);
+float Center::g(const glm::vec3 &p){
+	float x = glm::dot(u,p-P);
+	float y = glm::dot(v,p-P);
+	float z = glm::dot(w,p-P);
+
+	return z - (A*x*x + 2*B*x*y + C*y*y + D*x + E*y +F); 
 }
 
-SubPointCloud::SubPointCloud(){
-	_childs[0] = 0;
-	_childs[1] = 0;
-	_childs[2] = 0;
-	_childs[3] = 0;
-	_childs[4] = 0;
-	_childs[5] = 0;
-	_childs[6] = 0;
-	_childs[7] = 0;
-}
-
-
-SubPointCloud::SubPointCloud(K3DTree<glm::vec3> &p){
-	_childs[0] = 0;
-	_childs[1] = 0;
-	_childs[2] = 0;
-	_childs[3] = 0;
-	_childs[4] = 0;
-	_childs[5] = 0;
-	_childs[6] = 0;
-	_childs[7] = 0;
-
-	IT_FOR(p,node){
-		glm::vec3 pos(node->getPosition()[0],node->getPosition()[1],node->getPosition()[2]);
-		PointCloudPoint p(pos,node->get());
-		_points.insert(pos,p);
+PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointCloud, PointCloudInterpolationHints hints):
+	maxSupportSize(0)
+{
+	std::vector<K3DTree<Point>::Node*> pointsLeft;
+	IT_FOR(pointCloud,p){
+		pointsLeft.push_back(_points.insert(*p,Point(*p)));
 	}
 	
-	_aabb.minPos().x = _points.findMin(0)->getPosition()[0];
-	_aabb.minPos().y = _points.findMin(1)->getPosition()[1];
-	_aabb.minPos().z = _points.findMin(2)->getPosition()[2];
-	_aabb.maxPos().x = _points.findMax(0)->getPosition()[0];
-	_aabb.maxPos().y = _points.findMax(1)->getPosition()[1];
-	_aabb.maxPos().z = _points.findMax(2)->getPosition()[2];
+	auto minX = _points.findMin(0)->getPosition()[0];
+	auto minY = _points.findMin(1)->getPosition()[1];
+	auto minZ = _points.findMin(2)->getPosition()[2];
+	auto maxX = _points.findMax(0)->getPosition()[0];
+	auto maxY = _points.findMax(1)->getPosition()[1];
+	auto maxZ = _points.findMax(2)->getPosition()[2];
+	float dx = maxX - minX;
+	float dy = maxY - minY;
+	float dz = maxZ - minZ;
+	_aabb.minPos() = glm::vec3(minX,minY,minZ);
+	_aabb.maxPos() = glm::vec3(maxX,maxY,maxZ);
 
-	subdivide();
-}
-
-
-SubPointCloud::~SubPointCloud(){
-	delete _childs[0];
-	delete _childs[1];
-	delete _childs[2];
-	delete _childs[3];
-	delete _childs[4];
-	delete _childs[5];
-	delete _childs[6];
-	delete _childs[7];
-	_childs[0] = 0;
-	_childs[1] = 0;
-	_childs[2] = 0;
-	_childs[3] = 0;
-	_childs[4] = 0;
-	_childs[5] = 0;
-	_childs[6] = 0;
-	_childs[7] = 0;
-}
+	L = std::sqrt(dx*dx + dy*dy + dz*dz);
 
 
-bool SubPointCloud::hasChilds(){
-	return _childs[0] != 0 ||
-		   _childs[1] != 0 ||
-		   _childs[2] != 0 ||
-		   _childs[3] != 0 ||
-		   _childs[4] != 0 ||
-		   _childs[5] != 0 ||
-		   _childs[6] != 0 ||
-		   _childs[7] != 0;
-}
-
-float SubPointCloud::eval(const glm::vec3 &worldPos){
-	float val = 0;
-	if(hasChilds()){
-		if(_childs[0]) val += _childs[0]->eval(worldPos);
-		if(_childs[1]) val += _childs[1]->eval(worldPos);
-		if(_childs[2]) val += _childs[2]->eval(worldPos);
-		if(_childs[3]) val += _childs[3]->eval(worldPos);
-		if(_childs[4]) val += _childs[4]->eval(worldPos);
-		if(_childs[5]) val += _childs[5]->eval(worldPos);
-		if(_childs[6]) val += _childs[6]->eval(worldPos);
-		if(_childs[7]) val += _childs[7]->eval(worldPos);
-	}else{
-		IT_FOR(_points,p){
-			glm::vec3 pos(p->getPosition()[0],p->getPosition()[1],p->getPosition()[2]);
-			val += (p->get().shift + p->get().G(worldPos)) *  p->get().phi(glm::length(worldPos-pos),supportSize);
+	IT_FOR(_points,node){
+		std::vector<glm::vec3> closePoints;
+		auto nodes = _points.findNNearest(node->getPosition(),hints.K);
+		node->get().density = 0;
+		IT_FOR(nodes,p){
+			closePoints.push_back((*p)->get().P);
+			auto o = (*p)->get().P - node->get().P;
+			node->get().density += glm::dot(o,o);
 		}
+		node->get().N = (Plane(closePoints)).getNormal();
 	}
 
-	return val;
-}
-
-void SubPointCloud::init(){
-	if(hasChilds()){
-		if(_childs[0])_childs[0]->init();
-		if(_childs[1])_childs[1]->init();
-		if(_childs[2])_childs[2]->init();
-		if(_childs[3])_childs[3]->init();
-		if(_childs[4])_childs[4]->init();
-		if(_childs[5])_childs[5]->init();
-		if(_childs[6])_childs[6]->init();
-		if(_childs[7])_childs[7]->init();
-	}else{
-		supportSize = 0.75*glm::distance(_aabb.maxPos() , _aabb.minPos());
-		IT_FOR(_points,p)
-			p->get().init(this);
-	}
-}
-
-void SubPointCloud::subdivide(){
-	int a = -1;
-	for(int i = 0;i<2;i++)for(int j = 0;j<2;j++)for(int k = 0;k<2;k++){
-		glm::vec3 minT(i/2.0,j/2.0,k/2.0);
-		glm::vec3 maxT = minT + glm::vec3(0.5,0.5,0.5);
-		_childs[++a] = new SubPointCloud();
-		_childs[a]->_aabb.minPos() = _aabb.getPosition(minT);
-		_childs[a]->_aabb.maxPos() = _aabb.getPosition(maxT);
-	}
-	IT_FOR(_points,p){
-		glm::vec3 pos;
-		pos.x = p->getPosition()[0];
-		pos.y = p->getPosition()[1];
-		pos.z = p->getPosition()[2];
-		for(int c = 0;c<8;c++){
-			if(_childs[c]->_aabb.inside(pos)){
-				_childs[c]->_points.insert(pos,p->get());
-				break;
+	while(!pointsLeft.empty()){
+		Center c(pointsLeft[0]->get(),this,hints);
+		_centers.insert(c.P,c);
+		pointsLeft.erase(pointsLeft.begin());
+	
+	
+		pointsLeft[0]->get().overlap = hints.TOverlap;
+		std::sort(pointsLeft.begin(),pointsLeft.end(),sortOverlap);
+		if(pointsLeft[0]->get().overlap >= hints.TOverlap) //all points left are done
+			pointsLeft.clear();
+		else if(pointsLeft[0]->get().overlap < hints.TOverlap) //non of the points left are done
+			continue;
+		else{
+			int a,b,removeFrom = -1;
+			a = 0;
+			b = pointsLeft.size()-1;
+			int i = a+b/2;
+			while(true){
+				if(pointsLeft[i]->get().overlap>=hints.TOverlap){
+					b = i;
+				}else{
+					a = i;
+				}
+				if(b-a==1){
+					pointsLeft.erase(pointsLeft.begin()+b,pointsLeft.end());
+					break;
+				}
 			}
 		}
 	}
-	bool makeLeaf = false;
-	for(int c = 0;c<8;c++){
-		const unsigned int size = _childs[c]->_points.size();
-		if(size>=8)
-			_childs[c]->subdivide();
-		else if(size==0){
-			delete _childs[c];
-			_childs[c] = 0;
-		}else if(size == 1){
-			makeLeaf = true;
-			break;
-		}
-	}
-	if(makeLeaf){
-		delete _childs[0];
-		delete _childs[1];
-		delete _childs[2];
-		delete _childs[3];
-		delete _childs[4];
-		delete _childs[5];
-		delete _childs[6];
-		delete _childs[7];
-		_childs[0] = 0;
-		_childs[1] = 0;
-		_childs[2] = 0;
-		_childs[3] = 0;
-		_childs[4] = 0;
-		_childs[5] = 0;
-		_childs[6] = 0;
-		_childs[7] = 0;
-	}else{
-		_points.clear();
-	}
+	std::cout << _centers.size() << std::endl;
 }
-
-PointCloudInterpolation::PointCloudInterpolation(K3DTree<glm::vec3> &points):_points(points){
-	_points.init();
-}
-
-
-PointCloudInterpolation::~PointCloudInterpolation(){
-
-}
-
 
 float PointCloudInterpolation::eval(const glm::vec3 &worldPos){
-	return _points.eval(worldPos);
+	float v = 0;
+	float _ph = 0;
+	IT_FOR(_centers,cc){
+		Center *c = &(cc)->get();
+		float ph = phi(worldPos,c->P,c->supportSize);
+		_ph += ph;
+		float g  = c->g(worldPos);
+		v += (g+c->lambda)*ph;
+	}
+	return v;
 }

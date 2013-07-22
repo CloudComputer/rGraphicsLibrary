@@ -14,9 +14,6 @@ MeshRenderer::MeshRenderer():
 _vertices(0),
 _indices(0),
 _smooth(true){
-
-	
-	
 	glGenBuffers(1,&vbo);
 	glGenBuffers(1,&ibo);
 	
@@ -99,65 +96,76 @@ void MeshRenderer::CreateObject(rObject *&obj,tinyxml2::XMLElement *ele){
 	auto renderer = static_cast<MeshRenderer*>(obj);
 	renderer->readMaterial(ele);
 	
+	auto file = ele->FirstChildElement("file");
+	if(file){
+		auto c = file->Attribute("url");
+		Mesh *m = Mesh::LoadWavefront<IndexedMesh>(c);
+		renderer->buildFromMesh(m);
+	}else{
+		auto verts = ele->FirstChildElement("vertices");
+		auto child = verts->FirstChild();
+		auto text = child->ToText();
+		while(!text){
+			child = child->NextSibling();
+			text = child->ToText();
+		}
 	
-
-
-	auto verts = ele->FirstChildElement("vertices");
-	auto child = verts->FirstChild();
-	auto text = child->ToText();
-	while(!text){
-		child = child->NextSibling();
+		std::istringstream issVert(text->Value());
+		auto inds = ele->FirstChildElement("indices");
+		child = inds->FirstChild();
 		text = child->ToText();
-	}
-	
-	
-	std::istringstream issVert(text->Value());
-	auto inds = ele->FirstChildElement("indices");
-	child = inds->FirstChild();
-	text = child->ToText();
-	while(!text){
-		child = child->NextSibling();
-		text = child->ToText();
-	}
-	std::istringstream issInd(text->Value());
-	MeshRenderer::vert vert;
-	int i;
-	std::vector<MeshRenderer::vert> vertices;
-	std::vector<int> indices;
-	while(issVert >> vert.x >> vert.y >> vert.z >> vert.nx >> vert.ny >> vert.nz >> vert.tx >> vert.ty){
-		vertices.push_back(vert);
-	}
-	while(issInd >> i){
-		indices.push_back(i);
+		while(!text){
+			child = child->NextSibling();
+			text = child->ToText();
+		}
+		std::istringstream issInd(text->Value());
+		MeshRenderer::vert vert;
+		int i;
+		std::vector<MeshRenderer::vert> vertices;
+		std::vector<int> indices;
+		while(issVert >> vert.x >> vert.y >> vert.z >> vert.nx >> vert.ny >> vert.nz >> vert.tx >> vert.ty){
+			vertices.push_back(vert);
+		}
+		while(issInd >> i){
+			indices.push_back(i);
 		
-	}
-	renderer->_allocateData(vertices.size(),indices.size());
-	i = 0;
-	IT_FOR(vertices,v){
-		renderer->_vertices[i++] = v->x;
-		renderer->_vertices[i++] = v->y;
-		renderer->_vertices[i++] = v->z;
-		renderer->_vertices[i++] = v->nx;
-		renderer->_vertices[i++] = v->ny;
-		renderer->_vertices[i++] = v->nz;
-		renderer->_vertices[i++] = v->tx;
-		renderer->_vertices[i++] = v->ty;
-	}
+		}
+		renderer->_allocateData(vertices.size(),indices.size());
+		i = 0;
+		IT_FOR(vertices,v){
+			renderer->_vertices[i++] = v->x;
+			renderer->_vertices[i++] = v->y;
+			renderer->_vertices[i++] = v->z;
+			renderer->_vertices[i++] = v->nx;
+			renderer->_vertices[i++] = v->ny;
+			renderer->_vertices[i++] = v->nz;
+			renderer->_vertices[i++] = v->tx;
+			renderer->_vertices[i++] = v->ty;
+		}
 
-	i = 0;
-	IT_FOR(indices,id){
-		renderer->_indices[i++] = *id;
-	}
+		i = 0;
+		IT_FOR(indices,id){
+			renderer->_indices[i++] = *id;
+		}
 
+		auto prim = ele->Attribute("primitive");
+		if(prim){
+			if(strcmp(prim,"quads") == 0)
+				renderer->faceType = GL_QUADS;
+			else
+				renderer->faceType = GL_TRIANGLES;
+		}else
+			renderer->faceType = GL_TRIANGLES;
 
-	glBindBuffer(GL_ARRAY_BUFFER,renderer->vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*8*renderer->_numVerts, renderer->_vertices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER,0);
+		glBindBuffer(GL_ARRAY_BUFFER,renderer->vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float)*8*renderer->_numVerts, renderer->_vertices, GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER,0);
 
 	
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,renderer->ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*renderer->_numIndices, renderer->_indices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,renderer->ibo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*renderer->_numIndices, renderer->_indices, GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+	}
 
 }
 
@@ -168,7 +176,8 @@ void MeshRenderer::CreateFractal(rObject *&obj,tinyxml2::XMLElement *ele){
 }
 
 
-void MeshRenderer::onDraw(){
+void MeshRenderer::onDraw(){                                  
+	glEnable (GL_DEPTH_TEST);  
 	
 	chkGLErr();
 
@@ -199,7 +208,7 @@ void MeshRenderer::onDraw(){
 	_shader->setUniform("matSpecular",_mat.getSpecular());
 	_shader->setUniform("matSpecularity",_mat.getSpecularity());
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ibo);
-	glDrawElements(GL_QUADS, _numIndices, GL_UNSIGNED_INT, 0);
+	glDrawElements(faceType, _numIndices, GL_UNSIGNED_INT, 0);
 	chkGLErr();
 
 	glBindBuffer(GL_ARRAY_BUFFER,0);
@@ -235,7 +244,7 @@ void MeshRenderer::_allocateData(int numVerts,int numIndices){
 void MeshRenderer::buildFromMesh(Mesh *m,bool smooth){
 	auto imesh = dynamic_cast<IndexedMesh*>(m);
 	if(imesh){
-		auto faces = imesh->getFaces();
+		std::vector<Triangle> faces = imesh->getFaces();
 		K3DTree<unsigned int> tree;
 		K3DTree<unsigned int>::Node *n[3];
 		if(smooth){
@@ -253,24 +262,30 @@ void MeshRenderer::buildFromMesh(Mesh *m,bool smooth){
 				_vertices[v++] = t->v0()->getPosition().x;
 				_vertices[v++] = t->v0()->getPosition().y;
 				_vertices[v++] = t->v0()->getPosition().z;
-				_vertices[v++] = t->v0()->getPosition().w;
 				_vertices[v++] = t->getNormal().x;
 				_vertices[v++] = t->getNormal().y;
 				_vertices[v++] = t->getNormal().z;
+				_vertices[v++] = 0;
+				_vertices[v++] = 0;
+
 				_vertices[v++] = t->v1()->getPosition().x;
 				_vertices[v++] = t->v1()->getPosition().y;
 				_vertices[v++] = t->v1()->getPosition().z;
-				_vertices[v++] = t->v1()->getPosition().w;
 				_vertices[v++] = t->getNormal().x;
 				_vertices[v++] = t->getNormal().y;
 				_vertices[v++] = t->getNormal().z;
+				_vertices[v++] = 0;
+				_vertices[v++] = 0;
+
 				_vertices[v++] = t->v2()->getPosition().x;
 				_vertices[v++] = t->v2()->getPosition().y;
 				_vertices[v++] = t->v2()->getPosition().z;
-				_vertices[v++] = t->v2()->getPosition().w;
 				_vertices[v++] = t->getNormal().x;
 				_vertices[v++] = t->getNormal().y;
 				_vertices[v++] = t->getNormal().z;
+				_vertices[v++] = 0;
+				_vertices[v++] = 0;
+
 				_indices[i] = i++;
 				_indices[i] = i++;
 				_indices[i] = i++;
@@ -279,35 +294,37 @@ void MeshRenderer::buildFromMesh(Mesh *m,bool smooth){
 				n[1] = tree.find(glm::vec3(t->v1()->getPosition()));
 				n[2] = tree.find(glm::vec3(t->v2()->getPosition()));
 				if(n[0] == 0){
-					n[0] = tree.insert(glm::vec3(t->v0()->getPosition()),v/7);
+					n[0] = tree.insert(glm::vec3(t->v0()->getPosition()),v/8);
 					_vertices[v++] = t->v0()->getPosition().x;
 					_vertices[v++] = t->v0()->getPosition().y;
 					_vertices[v++] = t->v0()->getPosition().z;
-					_vertices[v++] = t->v0()->getPosition().w;
 					_vertices[v++] = t->v0()->getNormal().x;
 					_vertices[v++] = t->v0()->getNormal().y;
 					_vertices[v++] = t->v0()->getNormal().z;
-				
+					_vertices[v++] = 0;
+					_vertices[v++] = 0;
 				}
 				if(n[1] == 0){
-					n[1] = tree.insert(glm::vec3(t->v1()->getPosition()),v/7);
+					n[1] = tree.insert(glm::vec3(t->v1()->getPosition()),v/8);
 					_vertices[v++] = t->v1()->getPosition().x;
 					_vertices[v++] = t->v1()->getPosition().y;
 					_vertices[v++] = t->v1()->getPosition().z;
-					_vertices[v++] = t->v1()->getPosition().w;
 					_vertices[v++] = t->v1()->getNormal().x;
 					_vertices[v++] = t->v1()->getNormal().y;
 					_vertices[v++] = t->v1()->getNormal().z;
+					_vertices[v++] = 0;
+					_vertices[v++] = 0;
 				}
 				if(n[2] == 0){
-					n[2] = tree.insert(glm::vec3(t->v2()->getPosition()),v/7);
+					n[2] = tree.insert(glm::vec3(t->v2()->getPosition()),v/8);
 					_vertices[v++] = t->v2()->getPosition().x;
 					_vertices[v++] = t->v2()->getPosition().y;
 					_vertices[v++] = t->v2()->getPosition().z;
-					_vertices[v++] = t->v2()->getPosition().w;
 					_vertices[v++] = t->v2()->getNormal().x;
 					_vertices[v++] = t->v2()->getNormal().y;
 					_vertices[v++] = t->v2()->getNormal().z;
+					_vertices[v++] = 0;
+					_vertices[v++] = 0;
 				}
 				_indices[i++] = n[0]->get();
 				_indices[i++] = n[1]->get();
@@ -320,13 +337,18 @@ void MeshRenderer::buildFromMesh(Mesh *m,bool smooth){
 	
 	
 	glBindBuffer(GL_ARRAY_BUFFER,vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*7*_numVerts, _vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*8*_numVerts, _vertices, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER,0);
 
 	
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*_numIndices, _indices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);	
+
+	faceType = GL_TRIANGLES;
+	
+
+	
 }
 
 

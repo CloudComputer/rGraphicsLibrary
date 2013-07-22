@@ -16,6 +16,8 @@ class MeshRenderer : public rObject{
 	unsigned int *_indices;
 	bool _smooth;
 
+	GLuint faceType;
+
 	Material _mat;
 	bool _useTex;
 
@@ -29,7 +31,6 @@ class MeshRenderer : public rObject{
 	void _deallocate();
 	void _allocateData(int numVerts,int numIndices);
 
-	void readMaterial(tinyxml2::XMLElement *ele);
 
 protected:
 	virtual void onDraw();
@@ -37,6 +38,8 @@ public:
 	MeshRenderer();
 	virtual ~MeshRenderer();
 	
+	void readMaterial(tinyxml2::XMLElement *ele);
+
 	void buildFromMesh(Mesh *m,bool smooth = true);
 
 	virtual std::string toString()const{

@@ -9,8 +9,9 @@
 
 #include <boost/algorithm/string.hpp>   
 
+
 static void GLFW_error(int error,const char* desc){
-	std::cerr << "GLFW Error: " << error << "(" << desc << ")" << std::endl;
+	std::cerr << "GLFW Error: " << error << " (" << desc << ")" << std::endl;
 }
 
 void GLFW_resize(GLFWwindow *win,int w,int h)
@@ -117,6 +118,7 @@ void rWindow::setClearColor(const glm::vec4 &color){
 glm::vec4 rWindow::getClearColor()const{return _clearColor;}
 
 void rWindow::redraw(){
+
 	glfwMakeContextCurrent(_window);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -130,10 +132,12 @@ void rWindow::redraw(){
 }
 
 rWindow* rWindow::OpenWindow(rWindowHints hints){
+
 	rWindow* win = new rWindow();
 	
 	if (!glfwInit())
         exit(EXIT_FAILURE);
+	
 	
 
 	glfwSetErrorCallback(GLFW_error);
@@ -149,6 +153,7 @@ rWindow* rWindow::OpenWindow(rWindowHints hints){
 	}
 
 	if (!win->_window){
+	
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
@@ -164,7 +169,7 @@ rWindow* rWindow::OpenWindow(rWindowHints hints){
 		std::cerr << "Failed to init glew" << std::endl;
 		return false;
 	}
-
+	
 	win->setClearColor(glm::vec4(0.3,0.3,0.3,0));
 
 	
@@ -173,12 +178,12 @@ rWindow* rWindow::OpenWindow(rWindowHints hints){
 
 	glfwSetWindowSizeCallback(win->_window,GLFWwindowsizefun(GLFW_resize));
 
-	
+	/*
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_TEXTURE_2D);*/
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
 	return win;

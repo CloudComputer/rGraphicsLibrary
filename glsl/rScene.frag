@@ -34,7 +34,7 @@ void main(){
 	R = reflect(-V,N);
 
 	
-	outDiffuse  = vec4(lightColor * diff *       clamp((dot(L,N)),0.0,1.0),1.0);
+	outDiffuse  = vec4(lightColor * diff *       clamp(abs(dot(L,N)),0.0,1.0),1.0);
 	if(spec.w!=0)
-		outSpecular = vec4(lightColor * spec.xyz*pow(clamp((dot(L,R)),0.0,1.0),1.0/spec.w),1.0);
+		outSpecular = vec4(lightColor * spec.xyz*pow(clamp(abs(dot(L,R)),0.0,1.0),1.0/spec.w),1.0);
 }

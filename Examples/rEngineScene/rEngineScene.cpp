@@ -31,20 +31,11 @@ void loadXML(rEngine *t,std::string filename){
 		FOR_XML_ELE("texture",firstChild,tex){
 			Texture::loadTexture(tex);
 		}
-
+		
 		FOR_XML_ELE("scene",firstChild,scene){
 			t->addScene(Scene::CreateScene(scene));
 		}
 
-		tinyxml2::XMLElement *e = firstChild->FirstChildElement();
-		while(e){
-			std::string name = e->Name();
-			
-			if(name != "window" && name != "scene" && name != "texture"){
-				std::cout << e->Name() << std::endl;
-			}
-			e = e->NextSiblingElement();
-		}
 
 	}
 }
@@ -64,11 +55,11 @@ void init(rEngine *t,int argc, char **argv){
 		std::cout << "Usage: " << argv[0] << " scenefile.xml" << std::endl;
 		exit(-1);
 	}
-
 	loadXML(t,filename);
 	glClearColor (0.0f, 0.0f, 0.0f, 0.0f);                      
 	glClearDepth (1.0f);                                        
-	glEnable (GL_DEPTH_TEST);                                 
+	glEnable (GL_DEPTH_TEST); 
+	glEnable(GL_TEXTURE_2D);                                
 	
 }
 
