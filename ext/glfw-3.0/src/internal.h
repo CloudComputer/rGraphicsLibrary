@@ -200,7 +200,7 @@ struct _GLFWwindow
     // Window input state
     GLboolean           stickyKeys;
     GLboolean           stickyMouseButtons;
-    double              cursorPosX, cursorPosY;
+    int					cursorPosX, cursorPosY;
     int                 cursorMode;
     char                mouseButton[GLFW3_MOUSE_BUTTON_LAST + 1];
     char                key[GLFW3_KEY_LAST + 1];
@@ -291,7 +291,7 @@ struct _GLFWlibrary
         int         glRobustness;
     } hints;
 
-    double          cursorPosX, cursorPosY;
+    int          cursorPosX, cursorPosY;
 
     _GLFWwindow*    windowListHead;
     _GLFWwindow*    focusedWindow;
@@ -349,7 +349,7 @@ const char* _glfwPlatformGetVersionString(void);
 /*! @copydoc glfwSetCursorPos
  *  @ingroup platform
  */
-void _glfwPlatformSetCursorPos(_GLFWwindow* window, double xpos, double ypos);
+void _glfwPlatformSetCursorPos(_GLFWwindow* window, int xpos, int ypos);
 
 /*! @brief Sets up the specified cursor mode for the specified window.
  *  @param[in] window The window whose cursor mode to change.
@@ -644,7 +644,7 @@ void _glfwInputMouseClick(_GLFWwindow* window, int button, int action, int mods)
  *  of the client area of the window.
  *  @ingroup event
  */
-void _glfwInputCursorMotion(_GLFWwindow* window, double x, double y);
+void _glfwInputCursorMotion(_GLFWwindow* window, int x, int y);
 
 /*! @brief Notifies shared code of a cursor enter/leave event.
  *  @param[in] window The window that received the event.

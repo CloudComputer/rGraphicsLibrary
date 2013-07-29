@@ -155,7 +155,7 @@ typedef struct _GLFWwindowWin32
     GLboolean           cursorCentered;
     GLboolean           cursorInside;
     GLboolean           cursorHidden;
-    double              oldCursorX, oldCursorY;
+    int                 oldCursorX, oldCursorY;
 } _GLFWwindowWin32;
 
 

@@ -21,121 +21,39 @@
 <texture name="lorem" src="textures/lorem.jpg" />
 
   <scene id="scene" window="win1">
-    <camera type="FPS">
-      <projection type="perspective" near="2" far="10" fov="45" />
-      <position>0 1.25 -3.8</position>
+    <camera type="trackball">
+      <projection type="perspective" near="0.1" far="10" fov="45" />
       <direction>0 0 1</direction>
-      <allowFlying />
+      <focus>0.5 0.5 0.5</focus>
+      <zoom>1</zoom>
     </camera>
 
     <light type="point">
-      <position>0 1.25 2</position>
+      <position>0 0 1</position>
       <color>255 255 255</color>
     </light>
 
-    <mesh id="floor" primitive="quads">
-      <vertices>
-        <!-- vx vy vz nx ny nz tx ty  -->
-        2 0 0 0 1 0 1 0
-        2 0 4 0 1 0 1 1
-        -2 0 4 0 1 0 0 1
-        -2 0 0 0 1 0 0 0
-      </vertices>
-      <indices>0 1 2 3</indices>
-      <texture name="floor" />
-      <material>
-        <specular>0 0 0</specular>
-        <ambient>255 255 255</ambient>
-        <specularity>40</specularity>
-      </material>
-    </mesh>
-
-    <mesh id="roof" primitive="quads">
-      <vertices>
-        <!-- vx vy vz nx ny nz tx ty  -->
-        2 2.5 0 0 -1 0 1 0
-        2 2.5 4 0 -1 0 1 1
-        -2 2.5 4 0 -1 0 0 1
-        -2 2.5 0 0 -1 0 0 0
-      </vertices>
-      <indices>0 1 2 3</indices>
-      <material>
-        <diffuse>255 255 255</diffuse>
-        <specular>0 0 0</specular>
-        <ambient>255 255 255</ambient>
-        <specularity>40</specularity>
-      </material>
-    </mesh>
-
-    <mesh id="leftWall" primitive="quads">
-      <vertices>
-        2 0.0 0 -1 0 0 1 0
-        2 0.0 4 -1 0 0 1 1
-        2 2.5 4 -1 0 0 1 1
-        2 2.5 0 -1 0 0 1 0
-      </vertices>
-      <indices>0 1 2 3</indices>
-      <material>
-        <diffuse>255 50 50</diffuse>
-        <specular>0 0 0</specular>
-        <ambient>255 50 50</ambient>
-        <specularity>40</specularity>
-      </material>
-    </mesh>
-
-    <mesh id="rightWall" primitive="quads">
-      <vertices>
-        -2 0.0 0 1 0 0 1 0
-        -2 0.0 4 1 0 0 1 1
-        -2 2.5 4 1 0 0 1 1
-        -2 2.5 0 1 0 0 1 0
-      </vertices>
-      <indices>0 1 2 3</indices>
-      <material>
-        <diffuse>50 255 50</diffuse>
-        <specular>0 0 0</specular>
-        <ambient>50 255 50</ambient>
-        <specularity>40</specularity>
-      </material>
-    </mesh>
-
-    <mesh id="backWall" primitive="quads">
-      <vertices>
-        2 0 4 0 0 -1 1 1
-        -2 0 4 0 0 -1 0 1
-        -2 2.5 4 0 0 -1 0 1
-        2 2.5 4 0 0 -1 1 1
-      </vertices>
-      <indices>0 1 2 3</indices>
-      <material>
-        <diffuse>50 50 255</diffuse>
-        <ambient>50 50 255</ambient>
-        <specular>0 0 0</specular>
-        <specularity>40</specularity>
-      </material>
-    </mesh>
-
     <csg>
       <pointCloud>
-        <points mesh="F:\cpp\rGraphicsLibrary\models\cow.obj" amount="16000" />
+        <points mesh="F:\cpp\rGraphicsLibrary\models\cow.obj" amount="15000" />
+        <hints>
+          <overlap>3</overlap>
+          <K>20</K>
+          <supportSize>0.05</supportSize>
+          <reg>0.00001</reg>
+        </hints>
       </pointCloud>
       <bounds>
         <min>0 0 0</min>
         <max>1 1 0.5</max>
       </bounds>
-      <resolution>180</resolution>
+      <resolution>100</resolution>
 
       <material>
-        <specular>0 0 0</specular>
+        <specular>255 0 0</specular>
         <ambient>255 255 255</ambient>
-        <specularity>40</specularity>
+        <specularity>110</specularity>
       </material>
-
-      <transform>
-        <rotate>30 1 0 0</rotate>
-        <translate>0 1 1</translate>
-        <scale>2 2 2</scale>
-      </transform>
     </csg>
     
     

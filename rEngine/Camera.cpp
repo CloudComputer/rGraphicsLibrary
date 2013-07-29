@@ -51,8 +51,36 @@ Camera* Camera::CreateCamera(rWindow *win,tinyxml2::XMLElement *ele){
 		
 		auto fly = ele->FirstChildElement("allowFlying");
 		fps->alowFlying = (!fly) ? 0 : 1;
-		
+	}else if(type == "trackball"){
+		glm::vec3 d=glm::vec3(0,0,0),f=glm::vec3(0,0,-1);
+		float z;
+		auto direction = ele->FirstChildElement("direction");
+		auto focus = ele->FirstChildElement("focus");
+		auto zoom = ele->FirstChildElement("zoom");
 
+		if(direction){
+			auto s = direction->GetText();
+			if(s){
+				std::istringstream iss(s);
+				iss >> d.x >> d.y >> d.z;
+			}
+		}
+		if(focus){
+			auto s = focus->GetText();
+			if(s){
+				std::istringstream iss(s);
+				iss >> f.x >> f.y >> f.z;
+			}
+		}
+		if(zoom){
+			auto s = zoom->GetText();
+			if(s){
+				std::istringstream iss(s);
+				iss >> z;
+			}
+		}
+		auto trackball = new TrackballCamera(d,f,z,win);
+		cam = trackball;
 	}
 
 
@@ -83,10 +111,24 @@ Camera* Camera::CreateCamera(rWindow *win,tinyxml2::XMLElement *ele){
 		}
 	}
 	cam->onResize(win->getSize());
-
-	
-	
-	
 	
 	return cam;
+}
+
+void TrackballCamera::mouseMotion(glm::ivec2 delta){
+	if(!_state) return;
+
+	//glm::vec3 focus = glm::vec3(glm::inverse(_camera) * glm::vec4(0,0,0,1));
+	_camera = glm::translate(_camera,_focus);
+
+	glm::vec3 up = glm::vec3(glm::inverse(_camera) * glm::vec4(0,1,0,0));
+	_camera = glm::rotate(_camera,(float)delta.x,up);
+
+	glm::vec3 side = glm::vec3(glm::inverse(_camera) * glm::vec4(1,0,0,0));
+	_camera = glm::rotate(_camera,(float)delta.y,side);
+	
+	_camera = glm::translate(_camera,-_focus);
+	
+	//_camera = glm::translate(_camera,-focus);
+
 }

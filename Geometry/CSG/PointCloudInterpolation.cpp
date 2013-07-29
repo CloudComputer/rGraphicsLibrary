@@ -1,6 +1,7 @@
 #include "PointCloudInterpolation.h"
 
 #include <Eigen\Dense>
+#include <Eigen\Sparse>
 
 #include <iostream>
 
@@ -33,7 +34,7 @@ Center::Center(const Point& p,PointCloudInterpolation *cloud,const PointCloudInt
 		//w += (*node)->get().N * ph * (*node)->get().density;
 		(*node)->get().overlap += ph;
 	}
-	w = glm::normalize(p.N);
+	w = -glm::normalize(p.N);
 	if(glm::dot(w,glm::vec3(0,0,1)) != 1){
 		u = glm::cross(glm::vec3(0,0,1),w);
 	}else{
@@ -88,7 +89,7 @@ float Center::g(const glm::vec3 &p){
 	float y = glm::dot(v,p-P);
 	float z = glm::dot(w,p-P);
 
-	return z - (A*x*x + 2*B*x*y + C*y*y + D*x + E*y +F); 
+	return z - (A*x*x + 2*B*x*y + C*y*y + D*x + E*y + F); 
 }
 
 PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointCloud, PointCloudInterpolationHints hints):
@@ -113,7 +114,8 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 
 	L = std::sqrt(dx*dx + dy*dy + dz*dz);
 
-
+	
+	float densSum = 0;
 	IT_FOR(_points,node){
 		std::vector<glm::vec3> closePoints;
 		auto nodes = _points.findNNearest(node->getPosition(),hints.K);
@@ -124,6 +126,7 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 			node->get().density += glm::dot(o,o);
 		}
 		node->get().N = (Plane(closePoints)).getNormal();
+		densSum += node->get().density;
 	}
 
 	while(!pointsLeft.empty()){
@@ -157,16 +160,110 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 		}
 	}
 	std::cout << _centers.size() << std::endl;
+
+	int size = _centers.size();
+
+	Eigen::SparseMatrix<float> A(size,size);
+	A.reserve(Eigen::VectorXi::Constant(size,100));
+	Eigen::VectorXf b(size);
+	Eigen::VectorXf l(size);
+	int i,j;
+	i = j = 0;
+
+	float avgNonZero = 0;
+	int numNonZero = 0;
+	int maxNonZero = 0;
+	int minNonZero = 10000;
+
+	float denom = densSum / (L*L);
+	IT_FOR(_centers,c0){
+		i = 0;
+		float B = 0;
+		IT_FOR(_centers,c1){
+			auto nodes = _points.findCloseTo(c0->get().P,c0->get().supportSize);
+			float v = 0;
+			IT_FOR(nodes,point){
+				float a = (*point)->get().density;
+				a *= phi((*point)->get().P,c0->get().P,c0->get().supportSize);
+				a *= phi((*point)->get().P,c1->get().P,c1->get().supportSize);
+				v += a;
+				if(i == 0){
+					float c = (*point)->get().density;
+					c *= phi((*point)->get().P,c0->get().P,c0->get().supportSize);
+					c *= -eval((*point)->get().P);
+					B += c;
+				}
+			}
+			v /= denom;
+			if(c0 == c1){
+				float d = 1.0 / c0->get().supportSize;
+				d *= d;
+				d /= size;
+				d *= hints.Treg;
+				v += d;
+			}
+			if(v!=0){
+				A.insert(i,j) = v;
+				numNonZero++;
+			}
+			i++;
+
+		}
+		b(j) = B / denom;
+		j++;
+		
+		std::cout << j << " ";
+	
+		avgNonZero += numNonZero;
+		minNonZero = std::min(numNonZero,minNonZero);
+		maxNonZero = std::max(numNonZero,maxNonZero);
+		numNonZero = 0;
+
+	}
+	avgNonZero /= j;
+	std::cout << std::endl << "Avg: " << avgNonZero << std::endl;
+	std::cout << "Min: " << minNonZero << std::endl;
+	std::cout << "Max: " << maxNonZero << std::endl;
+
+	Eigen::ConjugateGradient<Eigen::SparseMatrix<float> > cg;
+	cg.compute(A);
+	switch(cg.info()){
+	case Eigen::Success:
+		break;
+	case Eigen::NumericalIssue:
+		std::cerr << "NumericalIssue, The provided data did not satisfy the prerequisites." << std::endl;
+		break;
+	case Eigen::NoConvergence:
+		std::cerr << "NoConvergence, Iterative procedure did not converge." << std::endl;
+		break;
+	case Eigen::InvalidInput:
+		std::cerr << "InvalidInput, The inputs are invalid, or the algorithm has been improperly called. When assertions are enabled, such errors trigger an assert." << std::endl;
+		break;
+	}
+
+	//cg.setMaxIterations(15);
+	//cg.setTolerance(Eigen::NumTraits<float>::epsilon()*10);
+	l = cg.solve(b);
+	std::cout << "#iterations: " << cg.iterations() << std::endl;
+	std::cout << "estimated error: " << cg.error() << std::endl;
+	
+	i = 0;
+	IT_FOR(_centers,c0){
+		c0->get().lambda = l(i++);
+	}
 }
 
 float PointCloudInterpolation::eval(const glm::vec3 &worldPos){
 	float v = 0;
 	float _ph = 0;
-	IT_FOR(_centers,cc){
-		Center *c = &(cc)->get();
+	auto nodes = _centers.findCloseTo(worldPos,maxSupportSize);
+	IT_FOR(nodes,cc){
+		Center *c = &(*cc)->get();
 		float ph = phi(worldPos,c->P,c->supportSize);
 		_ph += ph;
 		float g  = c->g(worldPos);
+		if(c->lambda!=0)
+			g = 0;
 		v += (g+c->lambda)*ph;
 	}
 	return v;

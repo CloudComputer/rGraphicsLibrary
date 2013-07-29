@@ -164,7 +164,7 @@ Mesh* MarchingTetrahedra::March(PointCloudInterpolation *pci, const int &resulti
 
 								
 				auto n = tree->findNearest(center);
-				if(glm::distance(center,n->get().P) > d3)
+				if(glm::distance(center,n->get().P) > n->get().supportSize/1.5)
 					continue;
 				
 				p[0] = glm::vec3(x,y,z);

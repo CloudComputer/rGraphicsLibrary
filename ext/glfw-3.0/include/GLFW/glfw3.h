@@ -711,7 +711,7 @@ typedef void (* GLFWmousebuttonfun)(GLFWwindow*,int,int,int);
  *
  *  @ingroup input
  */
-typedef void (* GLFWcursorposfun)(GLFWwindow*,double,double);
+typedef void (* GLFWcursorposfun)(GLFWwindow*,int,int);
 
 /*! @brief The function signature for cursor enter/leave callbacks.
  *
@@ -1827,7 +1827,7 @@ GLFWAPI int glfwGetMouseButton(GLFWwindow* window, int button);
  *
  *  @ingroup input
  */
-GLFWAPI void glfwGetCursorPos(GLFWwindow* window, double* xpos, double* ypos);
+GLFWAPI void glfwGetCursorPos(GLFWwindow* window, int* xpos, int* ypos);
 
 /*! @brief Sets the position of the cursor, relative to the client area of the window.
  *
@@ -1849,7 +1849,7 @@ GLFWAPI void glfwGetCursorPos(GLFWwindow* window, double* xpos, double* ypos);
  *
  *  @ingroup input
  */
-GLFWAPI void glfwSetCursorPos(GLFWwindow* window, double xpos, double ypos);
+GLFWAPI void glfwSetCursorPos(GLFWwindow* window, int xpos, int ypos);
 
 /*! @brief Sets the key callback.
  *

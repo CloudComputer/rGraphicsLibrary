@@ -14,10 +14,36 @@ static void GLFW_error(int error,const char* desc){
 	std::cerr << "GLFW Error: " << error << " (" << desc << ")" << std::endl;
 }
 
-void GLFW_resize(GLFWwindow *win,int w,int h)
-{
+void GLFW_resize(GLFWwindow *win,int w,int h){
 	rWindow *window = rWindow::_windows[win];
 	window->onResize(glm::ivec2(w,h));
+}
+
+void GLFW_mouseButton(GLFWwindow *win,int button,int state){
+	rWindow *window = rWindow::_windows[win];
+	window->onMouseClick(button,state);
+}
+
+void GLFW_mouseMotion(GLFWwindow *win,int x,int y){
+	rWindow *window = rWindow::_windows[win];
+
+	if(window->_prevMouse.x == -1){
+		window->_prevMouse.x = x;
+		window->_prevMouse.y = y;
+	}
+
+	window->omMouseMove(glm::ivec2(x-window->_prevMouse.x,window->_prevMouse.y-y));
+	window->_prevMouse.x = x;
+	window->_prevMouse.y = y;
+}
+
+void GLFW_mouseEnter(GLFWwindow *win,int enter){
+	rWindow *window = rWindow::_windows[win];
+
+	if(enter){
+		window->_prevMouse.x = -1;
+		window->_prevMouse.y = -1;
+	}
 }
 
 
@@ -33,7 +59,7 @@ share(NULL)
 }
 
 
-rWindow::rWindow() :  _parent(0){
+rWindow::rWindow() :  _parent(0) , _prevMouse(-1,-1){
 }
 
 
@@ -84,31 +110,51 @@ void rWindow::updateAll(){
 	
 }
 
-
-		//for(int i = _windows.size()-1 ; i>= 0; i--){
-		//	if(!_windows[i])
-		//		_windows.erase(_windows.begin() + i ) ;
-		//	if(_windows[i]->shouldClose()){
-		//		auto w = _windows[i];
-		//		_windows.erase(_windows.begin() + i ) ;
-		//		delete w;
-		//	}
-		//}
-
 void rWindow::onResize(glm::ivec2 size){
 	this->_size = size;
 	IT_FOR(_resizeListeners,l){
 		(*l)->onResize(size);
 	}
 }
+void rWindow::omMouseMove(glm::ivec2 delta){
+	IT_FOR(_mouseMotionListener,l){
+		(*l)->mouseMotion(delta);
+	}
+}
+void rWindow::onMouseClick(int button,int state){
+	IT_FOR(_mouseButtonListener,l){
+		(*l)->mouseClick(button,state);
+	}
+}
 
 void rWindow::addResizeListener(ResizeListener *listener){
 	_resizeListeners.push_back(listener);
 }
+
+void rWindow::addMouseMotionListener(MouseMotionListener *listener){
+	_mouseMotionListener.push_back(listener);
+}
+
+void rWindow::addMouseButtonListener(MouseButtonListener *listener){
+	_mouseButtonListener.push_back(listener);
+}
+
 void rWindow::removeResizeListener(ResizeListener *listener){
 	auto it = std::find(_resizeListeners.begin() , _resizeListeners.end() , listener);
 	if(it != _resizeListeners.end() )
 		_resizeListeners.erase(it);
+}
+
+void rWindow::removeMouseMotionListener(MouseMotionListener *listener){
+	auto it = std::find(_mouseMotionListener.begin() , _mouseMotionListener.end() , listener);
+	if(it != _mouseMotionListener.end() )
+		_mouseMotionListener.erase(it);
+}
+
+void rWindow::removeMouseButtonListener(MouseButtonListener *listener){
+	auto it = std::find(_mouseButtonListener.begin() , _mouseButtonListener.end() , listener);
+	if(it != _mouseButtonListener.end() )
+		_mouseButtonListener.erase(it);
 }
 
 void rWindow::setClearColor(const glm::vec4 &color){
@@ -171,20 +217,14 @@ rWindow* rWindow::OpenWindow(rWindowHints hints){
 	}
 	
 	win->setClearColor(glm::vec4(0.3,0.3,0.3,0));
-
 	
 	OpenGLInfo::printOGLInformation(std::cout);
 	std::cout << "GLFW Version:\t" << glfwGetVersionString() << std::endl;
 
 	glfwSetWindowSizeCallback(win->_window,GLFWwindowsizefun(GLFW_resize));
-
-	/*
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_TEXTURE_2D);*/
-
-	//glEnable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+	glfwSetMouseButtonCallback(win->_window,GLFWmousebuttonfun(GLFW_mouseButton));
+	glfwSetCursorPosCallback(win->_window,GLFWcursorposfun(GLFW_mouseMotion));
+	glfwSetCursorEnterCallback(win->_window,GLFWcursorenterfun(GLFW_mouseEnter));
 
 	return win;
 }

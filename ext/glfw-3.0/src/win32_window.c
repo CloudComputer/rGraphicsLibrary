@@ -595,7 +595,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
             if (newCursorX != window->win32.oldCursorX ||
                 newCursorY != window->win32.oldCursorY)
             {
-                double x, y;
+                int x, y;
 
                 if (window->cursorMode == GLFW3_CURSOR_DISABLED)
                 {
@@ -1100,7 +1100,7 @@ void _glfwPlatformWaitEvents(void)
     _glfwPlatformPollEvents();
 }
 
-void _glfwPlatformSetCursorPos(_GLFWwindow* window, double xpos, double ypos)
+void _glfwPlatformSetCursorPos(_GLFWwindow* window, int xpos, int ypos)
 {
     POINT pos = { (int) xpos, (int) ypos };
     ClientToScreen(window->win32.handle, &pos);

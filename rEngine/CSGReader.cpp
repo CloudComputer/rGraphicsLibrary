@@ -120,6 +120,18 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
 			std::cerr << "No source for points" << std::endl;
 			exit(-1);
 		}
+		
+		auto eHints = ele->FirstChildElement("hints");
+		if(eHints){
+			auto eOverlap = eHints->FirstChildElement("overlap");
+			auto eK = eHints->FirstChildElement("K");
+			auto eSupportSize = eHints->FirstChildElement("supportSize");
+			auto eReg = eHints->FirstChildElement("reg");
+			if(eOverlap)		hints.TOverlap = atof(eOverlap->GetText());
+			if(eK)				hints.K = atoi(eK->GetText());
+			if(eSupportSize)	hints.supportSize = atof(eSupportSize->GetText());
+			if(eReg)			hints.Treg = atof(eReg->GetText());
+		}
 
 
 		return new PointCloudInterpolation(points,hints);

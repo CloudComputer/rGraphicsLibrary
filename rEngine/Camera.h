@@ -10,6 +10,8 @@
 
 #include "rWindow.h"
 
+#include <iostream>
+
 class Camera : public rObject , public ResizeListener{
 protected:
 	glm::mat4 _projection,_camera;
@@ -46,5 +48,37 @@ public:
 	}
 	virtual void update(float dt){}
 };
+
+class TrackballCamera : public Camera , public MouseMotionListener , public MouseButtonListener{
+	friend class Camera;
+	glm::vec3 _direction,_focus;
+	float _zoom;
+	bool _state;
+
+	
+public:
+	TrackballCamera(glm::vec3 direction,glm::vec3 focus,float zoom,rWindow *owner):
+		Camera(owner),
+		MouseMotionListener(owner),
+		MouseButtonListener(owner),
+		_direction(glm::normalize(direction)),
+		_focus(focus),
+		_zoom(zoom),
+		_state(false)
+	{
+		auto eye = _focus-_direction*_zoom;
+		_camera = glm::lookAt(eye,_focus,glm::vec3(0,1,0));
+	}
+	virtual void update(float dt){}
+
+
+	virtual void mouseClick(int button,int state){
+		if(button == 0)
+			_state = state;
+	}
+
+	virtual void mouseMotion(glm::ivec2 delta);
+};
+
 
 #endif
