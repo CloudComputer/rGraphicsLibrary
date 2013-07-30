@@ -125,12 +125,14 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
 		if(eHints){
 			auto eOverlap = eHints->FirstChildElement("overlap");
 			auto eK = eHints->FirstChildElement("K");
-			auto eSupportSize = eHints->FirstChildElement("supportSize");
-			auto eReg = eHints->FirstChildElement("reg");
+            auto eSupportSize = eHints->FirstChildElement("supportSize");
+            auto eReg = eHints->FirstChildElement("reg");
+            auto eSa = eHints->FirstChildElement("Tsa");
 			if(eOverlap)		hints.TOverlap = atof(eOverlap->GetText());
 			if(eK)				hints.K = atoi(eK->GetText());
-			if(eSupportSize)	hints.supportSize = atof(eSupportSize->GetText());
-			if(eReg)			hints.Treg = atof(eReg->GetText());
+            if(eSupportSize)	hints.supportSize = atof(eSupportSize->GetText());
+            if(eReg)			hints.Treg = atof(eReg->GetText());
+            if(eSa)			    hints.Tsa = atof(eSa->GetText());
 		}
 
 

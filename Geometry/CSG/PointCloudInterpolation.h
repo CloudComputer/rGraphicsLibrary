@@ -35,19 +35,29 @@ struct Point{
 
 
 struct Center{
-	Center(const Point& p,PointCloudInterpolation *cloud,const PointCloudInterpolationHints &hints);
+	Center(const Point& p,PointCloudInterpolation *pci,const PointCloudInterpolationHints &hints);
 	glm::vec3 P;
 	float supportSize,A,B,C,D,E,F,lambda;
 	glm::vec3 u,v,w;
 	float g(const glm::vec3 &worldPos);
+    glm::vec3 dg(const glm::vec3 &worldPos);
+
+    void findABCDEF(PointCloudInterpolation *pci);
+    void findOptimalSupportSize(PointCloudInterpolation *pci,const PointCloudInterpolationHints &hints);
+
+    float eLocal(PointCloudInterpolation *pci);
+    float eSa(PointCloudInterpolation *pci);
+
 };
 
 class PointCloudInterpolation : public CSG{
 	friend class Center;
 	K3DTree<Point> _points;
 	K3DTree<Center> _centers;
-	float L;
-	float maxSupportSize;
+    float L,C;
+    float maxSupportSize;
+    float minSupportSize;
+    float avgSupportSize;
 	BoundingAABB _aabb;
 public:
 	PointCloudInterpolation(std::vector<glm::vec3> pointCloud, PointCloudInterpolationHints hints = PointCloudInterpolationHints());
