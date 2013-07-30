@@ -118,7 +118,6 @@ Camera* Camera::CreateCamera(rWindow *win,tinyxml2::XMLElement *ele){
 void TrackballCamera::mouseMotion(glm::ivec2 delta){
 	if(!_state) return;
 
-	//glm::vec3 focus = glm::vec3(glm::inverse(_camera) * glm::vec4(0,0,0,1));
 	_camera = glm::translate(_camera,_focus);
 
 	glm::vec3 up = glm::vec3(glm::inverse(_camera) * glm::vec4(0,1,0,0));
@@ -128,7 +127,5 @@ void TrackballCamera::mouseMotion(glm::ivec2 delta){
 	_camera = glm::rotate(_camera,(float)delta.y,side);
 	
 	_camera = glm::translate(_camera,-_focus);
-	
-	//_camera = glm::translate(_camera,-focus);
 
 }
