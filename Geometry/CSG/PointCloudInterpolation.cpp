@@ -15,7 +15,7 @@ float phi(const float &r){
 	return std::powf(1-r,4)*(4*r+1);
 }
 
-float phi(const glm::vec3 x0,const glm::vec3 x1,const float &supportSize){
+float glob_phi(const glm::vec3 x0,const glm::vec3 x1,const float &supportSize){
 	return phi(glm::distance(x0,x1)/supportSize);
 }
 
@@ -35,8 +35,7 @@ Center::Center(const Point& p,PointCloudInterpolation *cloud,const PointCloudInt
 
     auto nodes = cloud->_points.findCloseTo(P,supportSize);
     IT_FOR(nodes,node){
-        float ph = phi((*node)->get().P,P,supportSize);
-        //w += (*node)->get().N * ph * (*node)->get().density;
+        float ph = phi((*node)->get().P);
         (*node)->get().overlap += ph;
     }
 }
@@ -48,7 +47,7 @@ void Center::findABCDEF(PointCloudInterpolation *pci){
     
     w = glm::vec3(0,0,0);
     IT_FOR(nodes,node){
-        float ph = phi((*node)->get().P,P,supportSize);
+        float ph = phi((*node)->get().P);
         w += (*node)->get().N * ph * (*node)->get().density;
     }
     w = glm::normalize(w);
@@ -76,7 +75,7 @@ void Center::findABCDEF(PointCloudInterpolation *pci){
         x = glm::dot(u,p-P);
         y = glm::dot(v,p-P);
         z = glm::dot(w,p-P);
-        ph = phi(p,P,supportSize)*d;
+        ph = phi(p)*d;
 
         M(0,0) += x*x*x*x*ph;	M(0,1) += x*x*y*x*ph;	M(0,2) += x*x*y*y*ph;	M(0,3) += x*x*x*ph;	M(0,4) += x*x*y*ph;	M(0,5) += x*x*ph;
         M(1,0) += 2*x*y*x*x*ph;	M(1,1) += 2*x*y*y*x*ph;	M(1,2) += 2*x*y*y*y*ph;	M(1,3) += 2*x*y*x*ph;	M(1,4) += 2*x*y*y*ph;	M(1,5) += 2*x*y*ph;
@@ -104,7 +103,7 @@ void Center::findABCDEF(PointCloudInterpolation *pci){
 }
 void Center::findOptimalSupportSize(PointCloudInterpolation *pci,const PointCloudInterpolationHints &hints){
    float a = pci->L/1000;
-   float b = pci->L/20;
+   float b = pci->L/2;
    float step = (b-a)/10;
    float curMin = 10000000;
    float cur = a;
@@ -137,7 +136,7 @@ float Center::eLocal(PointCloudInterpolation *pci){
     auto points = pci->_points.findCloseTo(P,supportSize);
     IT_FOR(points,p){
         float v = (*p)->get().density;
-        v *= phi(P,(*p)->get().P,supportSize);
+        v *= phi((*p)->get().P);
         denum += v;
         float g = this->g((*p)->get().P);
         g /= glm::length(dg((*p)->get().P));
@@ -177,6 +176,20 @@ glm::vec3 Center::dg(const glm::vec3 &p){
 
 
     return (u*grad.x) + (v*grad.y) + (w*grad.z); 
+}
+
+float Center::phi(const glm::vec3 &worldPos){
+    return glob_phi(worldPos,P,supportSize);
+}
+
+float Center::PHI(const glm::vec3 &worldPos,PointCloudInterpolation *pci){
+    float a = phi(worldPos);
+    float b = 0;
+    auto nodes = pci->_centers.findCloseTo(worldPos,pci->maxSupportSize);
+    IT_FOR(nodes,c){
+        b += (*c)->get().phi(worldPos);
+    }
+    return a/b;
 }
 
 PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointCloud, PointCloudInterpolationHints hints):
@@ -276,13 +289,15 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 			auto nodes = _points.findCloseTo(c0->get().P,c0->get().supportSize);
 			float v = 0;
 			IT_FOR(nodes,point){
-				float a = (*point)->get().density;
-				a *= phi((*point)->get().P,c0->get().P,c0->get().supportSize); // change this part
-				a *= phi((*point)->get().P,c1->get().P,c1->get().supportSize); // and this part to use PHI instead of phi
+                float a = (*point)->get().density;
+                a *= c0->get().PHI((*point)->get().P,this);
+                a *= c1->get().PHI((*point)->get().P,this);
+				//a *= phi((*point)->get().P,c0->get().P,c0->get().supportSize); // change this part
+				//a *= phi((*point)->get().P,c1->get().P,c1->get().supportSize); // and this part to use PHI instead of phi
 				v += a;
 				if(i == 0){
 					float c = (*point)->get().density;
-					c *= phi((*point)->get().P,c0->get().P,c0->get().supportSize);
+					c *= c0->get().PHI((*point)->get().P,this);
 					c *= -eval((*point)->get().P);
 					B += c;
 				}
@@ -352,12 +367,23 @@ float PointCloudInterpolation::eval(const glm::vec3 &worldPos){
 	auto nodes = _centers.findCloseTo(worldPos,maxSupportSize);
 	IT_FOR(nodes,cc){
 		Center *c = &(*cc)->get();
-		float ph = phi(worldPos,c->P,c->supportSize);
+		float ph = c->phi(worldPos);
+        ph = c->PHI(worldPos,this);
 		_ph += ph;
 		float g  = c->g(worldPos);
-		if(c->lambda!=0)
-			g = 0;
+		//if(c->lambda!=0)
+		//	g = 0;
 		v += (g+c->lambda)*ph;
 	}
 	return v;
+}
+
+float PointCloudInterpolation::eGlobal(){
+    float num = 0,denum = 0,f;
+    IT_FOR(_points,p){
+        f = eval((*p).get().P);
+        num   += (*p).get().density * (f*f);
+        denum += (*p).get().density;
+    }
+    return std::sqrt(num/denum)/L;
 }

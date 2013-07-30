@@ -41,9 +41,12 @@ struct Center{
 	glm::vec3 u,v,w;
 	float g(const glm::vec3 &worldPos);
     glm::vec3 dg(const glm::vec3 &worldPos);
+    float phi(const glm::vec3 &worldPos);
+    float PHI(const glm::vec3 &worldPos,PointCloudInterpolation *pci);
 
     void findABCDEF(PointCloudInterpolation *pci);
     void findOptimalSupportSize(PointCloudInterpolation *pci,const PointCloudInterpolationHints &hints);
+
 
     float eLocal(PointCloudInterpolation *pci);
     float eSa(PointCloudInterpolation *pci);
@@ -68,7 +71,9 @@ public:
 
 	const BoundingAABB &getAABB(){return _aabb;}
 
-	virtual float eval(const glm::vec3 &worldPos);
+
+    virtual float eval(const glm::vec3 &worldPos);
+    float eGlobal();
 
 	virtual std::string toString()const{return "PointCloudInterpolation";}
 

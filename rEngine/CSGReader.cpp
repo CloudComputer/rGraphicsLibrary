@@ -134,9 +134,9 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
             if(eReg)			hints.Treg = atof(eReg->GetText());
             if(eSa)			    hints.Tsa = atof(eSa->GetText());
 		}
-
-
-		return new PointCloudInterpolation(points,hints);
+        auto csg = new PointCloudInterpolation(points,hints);
+        std::cout << "PointCloudInterpolator created with global error: " << csg->eGlobal() << std::endl;
+		return csg;
 	}
 	else if(strcmp(name,"sphere")==0){
 		glm::vec3 pos;
