@@ -8,6 +8,10 @@
 #include <Geometry\CSG\PointCloudInterpolation.h>
 #include <Geometry\CSG\MarchingTetrahedra.h>
 
+#include <Volume\UltrasoundVariationalClassification.h>
+
+#include <Geometry\Clustering\Clusterer.h>
+
 #include <Util\Macros.h>
 
 void CSGReader::ReadXML(rObject *&obj,tinyxml2::XMLElement *ele){
@@ -88,6 +92,7 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
 	}
 	else if(strcmp(name,"pointCloud")==0){
 		std::vector<glm::vec3> points;
+		std::vector<glm::vec3> normals;
 		PointCloudInterpolationHints hints;
 		auto ePoints = ele->FirstChildElement("points");
 		if(!ePoints){
@@ -95,8 +100,48 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
 			exit(-1);
 		}
 		auto aMesh = ePoints->Attribute("mesh");
+		auto aUltrasound = ePoints->Attribute("ultrasound");
+		auto aDimensions = ePoints->Attribute("dimensions");
 		auto N = ePoints->IntAttribute("amount");
-		if(aMesh){
+		if(aUltrasound && aDimensions){
+			glm::ivec3 d;
+			std::istringstream iss(aDimensions);
+			if(iss  >> d.x >> d.y >> d.z){
+				TmpPointer<ScalarField> vol = ScalarField::ReadFromRawfile(aUltrasound,d.x,d.y,d.z);
+				TmpPointer<UltrasoundVariationalClassification> usClassified = new UltrasoundVariationalClassification(vol.get(),0.12,0.03,0.5,0.5,0.9,0.8);
+				TmpPointer<ScalarField> blured = usClassified->blur();
+				TmpPointer<ScalarField> surfVol = blured->Canny();
+				KDTree<Vertex,3,float> pointTree;
+				
+				glm::vec3 minP = vol->getBoundingAABB().minPos();
+				glm::vec3 maxP = vol->getBoundingAABB().maxPos();
+				minP.x = std::min(std::min(minP.x,minP.y),minP.z);
+				maxP.x = std::max(std::max(maxP.x,maxP.y),maxP.z);
+				minP.z = minP.y = minP.x;
+				maxP.z = maxP.y = maxP.x;
+
+				FOR(d){
+					if(surfVol->get(glm::ivec3(x,y,z)) >= 0.99){
+						auto pos = surfVol->getBoundingAABB().getPosition(glm::vec3(x,y,z) / glm::vec3(d));
+						//points.push_back(pos);
+						Vertex v;
+						pos -= minP;
+						pos /= (maxP-minP);
+						v.setPosition(glm::vec4(pos,1));
+						v.setNormal(blured->getBoundingAABB().getPosition(glm::vec3(x,y,z) / glm::vec3(d)));
+						pointTree.insert(glm::value_ptr(pos),v);
+					}
+				}
+				float dd = 1.2*glm::length(glm::vec3(1.0/d.x,1.0/d.y,1.0/d.z));
+				std::cout << dd << std::endl;
+				KDTree<Vertex,3,float> *cluster = Clusterer::ClusterPoints(&pointTree,dd,10,true)[0].getPoints();
+				IT_FOR((*cluster),clust){
+					points.push_back(glm::vec3(clust->get().getPosition()));
+					normals.push_back(clust->get().getNormal());
+				}
+			}
+		}
+		else if(aMesh){
 			auto *m = static_cast<IndexedMesh*>(Mesh::LoadWavefront<IndexedMesh>(aMesh));
 			glm::vec3 minP = m->getBoundingAABB().minPos();
 			glm::vec3 maxP = m->getBoundingAABB().maxPos();
@@ -114,6 +159,7 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
 					p -= minP;
 					p /= (maxP-minP);
 					points.push_back(p);
+					normals.push_back(tri->getNormal());
 				}
 			}
 		}else{
@@ -121,20 +167,24 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
 			exit(-1);
 		}
 		
+		std::cout << "Number of points " << points.size() << std::endl;
+
 		auto eHints = ele->FirstChildElement("hints");
 		if(eHints){
 			auto eOverlap = eHints->FirstChildElement("overlap");
 			auto eK = eHints->FirstChildElement("K");
-            auto eSupportSize = eHints->FirstChildElement("supportSize");
+            auto eMinSupportSize = eHints->FirstChildElement("minSupportSize");
+            auto eMaxSupportSize = eHints->FirstChildElement("maxSupportSize");
             auto eReg = eHints->FirstChildElement("reg");
             auto eSa = eHints->FirstChildElement("Tsa");
 			if(eOverlap)		hints.TOverlap = atof(eOverlap->GetText());
 			if(eK)				hints.K = atoi(eK->GetText());
-            if(eSupportSize)	hints.supportSize = atof(eSupportSize->GetText());
+			if(eMinSupportSize)	hints.minSupportSize = atof(eMinSupportSize->GetText());
+			if(eMaxSupportSize)	hints.maxSupportSize = atof(eMaxSupportSize->GetText());
             if(eReg)			hints.Treg = atof(eReg->GetText());
             if(eSa)			    hints.Tsa = atof(eSa->GetText());
 		}
-        auto csg = new PointCloudInterpolation(points,hints);
+        auto csg = new PointCloudInterpolation(points,hints,normals);
         std::cout << "PointCloudInterpolator created with global error: " << csg->eGlobal() << std::endl;
 		return csg;
 	}

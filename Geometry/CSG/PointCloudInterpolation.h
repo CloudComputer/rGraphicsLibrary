@@ -14,13 +14,15 @@ struct PointCloudInterpolationHints{
 		TOverlap(1.5),
 		Tsa(2.0e-5),
 		Treg(1.0e-5),
-		supportSize(0.05){}
+		minSupportSize(0),
+		maxSupportSize(0.1){}
 	int K;
 	int m;
 	float TOverlap;
 	float Tsa;
 	float Treg;
-	float supportSize; //TODO remove this and make it auto
+	float minSupportSize;
+	float maxSupportSize; 
 };
 
 struct Point{
@@ -63,7 +65,7 @@ class PointCloudInterpolation : public CSG{
     float avgSupportSize;
 	BoundingAABB _aabb;
 public:
-	PointCloudInterpolation(std::vector<glm::vec3> pointCloud, PointCloudInterpolationHints hints = PointCloudInterpolationHints());
+	PointCloudInterpolation(std::vector<glm::vec3> pointCloud, PointCloudInterpolationHints hints = PointCloudInterpolationHints(),std::vector<glm::vec3> normals = std::vector<glm::vec3>());
 	virtual ~PointCloudInterpolation(){}
 
 	K3DTree<Center> *getCenters(){return &_centers;}

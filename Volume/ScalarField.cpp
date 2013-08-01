@@ -364,25 +364,26 @@ ScalarField* ScalarField::ReadFromRawfile(const char *filename,unsigned int w,un
 	x = w / m;
 	y = h / m;
 	z = d / m;
-
-	z *= 3.0;
+	
+	x /= 3.0;
+	y /= 3.0;
 
 	if(bps == 1){
-		ScalarField *s = new ScalarField(glm::ivec3(w,h,d),BoundingAABB(glm::vec3(-x,-y,-z),glm::vec3(x,y,z)));
+		ScalarField *s = new ScalarField(glm::ivec3(w,h,d),BoundingAABB(glm::vec3(-x/2,-y/2,-z/2),glm::vec3(x/2,y/2,z/2)));
 		unsigned char *data = new unsigned char[w*h*d];
 		fread(data,1,w*h*d,file);
 		for(int i = 0;i<w*h*d;i++) s->_data[i] = data[i]/float(0xFF);
 		delete data;
 		return s;
 	}else if(bps == 2){
-		ScalarField *s = new ScalarField(glm::ivec3(w,h,d),BoundingAABB(glm::vec3(-x,-y,-z),glm::vec3(x,y,z)));
+		ScalarField *s = new ScalarField(glm::ivec3(w,h,d),BoundingAABB(glm::vec3(-x/2,-y/2,-z/2),glm::vec3(x/2,y/2,z/2)));
 		unsigned short *data = new unsigned short[w*h*d];
 		fread(data,2,w*h*d,file);
 		for(int i = 0;i<w*h*d;i++) s->_data[i] = data[i]/float(0xFFFF);
 		delete data;
 		return s;
 	}else if(bps == 4){
-		ScalarField *s = new ScalarField(glm::ivec3(w,h,d),BoundingAABB(glm::vec3(-x,-y,-z),glm::vec3(x,y,z)));
+		ScalarField *s = new ScalarField(glm::ivec3(w,h,d),BoundingAABB(glm::vec3(-x/2,-y/2,-z/2),glm::vec3(x/2,y/2,z/2)));
 		unsigned int *data = new unsigned int[w*h*d];
 		fread(data,4,w*h*d,file);
 		for(int i = 0;i<w*h*d;i++) s->_data[i] = data[i]/float(0xFFFFFFFF);
