@@ -67,6 +67,13 @@ void CSGReader::ReadXML(rObject *&obj,tinyxml2::XMLElement *ele){
 	renderer->buildFromMesh(m);
 }
 
+float tryReadFloat(tinyxml2::XMLElement *ele,const char *attr,float elseValue){
+	auto attribute = ele->Attribute(attr);
+	if(!attribute)
+		return elseValue;
+	return  ele->FloatAttribute(attr);
+}
+
 CSG* CSGReader::read(tinyxml2::XMLElement *ele){
 	auto name = ele->Name();
 	if(strcmp(name,"union")==0){
@@ -107,8 +114,17 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
 			glm::ivec3 d;
 			std::istringstream iss(aDimensions);
 			if(iss  >> d.x >> d.y >> d.z){
+				float alpha, beta,gamma, w, iso, uind, xi, threshold;
+				alpha = tryReadFloat(ePoints,"alpha",0.5);
+				beta = tryReadFloat(ePoints,"beta",0.5);
+				gamma = tryReadFloat(ePoints,"gamma",0.5);
+				iso = tryReadFloat(ePoints,"iso",0.6);
+				w = tryReadFloat(ePoints,"w",0.6);
+				uind = tryReadFloat(ePoints,"uind",0.95);
+				xi = tryReadFloat(ePoints,"xi",0.8);	
+
 				TmpPointer<ScalarField> vol = ScalarField::ReadFromRawfile(aUltrasound,d.x,d.y,d.z);
-				TmpPointer<UltrasoundVariationalClassification> usClassified = new UltrasoundVariationalClassification(vol.get(),0.12,0.03,0.5,0.5,0.9,0.8);
+				TmpPointer<UltrasoundVariationalClassification> usClassified = new UltrasoundVariationalClassification(vol.get(),alpha,beta,gamma,w,iso,uind,xi);
 				TmpPointer<ScalarField> blured = usClassified->blur();
 				TmpPointer<ScalarField> surfVol = blured->Canny();
 				KDTree<Vertex,3,float> pointTree;
@@ -186,6 +202,7 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
 		}
         auto csg = new PointCloudInterpolation(points,hints,normals);
         std::cout << "PointCloudInterpolator created with global error: " << csg->eGlobal() << std::endl;
+		//exit(0);
 		return csg;
 	}
 	else if(strcmp(name,"sphere")==0){

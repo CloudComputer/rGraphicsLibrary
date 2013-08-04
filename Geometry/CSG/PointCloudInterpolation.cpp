@@ -301,7 +301,7 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 	std::cout << "Min overlap " << minOverlap << std::endl;
 	std::cout << "Max overlap " << maxOverlap << std::endl;
 
-    return;
+   // return;
 
 	int size = _centers.size();
 
@@ -321,8 +321,8 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 	IT_FOR(_centers,c0){
 		i = 0;
 		float B = 0;
+		auto nodes = _points.findCloseTo(c0->get().P,c0->get().supportSize);
 		IT_FOR(_centers,c1){
-			auto nodes = _points.findCloseTo(c0->get().P,c0->get().supportSize);
 			float v = 0;
 			IT_FOR(nodes,point){
                 float a = (*point)->get().density;
@@ -358,7 +358,7 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 		b(j) = B / denom;
 		j++;
 		
-		std::cout << j << " ";
+		//std::cout << j << " ";
 	
 		avgNonZero += numNonZero;
 		minNonZero = std::min(numNonZero,minNonZero);

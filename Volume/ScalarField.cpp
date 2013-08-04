@@ -365,8 +365,8 @@ ScalarField* ScalarField::ReadFromRawfile(const char *filename,unsigned int w,un
 	y = h / m;
 	z = d / m;
 	
-	x /= 3.0;
-	y /= 3.0;
+	x /= 2.7;
+	y /= 2.7;
 
 	if(bps == 1){
 		ScalarField *s = new ScalarField(glm::ivec3(w,h,d),BoundingAABB(glm::vec3(-x/2,-y/2,-z/2),glm::vec3(x/2,y/2,z/2)));
