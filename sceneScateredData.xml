@@ -1,4 +1,8 @@
 <rEngine>
+<loging>
+	<console logLevel="debug" useTimmers="on" />
+	<file file="F:\rEngineSceneLog.txt" logLevel="debug" useTimmers="on" />
+</loging>
 <texturePath>
 	<path>textures</path>
 </texturePath>
@@ -25,14 +29,13 @@
 
     <csg>
       <pointCloud>
-        <points_old mesh="F:\cpp\rGraphicsLibrary\models\cow.obj" amount="100000" />
         <points
           ultrasound="F:\Thesis Data\ContextVision\new volume\I0000027_TEMP-1-ENH-3_ENH-1-467x255x101.raw"
           dimensions="467 255 101"
-          alpha="0.3"
-          beta="0.5"
-          gamma="0.5"
-          iso="0.3"
+          alpha="0.9"
+          beta="0.2"
+          gamma="0.3"
+          iso="0.7"
           w="0.5"
           uind="0.8"
           xi="0.5"
