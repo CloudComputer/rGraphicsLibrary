@@ -3,9 +3,9 @@
 #include "VectorField.h"
 
 #include <Util\TmpPointer.h>
+#include <Util\Logger.h>
 
 #include <Eigen\Sparse>
-
 #include <Eigen\IterativeLinearSolvers>
 
 inline glm::vec3 _grad(const int &x,const int &y,const int &z,const ScalarField *v,const glm::vec3 &s){
@@ -48,48 +48,41 @@ void UltrasoundVariationalClassification::init(ScalarField *v,float alpha,float 
 {
 	float epsilon = Eigen::NumTraits<float>::epsilon();
 
-	TmpPointer<ScalarField> vb = v->blur();DBG("v_blur");
+    LOG_DEBUG("Bluring input volume");
+	TmpPointer<ScalarField> vb = v->blur();
 	
 	auto dim = v->_dimensions;
 	int size = dim.x * dim.y * dim.z;
 	
-	Eigen::SparseMatrix<float> A(size,size);DBG("A");
-	A.reserve(Eigen::VectorXi::Constant(size,7));DBG("A.reserve");
-	Eigen::VectorXf b(size), u;DBG("b u");
+    LOG_DEBUG("Defining Matrix A");
+	Eigen::SparseMatrix<float> A(size,size);
+    LOG_DEBUG("Reserving memory for " << (size*7) << " entries in Matrix A");
+	A.reserve(Eigen::VectorXi::Constant(size,7));
+	LOG_DEBUG("Creating Vector b and u");
+    Eigen::VectorXf b(size), u;
 
+    LOG_DEBUG("Reserving memory for " << size << " gradients");
+    blurred_gradints.reserve(size);
 	glm::vec3 spacing = v->_delta;
 	for(int z = 0;z<dim.z;z++)for(int y = 0;y<dim.y;y++)for(int x = 0;x<dim.x;x++){
-		//gradients.push_back(_grad(x,y,z,v,glm::vec3(1,1,1)));
 		blurred_gradints.push_back(_grad(x,y,z,vb.get(),spacing));
 	}
- //   int i = 0;
-	//for(int z = 0;z<dim.z;z++)for(int y = 0;y<dim.y;y++)for(int x = 0;x<dim.x;x++){
- //       auto c = _curl(x,y,z,vb.get(),spacing,blurred_gradints);
-	//	curls.push_back(glm::cross(blurred_gradints[i++],c));
-	//	//curls.push_back(tgt::cross(c,blurred_gradints[i++])); //TODO Check if this is correct or inversed
-	//}
-
-
-	
 	{
-		
 		int ix,iy,iz;
 		ix = 1;
 		iy = dim.x;
 		iz = dim.y*dim.x;
 		
-		
 		float a,g;
 		glm::vec3 grad,blured_grad,curl;
 
+        LOG_DEBUG("Starting to build A");
 		FOR(dim){
 			auto iv = glm::ivec3(x,y,z);
 			int id = _index(iv);
 			
-			
 			grad = _grad(x,y,z,v,glm::vec3(1,1,1));
 			blured_grad = blurred_gradints[id];
-			//curl = curls[id] * beta;
 			curl = _curl(x,y,z,vb.get(),spacing,blurred_gradints) * beta;
 
 			a = w*std::powf(v->_data[id] - iso,2);
@@ -113,27 +106,24 @@ void UltrasoundVariationalClassification::init(ScalarField *v,float alpha,float 
 				A.insert(id,id+iz) = curl.z;
 				A.insert(id,id-iz) = -curl.z;
 			}
-			//*/
 		}
-		/*std::cout << "Filling matrix" << std::endl;
-		A.setFromTriplets(a_val.begin(),a_val.end());*/
-		//Build A end
-	}
+    }
+    LOG_DEBUG("Completed building A");
 	Eigen::ConjugateGradient<Eigen::SparseMatrix<float> > cg;
-	std::cout << "Compute solver" << std::endl;
+	LOG_DEBUG("Compute solver");
 	cg.compute(A);
-	std::cout << "Compute solver done" << std::endl;
 	switch(cg.info()){
-	case Eigen::Success:
+    case Eigen::Success:
+        LOG_DEBUG("Compute solver Success");
 		break;
-	case Eigen::NumericalIssue:
-		std::cerr << "NumericalIssue, The provided data did not satisfy the prerequisites." << std::endl;
+    case Eigen::NumericalIssue:
+        LOG_ERROR("Compute solver failed: " << "NumericalIssue, The provided data did not satisfy the prerequisites.");
 		break;
 	case Eigen::NoConvergence:
-		std::cerr << "NoConvergence, Iterative procedure did not converge." << std::endl;
+		LOG_ERROR("Compute solver failed: " << "NoConvergence, Iterative procedure did not converge.");
 		break;
 	case Eigen::InvalidInput:
-		std::cerr << "InvalidInput, The inputs are invalid, or the algorithm has been improperly called. When assertions are enabled, such errors trigger an assert." << std::endl;
+		LOG_ERROR("Compute solver failed: " << "InvalidInput, The inputs are invalid, or the algorithm has been improperly called. When assertions are enabled, such errors trigger an assert.");
 		break;
 	}
 	
@@ -141,8 +131,7 @@ void UltrasoundVariationalClassification::init(ScalarField *v,float alpha,float 
 	cg.setTolerance(Eigen::NumTraits<float>::epsilon()*10);
 	u = cg.solve(b);
 
-	std::cout << "#iterations: " << cg.iterations() << std::endl;
-	std::cout << "estimated error: " << cg.error() << std::endl;
+    LOG_INFO("VariationalClassification completed after " << cg.iterations() << " with an estimated error of " << cg.error());
 
 	int a1=0,a2=0,a3=0,a4=0,a5=0,a6=0,a7=0,a8=0,a9=0;
 
@@ -174,10 +163,10 @@ void UltrasoundVariationalClassification::init(ScalarField *v,float alpha,float 
 			_data[id] = 0;
 		}
 	}
-	float dsize = size;
-	std::cout << a1 << " " << a2 << " " << a3 << " " << a4 << " " << a5 << " " << a6 << " " << a7 << " " << a8 << " " << a9<< std::endl;
-	std::cout << a1/dsize << " " << a2/dsize << " " << a3/dsize << " " << a4/dsize << " " << a5/dsize << " " << a6/dsize << " " << a7/dsize << " " << a8/dsize << " " << a9/dsize << std::endl;
-	std::cout << "Min/max value of volume: " << this->getMin() << "/" << this->getMax() << std::endl;
+	float dsize = (float)size;
+	LOG_DEBUG (a1 << " " << a2 << " " << a3 << " " << a4 << " " << a5 << " " << a6 << " " << a7 << " " << a8 << " " << a9);
+	LOG_DEBUG (a1/dsize << " " << a2/dsize << " " << a3/dsize << " " << a4/dsize << " " << a5/dsize << " " << a6/dsize << " " << a7/dsize << " " << a8/dsize << " " << a9/dsize);
+	LOG_DEBUG ("Min/max value of volume: " << this->getMin() << "/" << this->getMax());
 
 }
 

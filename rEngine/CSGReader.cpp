@@ -13,6 +13,7 @@
 #include <Geometry\Clustering\Clusterer.h>
 
 #include <Util\Macros.h>
+#include <Util\Logger.h>
 
 void CSGReader::ReadXML(rObject *&obj,tinyxml2::XMLElement *ele){
 	CSG *csg = read(ele->FirstChildElement());
@@ -122,11 +123,12 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
 				w = tryReadFloat(ePoints,"w",0.6);
 				uind = tryReadFloat(ePoints,"uind",0.95);
 				xi = tryReadFloat(ePoints,"xi",0.8);	
-
-				TmpPointer<ScalarField> vol = ScalarField::ReadFromRawfile(aUltrasound,d.x,d.y,d.z);
-				TmpPointer<UltrasoundVariationalClassification> usClassified = new UltrasoundVariationalClassification(vol.get(),alpha,beta,gamma,w,iso,uind,xi);
-				TmpPointer<ScalarField> blured = usClassified->blur();
-				TmpPointer<ScalarField> surfVol = blured->Canny();
+                
+                LOG_INFO("Loading ultrasound dataset");
+				TmpPointer<ScalarField> vol = ScalarField::ReadFromRawfile(aUltrasound,d.x,d.y,d.z);LOG_INFO("Loaded dataset, begin classification");
+				TmpPointer<UltrasoundVariationalClassification> usClassified = new UltrasoundVariationalClassification(vol.get(),alpha,beta,gamma,w,iso,uind,xi);LOG_INFO("classification done, starting lowpass filtering");
+				TmpPointer<ScalarField> blured = usClassified->blur();LOG_INFO("lowpass done, starting canny operator");
+				TmpPointer<ScalarField> surfVol = blured->Canny();LOG_INFO("canny done");
 				KDTree<Vertex,3,float> pointTree;
 				
 				glm::vec3 minP = vol->getBoundingAABB().minPos();
@@ -136,6 +138,7 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
 				minP.z = minP.y = minP.x;
 				maxP.z = maxP.y = maxP.x;
 
+                LOG_INFO("Extracting points");
 				FOR(d){
 					if(surfVol->get(glm::ivec3(x,y,z)) >= 0.99){
 						auto pos = surfVol->getBoundingAABB().getPosition(glm::vec3(x,y,z) / glm::vec3(d));
@@ -148,13 +151,15 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
 						pointTree.insert(glm::value_ptr(pos),v);
 					}
 				}
+                LOG_INFO("Cluserting extracted points");
 				float dd = 1.2*glm::length(glm::vec3(1.0/d.x,1.0/d.y,1.0/d.z));
 				std::cout << dd << std::endl;
 				KDTree<Vertex,3,float> *cluster = Clusterer::ClusterPoints(&pointTree,dd,10,true)[0].getPoints();
-				IT_FOR((*cluster),clust){
+                IT_FOR((*cluster),clust){
 					points.push_back(glm::vec3(clust->get().getPosition()));
 					normals.push_back(clust->get().getNormal());
 				}
+                LOG_INFO( std::string("Clusering removed ") << (pointTree.size() - points.size()));
 			}
 		}
 		else if(aMesh){
@@ -182,8 +187,9 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
 			std::cerr << "No source for points" << std::endl;
 			exit(-1);
 		}
-		
-		std::cout << "Number of points " << points.size() << std::endl;
+
+        LOG_INFO("Number of points " << points.size());
+        LOG_INFO("Number of normals " << normals.size());
 
 		auto eHints = ele->FirstChildElement("hints");
 		if(eHints){
@@ -200,8 +206,9 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
             if(eReg)			hints.Treg = atof(eReg->GetText());
             if(eSa)			    hints.Tsa = atof(eSa->GetText());
 		}
+        LOG_INFO("Starting initialization of PointCloudInterpolation");
         auto csg = new PointCloudInterpolation(points,hints,normals);
-        std::cout << "PointCloudInterpolator created with global error: " << csg->eGlobal() << std::endl;
+        LOG_INFO("PointCloudInterpolator created with global error: " << csg->eGlobal());
 		//exit(0);
 		return csg;
 	}

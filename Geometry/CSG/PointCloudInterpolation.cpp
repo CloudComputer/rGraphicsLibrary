@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include <Util\Macros.h>
-
+#include <Util\Logger.h>
 #include <Math\Plane.h>
 
 float phi(const float &r){
@@ -26,8 +26,7 @@ bool sortOverlap (K3DTree<Point>::Node* a,K3DTree<Point>::Node* &b) {
 
 Center::Center(const Point& p,PointCloudInterpolation *cloud,const PointCloudInterpolationHints &hints):lambda(0),w(0,0,0),P(p.P){
     w = -glm::normalize(p.N);
-	findOptimalSupportSize(cloud,hints);
-    //supportSize = hints.supportSize;
+    findOptimalSupportSize(cloud,hints);
     cloud->maxSupportSize = std::max(cloud->maxSupportSize,supportSize);
     cloud->minSupportSize = std::min(cloud->minSupportSize,supportSize);
     cloud->avgSupportSize += supportSize;
@@ -184,13 +183,14 @@ float Center::phi(const glm::vec3 &worldPos){
 }
 
 float Center::PHI(const glm::vec3 &worldPos,PointCloudInterpolation *pci){
-    float a = phi(worldPos);
+    return glob_phi(worldPos,P,supportSize);
+    /*float a = phi(worldPos);
     float b = 0;
     auto nodes = pci->_centers.findCloseTo(worldPos,pci->maxSupportSize);
     IT_FOR(nodes,c){
         b += (*c)->get().phi(worldPos);
     }
-    return a/b;
+    return a/b;*/
 }
 
 PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointCloud, PointCloudInterpolationHints hints,std::vector<glm::vec3> normals):
@@ -206,6 +206,8 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 		pointsLeft.push_back(_points.insert(*p,point));
 	}
 	
+    LOG_DEBUG("Point Tree created");
+
 	auto minX = _points.findMin(0)->getPosition()[0];
 	auto minY = _points.findMin(1)->getPosition()[1];
 	auto minZ = _points.findMin(2)->getPosition()[2];
@@ -222,6 +224,7 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
     C = L*hints.Tsa;
     C = C*C;
 	
+    LOG_DEBUG("Calculating densities");
 	float densSum = 0;
 	IT_FOR(_points,node){
 		std::vector<glm::vec3> closePoints;
@@ -234,28 +237,12 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 		}
 		if(normals.size()==0)
 			node->get().N = (Plane(closePoints)).getNormal();
-		/*if(glm::dot(node->get().N,node->get().P-glm::vec3(0.5,0.5,0.5))<0)
-			node->get().N = -node->get().N;*/
 		densSum += node->get().density;
-	}
-	float avgDens = densSum / _points.size(); 
-	std::cout << avgDens << std::endl;
-	/*
-	IT_FOR(_points,node){
-		auto nodes = _points.findNNearest(node->getPosition(),hints.K);
-		glm::vec3 n(0,0,0);
-		node->get().density /= avgDens;
-		IT_FOR(nodes,p){
-			n += (*p)->get().N;
-		}
-		n = glm::normalize(n);
-		if(glm::dot(n,node->get().N)<0){
-			std::cout << n.x << " " << n.y << " " << n.z << std::endl;
-			std::cout << node->get().N.x << " " << node->get().N.y << " " << node->get().N.z << std::endl << std::endl;
-			node->get().N = -node->get().N;
-		}
-	}*/
+    }
+    float avgDens = densSum / _points.size(); 
+    LOG_DEBUG("Calculating densities completed, average density " << avgDens);
 
+    LOG_DEBUG("Starting to create centers");
 	while(!pointsLeft.empty()){
 		Center c(pointsLeft[0]->get(),this,hints);
 		_centers.insert(c.P,c);
@@ -287,10 +274,13 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 			}
 		}
 	}
-    std::cout << "Num centers: "       << _centers.size() << std::endl;
-    std::cout << "Max support Size: " << maxSupportSize << std::endl;
-    std::cout << "Min support Size: " << minSupportSize << std::endl;
-    std::cout << "Avg support Size: " << avgSupportSize /  _centers.size()  << std::endl;
+    int size = _centers.size();
+
+    LOG_DEBUG("Centers created");
+    LOG_DEBUG("Num centers: "       << size);
+    LOG_DEBUG("Max support Size: " << maxSupportSize);
+    LOG_DEBUG("Min support Size: " << minSupportSize);
+    LOG_DEBUG("Avg support Size: " << avgSupportSize /  _centers.size());
 	
 	float minOverlap = 100000000;
 	float maxOverlap = 0;
@@ -298,14 +288,15 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 		minOverlap = std::min(minOverlap,(*p).get().overlap);
 		maxOverlap = std::max(maxOverlap,(*p).get().overlap);
 	}
-	std::cout << "Min overlap " << minOverlap << std::endl;
-	std::cout << "Max overlap " << maxOverlap << std::endl;
+	LOG_DEBUG("Min overlap " << minOverlap);
+    LOG_DEBUG("Max overlap " << maxOverlap);
 
    // return;
 
-	int size = _centers.size();
-
-	Eigen::SparseMatrix<float> A(size,size);
+    LOG_DEBUG("Starting to fit lambdas");
+	
+    Eigen::SparseMatrix<float> A(size,size);
+    LOG_DEBUG("Reserving memory for A, estimating " << size*100 << " entries");
 	A.reserve(Eigen::VectorXi::Constant(size,100));
 	Eigen::VectorXf b(size);
 	Eigen::VectorXf l(size);
@@ -317,7 +308,7 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 	int maxNonZero = 0;
 	int minNonZero = 10000;
 
-	float denom = densSum / (L*L);
+	float denom = densSum * (L*L);
 	IT_FOR(_centers,c0){
 		i = 0;
 		float B = 0;
@@ -330,8 +321,6 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 					continue;
                 a *= c0->get().PHI((*point)->get().P,this);
                 a *= c1->get().PHI((*point)->get().P,this);
-				//a *= phi((*point)->get().P,c0->get().P,c0->get().supportSize); // change this part
-				//a *= phi((*point)->get().P,c1->get().P,c1->get().supportSize); // and this part to use PHI instead of phi
 				v += a;
 				if(i == 0){
 					float c = (*point)->get().density;
@@ -357,9 +346,7 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 		}
 		b(j) = B / denom;
 		j++;
-		
-		//std::cout << j << " ";
-	
+
 		avgNonZero += numNonZero;
 		minNonZero = std::min(numNonZero,minNonZero);
 		maxNonZero = std::max(numNonZero,maxNonZero);
@@ -367,31 +354,31 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 
 	}
 	avgNonZero /= j;
-	std::cout << std::endl << "Avg: " << avgNonZero << std::endl;
-	std::cout << "Min: " << minNonZero << std::endl;
-	std::cout << "Max: " << maxNonZero << std::endl;
+    LOG_DEBUG("Finished building A");
+	LOG_DEBUG("Average number of nonzero/row: " << avgNonZero);
+	LOG_DEBUG("Minimum number of nonzero/row: " << minNonZero);
+	LOG_DEBUG("Maximum number of nonzero/row: " << maxNonZero);
 
 	Eigen::ConjugateGradient<Eigen::SparseMatrix<float> > cg;
 	cg.compute(A);
-	switch(cg.info()){
-	case Eigen::Success:
-		break;
-	case Eigen::NumericalIssue:
-		std::cerr << "NumericalIssue, The provided data did not satisfy the prerequisites." << std::endl;
-		break;
-	case Eigen::NoConvergence:
-		std::cerr << "NoConvergence, Iterative procedure did not converge." << std::endl;
-		break;
-	case Eigen::InvalidInput:
-		std::cerr << "InvalidInput, The inputs are invalid, or the algorithm has been improperly called. When assertions are enabled, such errors trigger an assert." << std::endl;
-		break;
-	}
+    switch(cg.info()){
+    case Eigen::Success:
+        LOG_DEBUG("Compute solver Success");
+        break;
+    case Eigen::NumericalIssue:
+        LOG_ERROR("Compute solver failed: " << "NumericalIssue, The provided data did not satisfy the prerequisites.");
+        break;
+    case Eigen::NoConvergence:
+        LOG_ERROR("Compute solver failed: " << "NoConvergence, Iterative procedure did not converge.");
+        break;
+    case Eigen::InvalidInput:
+        LOG_ERROR("Compute solver failed: " << "InvalidInput, The inputs are invalid, or the algorithm has been improperly called. When assertions are enabled, such errors trigger an assert.");
+        break;
+    }
 
-	//cg.setMaxIterations(15);
-	//cg.setTolerance(Eigen::NumTraits<float>::epsilon()*10);
-	l = cg.solve(b);
-	std::cout << "#iterations: " << cg.iterations() << std::endl;
-	std::cout << "estimated error: " << cg.error() << std::endl;
+	LOG_DEBUG("Starting to solve linear system");
+    l = cg.solve(b);
+	LOG_INFO("Solver completed after " << cg.iterations() << " with an estimated error of " << cg.error());
 	
 	i = 0;
 	IT_FOR(_centers,c0){
@@ -405,12 +392,9 @@ float PointCloudInterpolation::eval(const glm::vec3 &worldPos){
 	auto nodes = _centers.findCloseTo(worldPos,maxSupportSize);
 	IT_FOR(nodes,cc){
 		Center *c = &(*cc)->get();
-		float ph = c->phi(worldPos);
-        //ph = c->PHI(worldPos,this);
+		float ph = c->PHI(worldPos,this);
 		_ph += ph;
 		float g  = c->g(worldPos);
-		//if(c->lambda!=0)
-		//	g = 0;
 		v += (g+c->lambda)*ph;
 	}
 	return v;
