@@ -10,16 +10,6 @@
 	</viewport>
 </window>
 
-<texture name="red"  src="textures/red.jpg" />
-<texture name="colors"  src="textures/colors.jpg" />
-<texture name="floor" src="textures/floor.jpg" />
-<texture name="green" src="textures/green.jpg" />
-<texture name="blue"  src="textures/blue.jpg" />
-<texture name="yellow" src="textures/yellow.jpg" />
-<texture name="trans" src="textures/trans.png" />
-<texture name="white" src="textures/white.jpg" />
-<texture name="lorem" src="textures/lorem.jpg" />
-
   <scene id="scene" window="win1">
     <camera type="trackball">
       <projection type="perspective" near="0.1" far="10" fov="45" />
@@ -35,27 +25,39 @@
 
     <csg>
       <pointCloud>
-        <points mesh="F:\cpp\rGraphicsLibrary\models\cow.obj" amount="15000" />
+        <points_old mesh="F:\cpp\rGraphicsLibrary\models\cow.obj" amount="100000" />
+        <points
+          ultrasound="F:\Thesis Data\ContextVision\new volume\I0000027_TEMP-1-ENH-3_ENH-1-467x255x101.raw"
+          dimensions="467 255 101"
+          alpha="0.3"
+          beta="0.5"
+          gamma="0.5"
+          iso="0.3"
+          w="0.5"
+          uind="0.8"
+          xi="0.5"
+          />
         <hints>
-          <overlap>3</overlap>
-          <K>20</K>
-          <supportSize>0.05</supportSize>
-          <reg>0.00001</reg>
-        </hints>
-      </pointCloud>
+            <overlap>1.5</overlap>
+            <K>20</K>
+            <minSupportSize>0.0001</minSupportSize>
+            <maxSupportSize>0.07</maxSupportSize>
+            <reg>0.000001</reg>
+            <Tsa>0.000002</Tsa>
+          </hints>
+        </pointCloud>
       <bounds>
         <min>0 0 0</min>
         <max>1 1 0.5</max>
       </bounds>
-      <resolution>100</resolution>
+      <resolution>150</resolution>
 
       <material>
-        <specular>255 0 0</specular>
+        <specular>0 0 0</specular>
         <ambient>255 255 255</ambient>
         <specularity>110</specularity>
       </material>
     </csg>
-    
     
     
   </scene>
