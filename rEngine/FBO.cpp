@@ -3,6 +3,7 @@
 #include "Texture.h"
 
 #include <Util\Macros.h>
+#include <Util\Logger.h>
 
 FBO::FBO(rWindow *owner):ResizeListener(owner), _size(-1,-1),_isInit(false){
 
@@ -49,6 +50,9 @@ void FBO::init(std::string depthTexName){
 	unbind();
 	
 	chkGLErr();
+
+	LOG_INFO("FBO initzilized with size " << _size << " and depth buffer " << depthTexName);
+
 }
 
 glm::ivec2 FBO::getSize()const{return _size;}
@@ -76,6 +80,7 @@ void FBO::createRenderTarget(std::string textureName){
 	chkGLErr();
 
 	unbind();
+	LOG_INFO("Render target " << textureName << " created with size" << _size);
 }
 
 void FBO::onResize(glm::ivec2 newSize){
@@ -99,13 +104,11 @@ void FBO::onResize(glm::ivec2 newSize){
 		glBindTexture(GL_TEXTURE_2D, 0);
 	chkGLErr();
 	}
+	LOG_INFO("FBO Resized to " << _size);
 	
 }
 
 void FBO::bind(){
-	
-	
-	
 	glBindTexture(GL_TEXTURE_2D, _depthTex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
 	glBindTexture(GL_TEXTURE_2D, 0);

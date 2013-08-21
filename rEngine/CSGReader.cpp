@@ -54,18 +54,31 @@ void CSGReader::ReadXML(rObject *&obj,tinyxml2::XMLElement *ele){
 
 	CSGCache cahced(csg);
 	Mesh *m;
+	LOG_INFO("Starting to extract mesh with MarchingTetrahedra");
 	auto pci = dynamic_cast<PointCloudInterpolation*>(csg);
 	if(pci){
 		m = MarchingTetrahedra::March<IndexedMesh>(pci,res);
 	}else{
 		m = MarchingTetrahedra::March<IndexedMesh>(&cahced,aabb,dimm);
 	}
+	LOG_INFO("Mesh extracted");
 	
 
 	obj = new MeshRenderer();
 	auto renderer = static_cast<MeshRenderer*>(obj);
 	renderer->readMaterial(ele);
 	renderer->buildFromMesh(m);
+	LOG_INFO("Mesh renderer initilized");
+
+	auto save = ele->FirstChildElement("save");
+	if(save){
+		auto file= save->Attribute("file");
+		if(file){
+			LOG_INFO("Saving mesh to " << file);
+			m->save(file);
+		}
+	}
+
 }
 
 float tryReadFloat(tinyxml2::XMLElement *ele,const char *attr,float elseValue){
@@ -126,34 +139,74 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
                 
                 LOG_INFO("Loading ultrasound dataset");
 				TmpPointer<ScalarField> vol = ScalarField::ReadFromRawfile(aUltrasound,d.x,d.y,d.z);LOG_INFO("Loaded dataset, begin classification");
-				TmpPointer<UltrasoundVariationalClassification> usClassified = new UltrasoundVariationalClassification(vol.get(),alpha,beta,gamma,w,iso,uind,xi);LOG_INFO("classification done, starting lowpass filtering");
+				ScalarField* clippedVol = 0;
+				auto clip = ele->FirstChildElement("clip");
+				if(clip){
+					glm::ivec3 clipMin(0,0,0),clipMax(d);
+					std::istringstream issMin(clip->Attribute("min"));
+					std::istringstream issMax(clip->Attribute("max"));
+					issMin >> clipMin.x >> clipMin.y >> clipMin.z;
+					issMax >> clipMax.x >> clipMax.y >> clipMax.z;
+					clippedVol = vol->clip(clipMin,clipMax); //Warning, this is mem leak
+					LOG_INFO("Using clipped volume " << clipMin << clipMax);
+				}else{
+					clippedVol = vol.get(); 
+				}
+
+				TmpPointer<UltrasoundVariationalClassification> usClassified = new UltrasoundVariationalClassification(clippedVol,alpha,beta,gamma,w,iso,uind,xi);LOG_INFO("classification done, starting lowpass filtering");
 				TmpPointer<ScalarField> blured = usClassified->blur();LOG_INFO("lowpass done, starting canny operator");
+				TmpPointer<ScalarField> bluredOrig = clippedVol->blur();LOG_INFO("lowpass done, starting canny operator");
 				TmpPointer<ScalarField> surfVol = blured->Canny();LOG_INFO("canny done");
 				KDTree<Vertex,3,float> pointTree;
 				
-				glm::vec3 minP = vol->getBoundingAABB().minPos();
-				glm::vec3 maxP = vol->getBoundingAABB().maxPos();
+				LOG_DEBUG(aUltrasound);
+				LOG_DEBUG(d);
+				LOG_DEBUG(vol->getDimensions());
+				LOG_DEBUG(clippedVol->getDimensions());
+				LOG_DEBUG(usClassified->getDimensions());
+				LOG_DEBUG(blured->getDimensions());
+				LOG_DEBUG(surfVol->getDimensions())
+
+				std::stringstream ss;
+				ss << aUltrasound << ".classified.raw";
+
+			//	usClassified->saveAsRaw(ss.str().c_str());
+
+				glm::vec3 minP = clippedVol->getBoundingAABB().minPos();
+				glm::vec3 maxP = clippedVol->getBoundingAABB().maxPos();
 				minP.x = std::min(std::min(minP.x,minP.y),minP.z);
 				maxP.x = std::max(std::max(maxP.x,maxP.y),maxP.z);
 				minP.z = minP.y = minP.x;
 				maxP.z = maxP.y = maxP.x;
 
+				//TmpPointer<ScalarField> test = surfVol->doubleSize();
+
                 LOG_INFO("Extracting points");
-				FOR(d){
-					if(surfVol->get(glm::ivec3(x,y,z)) >= 0.99){
-						auto pos = surfVol->getBoundingAABB().getPosition(glm::vec3(x,y,z) / glm::vec3(d));
-						//points.push_back(pos);
+				auto d2 = d;
+				FOR(surfVol->getDimensions()){
+					if(surfVol->get(glm::ivec3(x,y,z)) >= 0.1){
+						auto pos = surfVol->getBoundingAABB().getPosition(glm::vec3(x,y,z) / glm::vec3(d2));
+						auto g = bluredOrig->getGradient(pos);
 						Vertex v;
 						pos -= minP;
 						pos /= (maxP-minP);
-						v.setPosition(glm::vec4(pos,1));
-						v.setNormal(blured->getBoundingAABB().getPosition(glm::vec3(x,y,z) / glm::vec3(d)));
+						v.setPosition(glm::vec4(pos,1));;
+						float l = glm::length(g);
+						if(l!=0){
+							v.setNormal(g/l);
+						}
+						else
+							v.setNormal(glm::vec3(0,0,0));
+						if(l!=l || g.x != g.x){
+							std::cout << "sometin wong" << std::endl;
+						}
 						pointTree.insert(glm::value_ptr(pos),v);
 					}
 				}
                 LOG_INFO("Cluserting extracted points");
-				float dd = 1.2*glm::length(glm::vec3(1.0/d.x,1.0/d.y,1.0/d.z));
+				float dd = 1*glm::length(glm::vec3(1.0/d2.x,1.0/d2.y,1.0/d2.z));
 				std::cout << dd << std::endl;
+				glm::vec3 vp(0,1,0);
 				KDTree<Vertex,3,float> *cluster = Clusterer::ClusterPoints(&pointTree,dd,10,true)[0].getPoints();
                 IT_FOR((*cluster),clust){
 					points.push_back(glm::vec3(clust->get().getPosition()));
@@ -188,23 +241,23 @@ CSG* CSGReader::read(tinyxml2::XMLElement *ele){
 			exit(-1);
 		}
 
-        LOG_INFO("Number of points " << points.size());
-        LOG_INFO("Number of normals " << normals.size());
+		LOG_INFO("Number of points " << points.size());
+		LOG_INFO("Number of normals " << normals.size());
 
 		auto eHints = ele->FirstChildElement("hints");
 		if(eHints){
 			auto eOverlap = eHints->FirstChildElement("overlap");
 			auto eK = eHints->FirstChildElement("K");
-            auto eMinSupportSize = eHints->FirstChildElement("minSupportSize");
-            auto eMaxSupportSize = eHints->FirstChildElement("maxSupportSize");
-            auto eReg = eHints->FirstChildElement("reg");
-            auto eSa = eHints->FirstChildElement("Tsa");
+			auto eMinSupportSize = eHints->FirstChildElement("minSupportSize");
+			auto eMaxSupportSize = eHints->FirstChildElement("maxSupportSize");
+			auto eReg = eHints->FirstChildElement("reg");
+			auto eSa = eHints->FirstChildElement("Tsa");
 			if(eOverlap)		hints.TOverlap = atof(eOverlap->GetText());
 			if(eK)				hints.K = atoi(eK->GetText());
 			if(eMinSupportSize)	hints.minSupportSize = atof(eMinSupportSize->GetText());
 			if(eMaxSupportSize)	hints.maxSupportSize = atof(eMaxSupportSize->GetText());
-            if(eReg)			hints.Treg = atof(eReg->GetText());
-            if(eSa)			    hints.Tsa = atof(eSa->GetText());
+			if(eReg)			hints.Treg = atof(eReg->GetText());
+			if(eSa)				hints.Tsa = atof(eSa->GetText());
 		}
         LOG_INFO("Starting initialization of PointCloudInterpolation");
         auto csg = new PointCloudInterpolation(points,hints,normals);

@@ -16,7 +16,6 @@ _indices(0),
 _smooth(true){
 	glGenBuffers(1,&vbo);
 	glGenBuffers(1,&ibo);
-	
  }
 
 
@@ -32,6 +31,7 @@ void MeshRenderer::readMaterial(tinyxml2::XMLElement *ele){
 	_useTex = false;
 	auto texture = ele->FirstChildElement("texture");
 	if(texture){
+		LOG_DEBUG("Using texture");
 		defs.push_back("USETEXTURE");
 		_useTex = true;
 		std::string textureSRC;
@@ -45,17 +45,20 @@ void MeshRenderer::readMaterial(tinyxml2::XMLElement *ele){
 	auto material = ele->FirstChildElement("material");
 
 	if(material){
+		LOG_DEBUG("Using material");	
 		auto diffuse = material->FirstChildElement("diffuse");
 		auto ambient = material->FirstChildElement("ambient");
 		auto specular = material->FirstChildElement("specular");
 		auto specularity = material->FirstChildElement("specularity");
 		if(diffuse){
+			LOG_DEBUG("Using diffuse ");	
 			auto c = diffuse->GetText();
 			std::istringstream iss(c);
 			glm::vec4 col = glm::vec4(0,0,0,255);
 			iss >> col.r>>col.g>>col.b>>col.a;
 			col /= 255;
 			_mat.setDiffuse(col);
+			LOG_DEBUG("Using diffuse " << col << _mat.getDiffuse());	
 				
 		}
 		if(ambient){
@@ -65,6 +68,7 @@ void MeshRenderer::readMaterial(tinyxml2::XMLElement *ele){
 			iss >> col.r >> col.g >> col.b;
 			col /= 255;
 			_mat.setAmbient(col);
+			LOG_DEBUG("Using ambient " << col << _mat.getAmbient());	
 		}
 		if(specular){
 			auto c = specular->GetText();	
@@ -73,6 +77,7 @@ void MeshRenderer::readMaterial(tinyxml2::XMLElement *ele){
 			iss >> col.r >> col.g >> col.b;
 			col /= 255;
 			_mat.setSpecular(col);
+			LOG_DEBUG("Using specular " << col << _mat.getSpecular());
 		}
 		if(specularity){
 			auto c = specularity->GetText();	
@@ -80,7 +85,10 @@ void MeshRenderer::readMaterial(tinyxml2::XMLElement *ele){
 			float s = 0;
 			iss >> s;
 			_mat.setSpecularity(s);
+			LOG_DEBUG("Using specularity " << s << _mat.getSpecularity());
 		}
+	}else if(!texture){
+		LOG_WARN("No material defined");
 	}
 
 	

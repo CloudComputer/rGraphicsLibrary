@@ -28,7 +28,7 @@ public:
 	static glm::ivec3 getMaxUniformsPerStage();
 	static int getMaxAttribs();
 
-	static void printOGLInformation(std::ostream &stream);
+	static void printOGLInformation();
 
 	static void checkGLErrors(std::string file = "", int line = -1);
 };

@@ -64,6 +64,9 @@ class PointCloudInterpolation : public CSG{
     float minSupportSize;
     float avgSupportSize;
 	BoundingAABB _aabb;
+
+	glm::vec3 _avgCenter;
+
 public:
 	PointCloudInterpolation(std::vector<glm::vec3> pointCloud, PointCloudInterpolationHints hints = PointCloudInterpolationHints(),std::vector<glm::vec3> normals = std::vector<glm::vec3>());
 	virtual ~PointCloudInterpolation(){}
@@ -73,6 +76,7 @@ public:
 
 	const BoundingAABB &getAABB(){return _aabb;}
 
+	float guess(const glm::vec3 &worldPos);
 
     virtual float eval(const glm::vec3 &worldPos);
     float eGlobal();

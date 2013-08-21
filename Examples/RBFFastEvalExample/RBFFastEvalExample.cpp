@@ -62,7 +62,7 @@ void draw(){
 	glEnd();
 	glEnable(GL_LIGHTING);
 
-	chkGLErr();
+//	chkGLErr();
 	glfwSwapBuffers();
 }
 

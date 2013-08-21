@@ -41,7 +41,7 @@ class KDNode: public Object{
 	KDNode *_parent;
 	KDNode *_left;
 	KDNode *_right;
-	KD_TREE *_tree;
+	//KD_TREE *_tree;
 	dataType _data;
 	unsigned int _dimmension;
 	floatPrecision _pos[dimmensions];

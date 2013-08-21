@@ -9,6 +9,8 @@
 #include <Util\Logger.h>
 #include <Math\Plane.h>
 
+glm::vec3 vp(0,1,0);
+
 float phi(const float &r){
 	if(r>=1) return 0;
 	if(r<=Eigen::NumTraits<float>::epsilon()) return 1;
@@ -25,7 +27,7 @@ bool sortOverlap (K3DTree<Point>::Node* a,K3DTree<Point>::Node* &b) {
 
 
 Center::Center(const Point& p,PointCloudInterpolation *cloud,const PointCloudInterpolationHints &hints):lambda(0),w(0,0,0),P(p.P){
-    w = -glm::normalize(p.N);
+    w = glm::normalize(p.N);
     findOptimalSupportSize(cloud,hints);
     cloud->maxSupportSize = std::max(cloud->maxSupportSize,supportSize);
     cloud->minSupportSize = std::min(cloud->minSupportSize,supportSize);
@@ -44,12 +46,15 @@ Center::Center(const Point& p,PointCloudInterpolation *cloud,const PointCloudInt
 void Center::findABCDEF(PointCloudInterpolation *pci){
     auto nodes = pci->_points.findCloseTo(P,supportSize);
     
-    w = glm::vec3(0,0,0);
-    IT_FOR(nodes,node){
-        float ph = phi((*node)->get().P);
-        w += (*node)->get().N * ph * (*node)->get().density;
-    }
-    w = glm::normalize(w);
+    //w = glm::vec3(0,0,0);
+    //IT_FOR(nodes,node){
+    //    float ph = phi((*node)->get().P);
+    //    w += (*node)->get().N * ph * (*node)->get().density;
+    //}
+    //w = glm::normalize(w);
+	/*glm::vec3 test = P -pci-> _avgCenter;
+	if(glm::dot(w,test)<0)
+		w = -w;*/
 
     if(glm::dot(w,glm::vec3(0,0,1)) != 1){
         u = glm::cross(glm::vec3(0,0,1),w);
@@ -60,9 +65,11 @@ void Center::findABCDEF(PointCloudInterpolation *pci){
     v = glm::cross(u,w);
     
     Eigen::MatrixXf M(6,6);
-    Eigen::VectorXf b(6),x(6);
+    Eigen::VectorXf b(6),x(6),v1(6),v2(6);
     for(int i = 0;i<6;i++){
         b(i) = 0;
+        v1(i) = 0;
+        v2(i) = 0;
         for(int j = 0;j<6;j++){
             M(i,j) = 0;
         }
@@ -76,19 +83,22 @@ void Center::findABCDEF(PointCloudInterpolation *pci){
         z = glm::dot(w,p-P);
         ph = phi(p)*d;
 
-        M(0,0) += x*x*x*x*ph;	M(0,1) += x*x*y*x*ph;	M(0,2) += x*x*y*y*ph;	M(0,3) += x*x*x*ph;	M(0,4) += x*x*y*ph;	M(0,5) += x*x*ph;
-        M(1,0) += 2*x*y*x*x*ph;	M(1,1) += 2*x*y*y*x*ph;	M(1,2) += 2*x*y*y*y*ph;	M(1,3) += 2*x*y*x*ph;	M(1,4) += 2*x*y*y*ph;	M(1,5) += 2*x*y*ph;
-        M(2,0) += y*y*x*x*ph;	M(2,1) += y*y*y*x*ph;	M(2,2) += y*y*y*y*ph;	M(2,3) += y*y*x*ph;	M(2,4) += y*y*y*ph;	M(2,5) += y*y*ph;
-        M(3,0) += 1*x*x*x*ph;	M(3,1) += 1*x*y*x*ph;	M(3,2) += 1*x*y*y*ph;	M(3,3) += 1*x*x*ph;	M(3,4) += 1*x*y*ph;	M(3,5) += 1*x*ph;
-        M(4,0) += 1*y*x*x*ph;	M(4,1) += 1*y*y*x*ph;	M(4,2) += 1*y*y*y*ph;	M(4,3) += 1*y*x*ph;	M(4,4) += 1*y*y*ph;	M(4,5) += 1*y*ph;
-        M(5,0) += 1*1*x*x*ph;	M(5,1) += 1*1*y*x*ph;	M(5,2) += 1*1*y*y*ph;	M(5,3) += 1*1*x*ph;	M(5,4) += 1*1*y*ph;	M(5,5) += 1*1*ph;
+		v1(0) = x*x;
+		v1(1) = 2*x*y;
+		v1(2) = y*y;
+		v1(3) = x;
+		v1(4) = y;
+		v1(5) = 1;
 
-        b(0) += ph*z*x*x;
-        b(1) += 2*ph*z*x*y;
-        b(2) += ph*z*y*y;
-        b(3) += ph*z*x;
-        b(4) += ph*z*y;
-        b(5) += ph*z*1;
+		v2(0) = ph * x*x;
+		v2(1) = ph * 2*x*y;
+		v2(2) = ph * y*y;
+		v2(3) = ph * x;
+		v2(4) = ph * y;
+		v2(5) = ph;
+
+		M += v1 * v2.transpose();
+		b  += v2*z;
     }
 
     x = M.llt().solve(b);
@@ -184,29 +194,47 @@ float Center::phi(const glm::vec3 &worldPos){
 
 float Center::PHI(const glm::vec3 &worldPos,PointCloudInterpolation *pci){
     return glob_phi(worldPos,P,supportSize);
-    /*float a = phi(worldPos);
+    float a = phi(worldPos);
     float b = 0;
     auto nodes = pci->_centers.findCloseTo(worldPos,pci->maxSupportSize);
     IT_FOR(nodes,c){
         b += (*c)->get().phi(worldPos);
     }
-    return a/b;*/
+    return a/b;//*/
 }
 
 PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointCloud, PointCloudInterpolationHints hints,std::vector<glm::vec3> normals):
 	maxSupportSize(0),minSupportSize(100000),avgSupportSize(0)
 {
+	if(normals.size()==0) //shuffle the array of points to make kd-tree better balanced, but only if there are no normals specified.
+		std::random_shuffle(pointCloud.begin(),pointCloud.end());
 	std::vector<K3DTree<Point>::Node*> pointsLeft;
 	int _i = 0;
+	_avgCenter = glm::vec3(0,0,0);
 	IT_FOR(pointCloud,p){
 		Point point(*p);
+		_avgCenter += *p;
 		if(normals.size()!=0){
 			point.N = normals[_i++];
 		}
 		pointsLeft.push_back(_points.insert(*p,point));
 	}
-	
+
+	_avgCenter /= pointsLeft.size();
+
     LOG_DEBUG("Point Tree created");
+
+	{
+	float d = _points.depth();
+	float s = pointsLeft.size();
+	float f0 = s / (std::powf(2,d)-1);
+	float f1 = (std::log(s)/std::log(2)) / d;
+
+    LOG_DEBUG("Num points: "       << s);
+	LOG_DEBUG("Depth of three: "   << d);
+	LOG_DEBUG("Fill factor 0: "    << f0);
+	LOG_DEBUG("Fill factor 1: "    << f1);
+	}
 
 	auto minX = _points.findMin(0)->getPosition()[0];
 	auto minY = _points.findMin(1)->getPosition()[1];
@@ -223,6 +251,11 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 	L = std::sqrt(dx*dx + dy*dy + dz*dz);
     C = L*hints.Tsa;
     C = C*C;
+	LOG_DEBUG("Setting L: " << L);
+	LOG_DEBUG("Setting H: " << C);
+	LOG_DEBUG("Using hint.Tsa: " << hints.Tsa);
+
+	_avgCenter = _aabb.getPosition(glm::vec3(0.5,0.5,0.5));
 	
     LOG_DEBUG("Calculating densities");
 	float densSum = 0;
@@ -231,15 +264,24 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 		auto nodes = _points.findNNearest(node->getPosition(),hints.K);
 		node->get().density = 0;
 		IT_FOR(nodes,p){
-			closePoints.push_back((*p)->get().P);
+			closePoints.push_back((*p)->get().P); 
 			auto o = (*p)->get().P - node->get().P;
-			node->get().density += glm::dot(o,o);
+			//node->get().density += phi(glm::length(o));
+			node->get().density += glm::dot(o,o); //TEST WHAT HAPPENS IF WE USE phi(glm::length(o,o)) HERE
 		}
-		if(normals.size()==0)
+		if(normals.size()==0){
 			node->get().N = (Plane(closePoints)).getNormal();
+			//glm::vec3 test = node->get().P - _avgCenter;
+			//if(glm::dot(test,node->get().N)<0)
+				//node->get().N = -node->get().N;
+		}
+
 		densSum += node->get().density;
     }
     float avgDens = densSum / _points.size(); 
+	IT_FOR(_points,p){
+		(p)->get().density /= avgDens;
+	}
     LOG_DEBUG("Calculating densities completed, average density " << avgDens);
 
     LOG_DEBUG("Starting to create centers");
@@ -275,9 +317,18 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 		}
 	}
     int size = _centers.size();
+	
 
+	float d = _centers.depth();
+	float s = size;
+	float f0 = s / (std::powf(2,d)-1);
+	float f1 = (std::log(s)/std::log(2)) / d;
     LOG_DEBUG("Centers created");
+
     LOG_DEBUG("Num centers: "       << size);
+	LOG_DEBUG("Depth of three: " << d);
+	LOG_DEBUG("Fill factor 0: " << f0);
+	LOG_DEBUG("Fill factor 1: " << f1);
     LOG_DEBUG("Max support Size: " << maxSupportSize);
     LOG_DEBUG("Min support Size: " << minSupportSize);
     LOG_DEBUG("Avg support Size: " << avgSupportSize /  _centers.size());
@@ -291,7 +342,11 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 	LOG_DEBUG("Min overlap " << minOverlap);
     LOG_DEBUG("Max overlap " << maxOverlap);
 
+
+
    // return;
+	
+	LOG_DEBUG("Global error before lambda fitting: " << eGlobal());
 
     LOG_DEBUG("Starting to fit lambdas");
 	
@@ -310,17 +365,25 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 
 	float denom = densSum * (L*L);
 	IT_FOR(_centers,c0){
-		i = 0;
+		i = -1;
 		float B = 0;
 		auto nodes = _points.findCloseTo(c0->get().P,c0->get().supportSize);
+		auto centers2 = _centers.findCloseTo(c0->get().P,c0->get().supportSize);
 		IT_FOR(_centers,c1){
+			i++;
+			float dist =  glm::distance(c0->get().P,(c1)->get().P);
+			float supSize = c0->get().supportSize + (c1)->get().supportSize;
+			if(dist>supSize){ //The centers does not share any points
+				continue;
+			}
 			float v = 0;
+			
 			IT_FOR(nodes,point){
                 float a = (*point)->get().density;
-				if(c0->get().phi((*point)->get().P) == 0 || c1->get().phi((*point)->get().P) == 0)
+				if(c0->get().phi((*point)->get().P) == 0 || (c1)->get().phi((*point)->get().P) == 0)
 					continue;
                 a *= c0->get().PHI((*point)->get().P,this);
-                a *= c1->get().PHI((*point)->get().P,this);
+                a *= (c1)->get().PHI((*point)->get().P,this);
 				v += a;
 				if(i == 0){
 					float c = (*point)->get().density;
@@ -330,18 +393,18 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 				}
 			}
 			v /= denom;
-			if(c0 == c1){
+			if(i==0){
 				float d = 1.0 / c0->get().supportSize;
 				d *= d;
 				d /= size;
 				d *= hints.Treg;
 				v += d;
+				//TODO make sure you get here
 			}
 			if(v!=0){
 				A.insert(i,j) = v;
 				numNonZero++;
 			}
-			i++;
 
 		}
 		b(j) = B / denom;
@@ -386,13 +449,20 @@ PointCloudInterpolation::PointCloudInterpolation(std::vector<glm::vec3> pointClo
 	}
 }
 
+float PointCloudInterpolation::guess(const glm::vec3 &worldPos){
+	auto n = _points.findNearest(worldPos);
+	return glm::distance(n->get().P,worldPos);
+}
 float PointCloudInterpolation::eval(const glm::vec3 &worldPos){
 	float v = 0;
 	float _ph = 0;
 	auto nodes = _centers.findCloseTo(worldPos,maxSupportSize);
 	IT_FOR(nodes,cc){
 		Center *c = &(*cc)->get();
-		float ph = c->PHI(worldPos,this);
+		//float ph = c->PHI(worldPos,this);
+		float ph = c->phi(worldPos);
+		if(ph!=ph)
+			LOG_ERROR("ph!=ph - ph = " << ph << "    " << maxSupportSize);
 		_ph += ph;
 		float g  = c->g(worldPos);
 		v += (g+c->lambda)*ph;
@@ -404,6 +474,9 @@ float PointCloudInterpolation::eGlobal(){
     float num = 0,denum = 0,f;
     IT_FOR(_points,p){
         f = eval((*p).get().P);
+		if(f!=f){
+			//LOG_ERROR("f!=f - f = " << f);
+		}
         num   += (*p).get().density * (f*f);
         denum += (*p).get().density;
     }

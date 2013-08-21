@@ -25,7 +25,7 @@ void main(){
 	vec3 color = vec3(0,0,0),ambient = vec3(0,0,0);
 	vec3 N = texture2D(inNormal,texCoord).xyz  * 2.0 - 1.0;
 	vec3 screenPos = vec3(texCoord,texture2D(inDepth,texCoord).x);
-	//if(screenPos.z == 1)discard;
+	if(texture2D(inDepth,texCoord).x == 1) discard;
 	
 	vec3 diff = texture2D(inDiffuse,texCoord).xyz;
 	vec3 spec = texture2D(inSpecular,texCoord).xyz;

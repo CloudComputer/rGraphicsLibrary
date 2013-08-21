@@ -33,7 +33,7 @@ public:
 
 	T* getData()const;
 	unsigned int getMemSize()const;
-
+	
 	
 	static Field3D *Add(const Field3D *f0,const Field3D *f1);
 	static Field3D *Sub(const Field3D *f0,const Field3D *f1);

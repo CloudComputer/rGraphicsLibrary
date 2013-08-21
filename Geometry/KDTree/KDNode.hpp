@@ -5,7 +5,6 @@
 #include <algorithm>
 
 KD_TEMPLATE KD_NODE::KDNode(KD_TREE *tree,const floatPrecision pos[dimmensions],const dataType &data,KD_NODE *parent):
-_tree(tree),
 _data(data),
 _parent(parent),
 _left(0),
@@ -18,9 +17,9 @@ _right(0)
 }
 
 KD_TEMPLATE KD_NODE::~KDNode(){
-	if(_left != 0)
+	//if(_left != 0)
 		delete _left;
-	if(_right != 0)
+	//if(_right != 0)
 		delete _right;
 }
 
@@ -90,14 +89,14 @@ KD_NODE* KD_NODE::insert(const floatPrecision pos[dimmensions], const dataType &
 	bool right = _goRight(pos);
 	if(right){
 		if(_right == 0){
-			_right = new KDNode(_tree,pos,data,this);	
+			_right = new KDNode(0,pos,data,this);	
 			return _right;
 		}
 		return _right->insert(pos,data);
 	}
 	else{
 		if(_left == 0){
-			_left = new KDNode(_tree,pos,data,this);	
+			_left = new KDNode(0,pos,data,this);	
 			return _left;
 		}
 		return _left->insert(pos,data);
@@ -286,7 +285,7 @@ KD_TEMPLATE void KD_NODE::findCloseTo(const floatPrecision pos[dimmensions],cons
 
 #define __FF__ std::cout << "Failed at " << __FILE__ << "@" << __LINE__ << std::endl
 KD_TEMPLATE void KD_NODE::swap(KD_NODE* n0,KD_NODE* n1){
-	if(n0 == n1  || n0 == 0 || n1 == 0 || n0->_tree != n1->_tree)
+	if(n0 == n1  || n0 == 0 || n1 == 0 )
 		return;
 
 	KD_NODE* r0 = n0->_right;
@@ -361,7 +360,7 @@ KD_TEMPLATE void KD_NODE::swap(KD_NODE* n0,KD_NODE* n1){
 KD_TEMPLATE std::string KD_NODE::toString()const{
 	std::stringstream ss;
 	ss << typeid(*this).name() << " " << (void*)this << " ";
-	ss << _tree << " ";
+	//ss << _tree << " ";
 	//ss << _data << " [";
 	for(int i = 0;i<dimmensions;i++){
 		ss << " "<< _pos[i];

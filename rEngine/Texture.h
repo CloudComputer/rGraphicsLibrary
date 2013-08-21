@@ -48,6 +48,10 @@ public:
 	static GLuint loadTexture(tinyxml2::XMLElement * ele);
 
 	static GLuint loadTexture(std::string name,std::string filename,TextureHints hints = TextureHints());
+	
+	static void screenshot(const char* filename,std::string textureName);
+	static void screenshot(const char* filename,GLuint texID);
+
 
 };
 

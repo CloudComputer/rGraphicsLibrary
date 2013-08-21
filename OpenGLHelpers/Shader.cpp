@@ -143,11 +143,11 @@ FragmentShader* FragmentShader::CreateNewFromFile(std::string filename,std::vect
 }
 
 ShaderProgram::ShaderProgram(){
-	_programID =  -1;
+	_programID =  0;
 }
 
 ShaderProgram::~ShaderProgram(){
-	if(_programID != -1){
+	if(_programID != 0){
 		glDeleteProgram(_programID);
 	}
 	delete _vertexShader;
@@ -240,7 +240,8 @@ ShaderProgram *ShaderProgram::CreateShaderProgramFromSources(std::string vertexS
 
 
 void ShaderProgram::bind(){
-	glUseProgram(_programID);
+	if(_programID)
+		glUseProgram(_programID);
 }
 void ShaderProgram::unbind(){
 	glUseProgram(0);

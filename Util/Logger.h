@@ -3,8 +3,13 @@
 
 #include <vector>
 #include <string>
+#include <sstream>
 
 #include <fstream>
+
+
+
+#include <ext\glm\glm.hpp>
 
 #include "StopClock.h"
 
@@ -15,11 +20,18 @@ enum LogLevel{
     Error   = 3
 };
 
-#define LOG(lvl,msg)LogManager::getLogManager()->log(lvl,msg,__FUNCTION__,__FILE__,__LINE__)
+#define LOG(lvl,msg){ LogManager::getLogManager()->log(lvl,msg,__FUNCTION__,__FILE__,__LINE__);}
 #define LOG_DEBUG(msg) {std::stringstream ss; ss << msg;  LOG(Debug,ss.str());}
 #define LOG_INFO(msg) {std::stringstream ss; ss << msg;  LOG(Info,ss.str());}
 #define LOG_WARN(msg) {std::stringstream ss; ss << msg;  LOG(Warning,ss.str());}
 #define LOG_ERROR(msg) {std::stringstream ss; ss << msg;  LOG(Error,ss.str());}
+
+std::ostream& operator<<(std::ostream& os,const glm::vec2 &v);
+std::ostream& operator<<(std::ostream& os,const glm::vec3 &v);
+std::ostream& operator<<(std::ostream& os,const glm::vec4 &v);
+std::ostream& operator<<(std::ostream& os,const glm::ivec2 &v);
+std::ostream& operator<<(std::ostream& os,const glm::ivec3 &v);
+std::ostream& operator<<(std::ostream& os,const glm::ivec4 &v);
 
 class Logger;
 

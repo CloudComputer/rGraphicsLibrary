@@ -12,7 +12,50 @@
 #include <Util\Macros.h>
 #include <Util\Logger.h>
 
+#include <IMHelpers\IMHelpers.h>
+
+#include <rEngine\rObject.h>
+
 tinyxml2::XMLDocument doc;
+
+class ScreenShotFirstScreen : public rObject{
+	bool first_;
+	int test;
+	std::string filename;
+public:
+	ScreenShotFirstScreen(std::string filename){ 
+		first_ = true;
+		this->filename = filename;
+		LOG_INFO("ScreenShotFirstScreen created, a screenshot will be taken after first screen is rendered");
+	}
+	virtual void postDraw(Scene *s){
+		if(first_){
+			chkGLErr();
+			first_ = false;
+			s->screenshot(filename.c_str());
+			chkGLErr();
+		}
+	}
+};
+
+
+class DieAfterFirstScreen : public rObject{
+	bool first_;
+public:
+	DieAfterFirstScreen(){ 
+		first_ = true;
+		LOG_INFO("DieAfterFirstScreen created, Applcation will be closed after first screen has been rendered");
+	}
+	virtual void postDraw(Scene *s){
+		if(first_){// Actually, close on second, to make sure everything has been rendered
+			first_ = false;
+			return;
+		}
+		LOG_INFO("Exiting application");
+		exit(0);
+		
+	}
+};
 
 void loadXML(rEngine *t,std::string filename){
 	doc.LoadFile(filename.c_str());
@@ -71,10 +114,19 @@ void loadXML(rEngine *t,std::string filename){
 		}
 		
 		FOR_XML_ELE("scene",firstChild,scene){
-			t->addScene(Scene::CreateScene(scene));
+			auto s = Scene::CreateScene(scene);
+			t->addScene(s);
+			FOR_XML_ELE("ScreenShotFirstScreen",scene,e){
+				auto src = e->Attribute("file");
+				if(src)
+					s->addObject(new ScreenShotFirstScreen(src));
+				break;
+			}
+			FOR_XML_ELE("DieAfterFirstScreen",scene,e){
+				s->addObject(new DieAfterFirstScreen());
+				break;
+			}
 		}
-
-
 	}
 }
 
@@ -94,11 +146,13 @@ void init(rEngine *t,int argc, char **argv){
 		exit(-1);
 	}
 	loadXML(t,filename);
+	LOG_INFO("XML File read completed " << filename);
 	glClearColor (0.0f, 0.0f, 0.0f, 0.0f);                      
 	glClearDepth (1.0f);                                        
 	glEnable (GL_DEPTH_TEST); 
 	glEnable(GL_TEXTURE_2D);                                
 	
+	//exit(0);
 }
 
 rENGINE_MAIN(init)

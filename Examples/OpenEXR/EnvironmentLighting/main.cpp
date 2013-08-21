@@ -338,7 +338,7 @@ int main( int argc, char* argv[] )
 		exit(1);
 	}
 	chkGLErr();
-	OpenGLInfo::printOGLInformation(std::cout);
+	OpenGLInfo::printOGLInformation();
 	
 	chkGLErr();
 

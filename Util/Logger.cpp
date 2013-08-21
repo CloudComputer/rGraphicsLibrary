@@ -6,6 +6,32 @@
 #include <ctime>
 
 
+std::ostream& operator<<(std::ostream& os,const glm::vec2 &v){
+	os << "[" << v.x << "," << v.y << "]";
+	return os;
+}
+std::ostream& operator<<(std::ostream& os,const glm::vec3 &v){
+	os << "[" << v.x << "," << v.y <<  "," << v.z <<  "]";
+	return os;
+}
+std::ostream& operator<<(std::ostream& os,const glm::vec4 &v){
+	os << "[" << v.x << "," << v.y <<  "," << v.z <<  "," << v.w <<  "]";
+	return os;
+}
+std::ostream& operator<<(std::ostream& os,const glm::ivec2 &v){
+	os << "[" << v.x << "," << v.y << "]";
+	return os;
+}
+std::ostream& operator<<(std::ostream& os,const glm::ivec3 &v){
+	os << "[" << v.x << "," << v.y <<  "," << v.z <<  "]";
+	return os;
+}
+std::ostream& operator<<(std::ostream& os,const glm::ivec4 &v){
+	os << "[" << v.x << "," << v.y <<  "," << v.z <<  "," << v.w <<  "]";
+	return os;
+}
+
+
 LogManager* LogManager::manager_ = 0;
 LogManager* LogManager::getLogManager(){
     if(!manager_){
@@ -72,7 +98,7 @@ void ConsolLogger::log_(LogLevel logLevel,std::string msg,std::string function,s
     if(useTimmers_){
         out << prevClock.getFractionElapsedSeconds() << "s," << startClock.getFractionElapsedSeconds() << "s\t"; 
     }
-    out << __FUNCTION__ << " in " << file << " line " << line  << "\t";
+    out << function << " in " << file << " line " << line  << "\t";
     out << msg << std::endl;
     prevClock.restart();
 }
@@ -103,7 +129,7 @@ void FileLogger::log_(LogLevel logLevel,std::string msg,std::string function,std
     if(useTimmers_){
         file << prevClock.getFractionElapsedSeconds() << "s," << startClock.getFractionElapsedSeconds() << "s\t"; 
     }
-    file << __FUNCTION__ << " in " << srcFile << " line " << line  << "\t";
+    file << function << " in " << srcFile << " line " << line  << "\t";
     file << msg << std::endl;
     prevClock.restart();
 }

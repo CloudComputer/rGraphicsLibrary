@@ -34,6 +34,7 @@ public:
 	imImage *operator->(){return _img;}
 };
 imImage* IM_GetScreenshot();
+imImage* IM_GetScreenshotOfTexture(unsigned int texID);
 
 imImage* IM_LoadImage(const char* file_name);
 void IM_SaveImage(imImage* image, const char* file_name, const char* format);

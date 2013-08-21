@@ -28,10 +28,11 @@ public:
 	VectorField *getGradientField()const;
 
 	ScalarField *blur()const;
-
+	
+	ScalarField* clip(const glm::ivec3 &clipMin,const glm::ivec3 &clipMax);
 	ScalarField* Canny(bool blurFirst = false);
 
-	
+	ScalarField* doubleSize()const;
 
 	float DiffXp(const glm::vec3 &worldPos)const;
 	float DiffXm(const glm::vec3 &worldPos)const;

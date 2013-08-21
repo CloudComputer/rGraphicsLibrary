@@ -11,13 +11,17 @@
 #include <Util\StopClock.h>
 
 class rEngine{
+	std::vector<Scene*> _scenes;
+
 public:
 	rEngine();
 	virtual ~rEngine();
 
 	StopClock _sw;
 
-	std::vector<Scene*> _scenes;
+    std::vector<Scene*> &getScenes(){return _scenes;}
+	
+
 
 	void addScene(Scene *s){_scenes.push_back(s);}
 

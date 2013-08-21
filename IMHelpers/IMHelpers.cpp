@@ -6,8 +6,11 @@
 #include <algorithm>
 
 #include <Util\TmpPointer.h>
+#include <Util\Logger.h>
 
 #include <OpenGLHelpers\FBO.h>
+
+#include <OpenGLHelpers\OpenGLInfo.h>
 
 imImage* IM_LoadImage(const char* file_name){
 	int error;
@@ -44,27 +47,27 @@ void IM_SaveImage(imImage* image, const char* file_name, const char* format){
 void IM_PrintError(int error){
 	switch (error){
 	case IM_ERR_OPEN:
-		printf("Error Opening File.\n");
+		LOG_ERROR("Error Opening File.\n");
 		break;
 	case IM_ERR_MEM:
-		printf("Insuficient memory.\n");
+		LOG_ERROR("Insuficient memory.\n");
 		break;
 	case IM_ERR_ACCESS:
-		printf("Error Accessing File.\n");
+		LOG_ERROR("Error Accessing File.\n");
 		break;
 	case IM_ERR_DATA:
-		printf("Image type not Suported.\n");
+		LOG_ERROR("Image type not Suported.\n");
 		break;
 	case IM_ERR_FORMAT:
-		printf("Invalid Format.\n");
+		LOG_ERROR("Invalid Format.\n");
 		break;
 	case IM_ERR_COMPRESS:
-		printf("Invalid or unsupported compression.\n");
+		LOG_ERROR("Invalid or unsupported compression.\n");
 		break;
 	case IM_ERR_NONE:
 		break;
 	default:
-		printf("Unknown Error.\n");
+		LOG_ERROR("Unknown Error.\n");
 	}
 }
 
@@ -87,6 +90,30 @@ imImage* IM_GetScreenshot(){
 	delete [] data;
 	return img;
 }	
+
+
+imImage* IM_GetScreenshotOfTexture(unsigned int texID){
+	glActiveTexture(GL_TEXTURE0);chkGLErr();
+	glBindTexture(GL_TEXTURE_2D,texID);chkGLErr();
+
+
+	int w;int h;
+	glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_WIDTH,&w);chkGLErr();
+	glGetTexLevelParameteriv(GL_TEXTURE_2D,0,GL_TEXTURE_HEIGHT,&h);chkGLErr();
+	imImage *img = imImageCreate(w, h, IM_RGB, IM_BYTE);
+	uint8_t* data = new uint8_t[w*h*3*sizeof(uint8_t)];
+
+	glGetTexImage(GL_TEXTURE_2D,0,GL_RGB,GL_UNSIGNED_BYTE,data);chkGLErr();
+	
+	for(int i = 0;i<w*h;i++){
+		((uint8_t*)img->data[0])[i] = data[i*3+0];
+		((uint8_t*)img->data[1])[i] = data[i*3+1];
+		((uint8_t*)img->data[2])[i] = data[i*3+2];
+	}
+
+	delete [] data;
+	return img;
+}
 
 std::vector<HoughPoint> IM_GetLines(imImage* img,int maxLines,imImage* out,imImage* binOut,imImage* bin2Out){
 	std::vector<HoughPoint> lines;

@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include <OpenGLHelpers\Light.h>
+
 #include <OpenGLHelpers\Shader.h>
 
 #include "rObject.h"
@@ -41,6 +42,15 @@ bool Scene::isActive(){return _active;}
 void Scene::update(float dt){
 	IT_FOR(_objects,o) (*o)->update(dt);
 }
+
+void Scene::postDraw(){
+	IT_FOR(_objects,o) (*o)->postDraw(this);
+}
+
+void Scene::screenshot(const char* filename){
+	Texture::screenshot(filename,mainTex_);
+}
+
 void Scene::render(){
 	chkGLErr();
 	PassScene();
@@ -243,8 +253,9 @@ Scene* Scene::CreateScene(tinyxml2::XMLElement *ele){
 	
 	
 	s->_combineFBO = new FBO(win);
-	s->_combineFBO->init(id+"_combine_depthTex",win->getSize());
-	s->_combineFBO->createRenderTarget(id+"_combine");
+	s->mainTex_ = id+"_combine";
+	s->_combineFBO->init( id+"_combine_depthTex",win->getSize());
+	s->_combineFBO->createRenderTarget(s->mainTex_);
 	
 
 	auto camera = ele->FirstChildElement("camera");

@@ -120,7 +120,7 @@ public:
 			}
 			glEnd();
 		}
-		chkGLErr();
+		//chkGLErr();
 	}
 
 	virtual std::string toString()const{return "RBFSelecterObject";}

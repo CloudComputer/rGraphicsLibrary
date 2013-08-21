@@ -4,13 +4,17 @@
 
 #include <assert.h>
 
+#include <Util/logger.h>
+
 KD_TEMPLATE KD_TREE::KDTree(){
 	root = 0;
 }
 
 KD_TEMPLATE KD_TREE::~KDTree(){
+	LOG_DEBUG("Starting to delete KD Tree");
 	if(root != 0)
 		delete root;
+	LOG_DEBUG("KD Tree Deleted");
 }
 
 KD_TEMPLATE KD_NODE_IT KD_TREE::begin(){
@@ -87,11 +91,11 @@ KD_TEMPLATE void KD_TREE::erase(KD_NODE *node){
 		assert(node != 0);
 		return;
 	}
-	if(node->_tree != this){
-		std::cerr << "Trying to delete a node from another tree" << std::endl;
-		assert(node->_tree == this);
-		return;
-	}
+	//if(node->_tree != this){
+	//	std::cerr << "Trying to delete a node from another tree" << std::endl;
+	//	assert(node->_tree == this);
+	//	return;
+	//}
 	if(node->isLeaf()){
 		KD_NODE* parent = node->_parent;
 		if(parent == 0){ //Root node;

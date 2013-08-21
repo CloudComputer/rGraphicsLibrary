@@ -2,6 +2,9 @@
 
 #include <iostream>
 #include <fstream>
+#include <map>
+
+#include <Util\Macros.h>
 
 IndexedMesh::IndexedMesh(void):
 _boundingAABB(glm::vec3(0,0,0),glm::vec3(0,0,0))
@@ -113,4 +116,41 @@ float IndexedMesh::getArea()const{
 		area += tri->area();
 	}
 	return area;
+}
+
+void IndexedMesh::save(const char* filename){
+	LOG_INFO("Saving mesh to disk as " << filename);
+	std::ofstream file(filename);
+	std::map<Vertex*,unsigned int> indices;
+	int i = 1;
+	IT_FOR(_triangles,t){
+		if(indices.find(t->v0()) == indices.end()){
+			auto p = t->v0()->getPosition();
+			file << "v " << p.x << " " << p.y << " " << p.z << std::endl;
+			indices[t->v0()] = i++;
+		}
+
+		if(indices.find(t->v1()) == indices.end()){
+			auto p = t->v1()->getPosition();
+			file << "v " << p.x << " " << p.y << " " << p.z << std::endl;
+			indices[t->v1()] = i++;
+		}
+
+		if(indices.find(t->v2()) == indices.end()){
+			auto p = t->v2()->getPosition();
+			file << "v " << p.x << " " << p.y << " " << p.z << std::endl;
+			indices[t->v2()] = i++;
+		}
+	}
+
+	unsigned int i0,i1,i2;
+	IT_FOR(_triangles,t){
+		i0 = indices[t->v0()];
+		i1 = indices[t->v1()];
+		i2 = indices[t->v2()];
+		file << "f " << i0 << " " << i1 << " " << i2 << std::endl;
+	}
+
+	file.close();
+	LOG_INFO("Saving completed");
 }

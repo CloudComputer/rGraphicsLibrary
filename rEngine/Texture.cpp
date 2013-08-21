@@ -2,6 +2,8 @@
 
 #include <IMHelpers\IMHelpers.h>
 
+#include <Util\Logger.h>
+
 std::map<std::string,GLuint> Texture::_textures;
 
 TextureHints::TextureHints():
@@ -26,7 +28,7 @@ Texture::~Texture(){
 
 GLuint Texture::createTextureID(std::string textureName){
 	if(_textures.find(textureName) != _textures.end()){
-		std::cerr << "Texture with name " << textureName << " already exists (id: " << _textures[textureName] << ")" << std::endl;
+		LOG_ERROR("Texture with name " << textureName << " already exists (id: " << _textures[textureName] << ")");
 
 		//exit(-1);
 		return _textures[textureName];
@@ -34,7 +36,7 @@ GLuint Texture::createTextureID(std::string textureName){
 	_textures[textureName] = 0;
 	glGenTextures(1,&_textures[textureName]);
 
-	std::cout << "Created Texture " << textureName << " (id: " << _textures[textureName] << ")" << std::endl;
+	LOG_INFO("Created Texture " << textureName << " (id: " << _textures[textureName] << ")");
 
 	return _textures[textureName];
 }
@@ -61,17 +63,17 @@ GLuint Texture::loadTexture(std::string name,std::string filename,TextureHints h
 	IM_Pointer img = IM_LoadImage(filename.c_str());
 
 	if(!img.get()){
-		std::cerr << "Image could not be loaded or file not found" << std::endl;
+		LOG_ERROR("Image could not be loaded or file not found");
 		return -1;
 	}
 
 	if(img->color_space != IM_RGB && img->color_space != IM_GRAY){
-		std::cerr << "Unsupported colorspace in texture image: " << filename << std::endl;
+		LOG_ERROR("Unsupported colorspace in texture image: ");
 		exit(-1);
 		return -1;
 	}
 	if(img->data_type != IM_BYTE ){
-		std::cerr << "Unsupported data type in texture image: " << filename << std::endl;
+		LOG_ERROR("Unsupported data type in texture image: " );
 		exit(-1);
 		return -1;
 	}
@@ -116,3 +118,19 @@ GLuint Texture::loadTexture(std::string name,std::string filename,TextureHints h
 	free(data);
 	return id;
 }
+
+
+void Texture::screenshot(const char* filename,std::string textureName){
+	auto id = _textures[textureName];
+	if(id == 0)
+		return;
+	screenshot(filename,id);
+}
+
+void Texture::screenshot(const char* filename,GLuint texID){
+	IM_Pointer img = IM_GetScreenshotOfTexture(texID);
+
+	IM_SaveImage(img.get(),filename, "JPEG");
+	LOG_INFO("Screenshot taken to " << filename);
+}
+

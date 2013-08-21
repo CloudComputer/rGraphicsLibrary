@@ -148,6 +148,36 @@ ScalarField* ScalarField::Canny(bool blurFirst){
 
 }
 
+ScalarField* ScalarField::clip(const glm::ivec3 &clipMin,const glm::ivec3 &clipMax){
+	glm::vec3 tMin(clipMin),tMax(clipMax);
+	tMin /= _dimensions;
+	tMax /= _dimensions;
+	BoundingAABB aabb(_boundingAABB.getPosition(tMin),_boundingAABB.getPosition(tMax));
+	ScalarField *t = new ScalarField(clipMax-clipMin,aabb);
+	FOR(t->_dimensions){
+		glm::ivec3 id(x,y,z);
+		auto id2 = id + clipMin;
+		t->_data[t->_index(id)] = _data[_index(id2)];
+	}
+	return t;
+}
+
+
+ScalarField* ScalarField::doubleSize()const{
+	auto d2 = _dimensions*2;
+	TmpPointer<ScalarField> ss = new ScalarField(d2,_boundingAABB);
+	ScalarField* s = ss.get();
+
+	FOR(d2){
+		auto i = glm::ivec3(x,y,z);
+		glm::vec3 p = _boundingAABB.getPosition(glm::vec3(i)/glm::vec3(d2));
+		float v = getFromWorldPos(p);
+		s->_data[s->_index(i)] = v;
+	}
+
+	return s->blur();
+}
+
 ScalarField *ScalarField::blur()const{
 	ScalarField *s = new ScalarField(_dimensions,_boundingAABB);
 	FOR(_dimensions){
@@ -341,7 +371,7 @@ void ScalarField::saveAsRaw(const char *filename){
 	FILE *file = fopen(filename,"wb");
 
 
-	std::cout << "Saving volume as raw [" << _dimensions.x << " " << _dimensions.y << " " << _dimensions.z << "]" << std::endl;
+	std::cout << "Saving volume as raw [" << _dimensions.x << " " << _dimensions.y << " " << _dimensions.z << "] to " << filename << std::endl;
 
 	FOR(_dimensions){
 		int id = _index(glm::ivec3(x,y,z));
@@ -390,7 +420,7 @@ ScalarField* ScalarField::ReadFromRawfile(const char *filename,unsigned int w,un
 		delete data;
 		return s;
 	}else{
-		std::cerr << "Unsupported bit per sample, must be 1, 2 or 4 " << bps << " was given" << std::endl; 
+		std::cerr << "Unsupported bit per sample, must be 1, 2 or 4: " << bps << " was given" << std::endl; 
 	}
 
 

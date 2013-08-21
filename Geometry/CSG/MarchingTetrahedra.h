@@ -15,6 +15,11 @@
 
 #include <Geometry\BoundingGeometry\BoundingVolume.h>
 
+#include <Util\Logger.h>
+#include <Util\Macros.h>
+
+#include <algorithm>
+
 class MarchingTetrahedra : public Object{
 
 	static void _evaluateTetra(Mesh *m,const glm::vec3 &p0,const float &v0,const glm::vec3 &p1,const float &v1,const glm::vec3 &p2,const float &v2,const glm::vec3 &p3,const float &v3);
@@ -119,7 +124,7 @@ template<typename MeshType>
 Mesh* MarchingTetrahedra::March(PointCloudInterpolation *pci, const int &resultion){
 	Mesh *mesh = new MeshType();
 	auto tree = pci->getCenters();
-	CSGCache pciEval(pci);
+	CSGCache *pciEval = new CSGCache(pci);
 
 	BoundingAABB box = pci->getAABB();
 	float x,y,z,w,h,d,dm;
@@ -136,7 +141,7 @@ Mesh* MarchingTetrahedra::March(PointCloudInterpolation *pci, const int &resulti
 	res.y = std::ceil(h/dm);
 	res.z = std::ceil(d/dm);
 	
-	std::cout << res.x << " " << res.y << " " << res.z << std::endl;
+	LOG_DEBUG( "Marhcing PCI with discrete size: " << res);
 
 	float v[8];
 	glm::vec3 p[8];
@@ -149,11 +154,31 @@ Mesh* MarchingTetrahedra::March(PointCloudInterpolation *pci, const int &resulti
 		{7,6,5,3}
 	};
 
-	float d3 = 1.5*std::sqrt(3*dm*dm);
+	std::vector<unsigned int> X,Y,Z;
+	
+	for(int k = -1;k<res.z+1;k++){
+		Z.push_back(k);
+	}
+	for(int j = -1;j<res.y+1;j++){
+		Y.push_back(j);
+	}
+	for(int i = -1;i<res.x+1;i++){
+		X.push_back(i);
+	}	
+	
+	std::random_shuffle(X.begin(),X.end());
+	std::random_shuffle(Y.begin(),Y.end());
+	std::random_shuffle(Z.begin(),Z.end());
+
+	float d3 = 2.2*std::sqrt(3*dm*dm);
 	glm::vec3 center;
-	for(int k = -1;k<res.z+1;k++){ //plus/minus one since our bounding box fits the centers of the rbf prefectly
-		for(int j = -1;j<res.y+1;j++){
-			for(int i = -1;i<res.x+1;i++){
+	int per = 0;
+	IT_FOR(Z,_k){
+		unsigned int k = *_k;
+		IT_FOR(Y,_j){
+			unsigned int j = *_j;
+				IT_FOR(X,_i){
+				unsigned int i = *_i;
 				x = minPos.x + dm * i;
 				y = minPos.y + dm * j;
 				z = minPos.z + dm * k;
@@ -162,11 +187,10 @@ Mesh* MarchingTetrahedra::March(PointCloudInterpolation *pci, const int &resulti
 				center.y = minPos.y + dm * (j+0.5);
 				center.z = minPos.z + dm * (k+0.5);
 
-								
-				auto n = tree->findNearest(center);
-				if(glm::distance(center,n->get().P) > n->get().supportSize/1.5)
+				auto guess = pci->guess(center);				
+				if(guess >= d3)
 					continue;
-				
+
 				p[0] = glm::vec3(x,y,z);
 				p[1] = glm::vec3(x+dm,y,z);
 				p[2] = glm::vec3(x+dm,y+dm,z);
@@ -177,7 +201,7 @@ Mesh* MarchingTetrahedra::March(PointCloudInterpolation *pci, const int &resulti
 				p[7] = glm::vec3(x,y+dm,z+dm);
 				
 				for(int a = 0;a<8;a++){
-					v[a] = pciEval.eval(p[a]);
+					v[a] = pciEval->eval(p[a]);
 				}
 
 				for(int a = 0;a<6;a++){
@@ -189,9 +213,10 @@ Mesh* MarchingTetrahedra::March(PointCloudInterpolation *pci, const int &resulti
 			}
 		}
 	}
-
-
+	
+	LOG_DEBUG("Marhcing complete, start calculating normals");
 	mesh->calculateNormals();
+	LOG_DEBUG("Normals calculated");
 
 	return mesh;
 }

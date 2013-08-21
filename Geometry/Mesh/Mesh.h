@@ -7,6 +7,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <Util\Logger.h>
+
 #include <Geometry/BoundingGeometry/BoundingVolume.h>
 
 #include <fstream>
@@ -28,6 +30,8 @@ public:
 	virtual BoundingAABB getBoundingAABB()const = 0;
 
 	virtual float getArea()const{return -1;}
+	
+	virtual void save(const char* filename){LOG_WARN("Mesh save is not implemented");};
 
 	template<typename MeshType>
 	static Mesh* LoadWavefront(const char* filename);

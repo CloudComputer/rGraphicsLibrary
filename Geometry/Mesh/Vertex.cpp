@@ -40,6 +40,10 @@ void Vertex::setPosition(glm::vec4 position){
 }
 
 void Vertex::setNormal(glm::vec3 normal){
+	if(normal.x != normal.x){
+		_N = glm::vec3(0,0,0);
+		return;
+	}
 	_N = normal;
 }
 

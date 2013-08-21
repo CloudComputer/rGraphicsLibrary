@@ -7,6 +7,7 @@
 #include <glew/gl/glew.h>
 #include <gl/GL.h>
 
+#include <Util\Logger.h>
 
 #include <iostream>
 #include <string>
@@ -72,16 +73,16 @@ int OpenGLInfo::getMaxAttribs(){
 	return i;
 }
 
-void OpenGLInfo::printOGLInformation(std::ostream &stream){
+void OpenGLInfo::printOGLInformation(){
 	glm::ivec3 maxUnif = getMaxUniformsPerStage();
 
-	stream << "OpenGL Version :" << getOpenGLVersion() << std::endl;
-	stream << "Glew   Version :" << getGlewVersion()   << std::endl;
-	stream << "GLSL   Version :" << getGLSLVersion()   << std::endl;
-	stream << "OpenGL Vendor  :" << getOpenGLVendor()   << std::endl;
-	stream << "OpenGL Renderer:" << getOpenGLRenderer()   << std::endl;
-	stream << "Max Attribs    :" << getMaxAttribs() << std::endl;
-	stream << "Max Uniforms   :" << getMaxUniforms()  << "( " << maxUnif.x << " " << maxUnif.y << " " << maxUnif.z << ")" << std::endl;
+	LOG_INFO("OpenGL Version :" << getOpenGLVersion());
+	LOG_INFO("Glew   Version :" << getGlewVersion());
+	LOG_INFO( "GLSL   Version :" << getGLSLVersion());
+	LOG_INFO( "OpenGL Vendor  :" << getOpenGLVendor());
+	LOG_INFO( "OpenGL Renderer:" << getOpenGLRenderer());
+	LOG_INFO( "Max Attribs    :" << getMaxAttribs());
+	LOG_INFO( "Max Uniforms   :" << getMaxUniforms()  << "( " << maxUnif.x << " " << maxUnif.y << " " << maxUnif.z << ")");
 }
 
 void OpenGLInfo::checkGLErrors(std::string file, int line){
@@ -96,48 +97,47 @@ void OpenGLInfo::checkGLErrors(std::string file, int line){
 			break;
 #ifdef GL_INVALID_ENUM
 		case GL_INVALID_ENUM:
-			std::cerr <<i++ << " GL_INVALID_ENUM @ " << file <<":"<<line << ": An unacceptable value is specified for an enumerated argument. The offending command is ignored and has no other side effect than to set the error flag." << std::endl;
+			LOG_ERROR(i++ << " GL_INVALID_ENUM @ " << file <<":"<<line << ": An unacceptable value is specified for an enumerated argument. The offending command is ignored and has no other side effect than to set the error flag.");
 			break;
 #endif
 #ifdef GL_INVALID_VALUE
 		case GL_INVALID_VALUE:
-			std::cerr <<i++  << "GL_INVALID_VALUE @ " << file <<":"<<line  << ": A numeric argument is out of range. The offending command is ignored and has no other side effect than to set the error flag." << std::endl;
+			LOG_ERROR(i++  << "GL_INVALID_VALUE @ " << file <<":"<<line  << ": A numeric argument is out of range. The offending command is ignored and has no other side effect than to set the error flag.");
 			break;
 #endif
 #ifdef GL_INVALID_OPERATION
 		case GL_INVALID_OPERATION:
-			std::cerr <<i++  << "GL_INVALID_OPERATION @ " << file <<":"<<line  << ": The specified operation is not allowed in the current state. The offending command is ignored and has no other side effect than to set the error flag." << std::endl;
+			LOG_ERROR(i++  << "GL_INVALID_OPERATION @ " << file <<":"<<line  << ": The specified operation is not allowed in the current state. The offending command is ignored and has no other side effect than to set the error flag.");
 			break;
 #endif
 #ifdef GL_STACK_OVERFLOW
 		case GL_STACK_OVERFLOW:
-			std::cerr <<i++  << "GL_STACK_OVERFLOW @ " << file <<":"<<line  << ": This command would cause a stack overflow. The offending command is ignored and has no other side effect than to set the error flag." << std::endl;
+			LOG_ERROR(i++  << "GL_STACK_OVERFLOW @ " << file <<":"<<line  << ": This command would cause a stack overflow. The offending command is ignored and has no other side effect than to set the error flag.");
 			break;
 #endif
 #ifdef GL_STACK_UNDERFLOW
 		case GL_STACK_UNDERFLOW:
-			std::cerr <<i++  << "GL_STACK_UNDERFLOW @ " << file <<":"<<line  << ": This command would cause a stack underflow. The offending command is ignored and has no other side effect than to set the error flag." << std::endl;
+			LOG_ERROR(i++  << "GL_STACK_UNDERFLOW @ " << file <<":"<<line  << ": This command would cause a stack underflow. The offending command is ignored and has no other side effect than to set the error flag.");
 			break;
 #endif
 #ifdef GL_OUT_OF_MEMORY
 		case GL_OUT_OF_MEMORY:
-			std::cerr <<i++  << "GL_OUT_OF_MEMORY @ " << file <<":"<<line  << ": There is not enough memory left to execute the command. The state of the GL is undefined, except for the state of the error flags, after this error is recorded." << std::endl;
+			LOG_ERROR(i++  << "GL_OUT_OF_MEMORY @ " << file <<":"<<line  << ": There is not enough memory left to execute the command. The state of the GL is undefined, except for the state of the error flags, after this error is recorded.");
 			break;
 #endif
 #ifdef GL_TABLE_TOO_LARGE
 		case GL_TABLE_TOO_LARGE:
-			std::cerr <<i++  << "GL_TABLE_TOO_LARGE @ " << file <<":"<<line  << ": The specified table exceeds the implementation's maximum supported table size. The offending command is ignored and has no other side effect than to set the error flag." << std::endl;
+			LOG_ERROR(i++  << "GL_TABLE_TOO_LARGE @ " << file <<":"<<line  << ": The specified table exceeds the implementation's maximum supported table size. The offending command is ignored and has no other side effect than to set the error flag.");
 			break;
 #endif
 #ifdef GL_INVALID_FRAMEBUFFER_OPERATION
 		case GL_INVALID_FRAMEBUFFER_OPERATION:
-			std::cerr <<i++  << "GL_INVALID_FRAMEBUFFER_OPERATION @ " << file <<":"<<line  << ": The framebuffer object is not complete. The offending command is ignored and has no other side effect than to set the error flag." << std::endl;
+			LOG_ERROR(i++  << "GL_INVALID_FRAMEBUFFER_OPERATION @ " << file <<":"<<line  << ": The framebuffer object is not complete. The offending command is ignored and has no other side effect than to set the error flag.");
 			break;
 #endif
 
 		default:
-			std::cerr <<i++  << "GL_ERROR @ " << file <<":"<<line  << ": Unkown error:" << err << std::endl;
-		}
+			LOG_ERROR(i++  << "GL_ERROR @ " << file <<":"<<line  << ": Unkown error:" << err);		}
 		err = glGetError();
 	}
 }

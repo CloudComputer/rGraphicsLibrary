@@ -9,9 +9,10 @@
 
 #include <boost/algorithm/string.hpp>   
 
+#include <Util\Logger.h>
 
 static void GLFW_error(int error,const char* desc){
-	std::cerr << "GLFW Error: " << error << " (" << desc << ")" << std::endl;
+	LOG_ERROR("GLFW Error: " << error << " (" << desc << ")");
 }
 
 void GLFW_resize(GLFWwindow *win,int w,int h){
@@ -212,14 +213,15 @@ rWindow* rWindow::OpenWindow(rWindowHints hints){
 	glfwMakeContextCurrent(win->_window);
 	if(glewInit() != GLEW_OK)
 	{
-		std::cerr << "Failed to init glew" << std::endl;
+		LOG_ERROR( "Failed to init glew");
 		return false;
 	}
 	
 	win->setClearColor(glm::vec4(0.3,0.3,0.3,0));
+	win->setClearColor(glm::vec4(1,1,1,1));
 	
-	OpenGLInfo::printOGLInformation(std::cout);
-	std::cout << "GLFW Version:\t" << glfwGetVersionString() << std::endl;
+	OpenGLInfo::printOGLInformation();
+	LOG_INFO("GLFW Version:\t" << glfwGetVersionString());
 
 	glfwSetWindowSizeCallback(win->_window,GLFWwindowsizefun(GLFW_resize));
 	glfwSetMouseButtonCallback(win->_window,GLFWmousebuttonfun(GLFW_mouseButton));
@@ -266,13 +268,16 @@ void rWindow::ReadXML(rEngine *engine,tinyxml2::XMLElement *window){
 	std::string id = window->Attribute("id");
 	if(id.length()!=0)
 		win->setID(id);
-
+	
+	LOG_DEBUG("Creating Viewports for window " << id);
 	while(viewport){
 		std::string type = viewport->Attribute("type");
 		boost::algorithm::to_lower(type);
+		LOG_DEBUG("type: " << type);
 		auto texture = viewport->FirstChildElement("texture");
 		std::string textureID,textureSRC;
 		textureID = texture->Attribute("name");
+		LOG_DEBUG("texture: " << textureID);
 		auto c  = texture->Attribute("src");
 		textureSRC =  (!c) ? "" : c;
 		if(textureSRC.length()!=0)
@@ -299,7 +304,7 @@ void rWindow::ReadXML(rEngine *engine,tinyxml2::XMLElement *window){
 			vp = new RelativeViewport(win,topLeft,size);
 		}
 		else{
-			std::cerr << "No or unsupported viewport type: " << type << std::endl;
+			LOG_ERROR("No or unsupported viewport type: " << type);
 		}
 
 		if(vp == 0)

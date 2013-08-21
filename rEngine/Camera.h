@@ -66,8 +66,11 @@ public:
 		_zoom(zoom),
 		_state(false)
 	{
-		auto eye = _focus-_direction*_zoom;
-		_camera = glm::lookAt(eye,_focus,glm::vec3(0,1,0));
+		auto eye = _focus-(_direction*_zoom);
+		glm::vec3 up(0,1,0);
+		if(std::abs(glm::dot(_direction,up))>0.9)
+			up = glm::vec3(-1,0,0);
+		_camera = glm::lookAt(eye,_focus,up);
 	}
 	virtual void update(float dt){}
 

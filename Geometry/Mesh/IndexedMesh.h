@@ -37,6 +37,8 @@ public:
 
 	BoundingAABB getBoundingAABB()const{return _boundingAABB;}
 
+	virtual void save(const char* filename);
+
 #ifdef GL_VERSION_1_1
 #include <OpenGLHelpers\AttribPusher.h>
 

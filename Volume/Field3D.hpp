@@ -54,7 +54,6 @@ T Field3D<T>::getMax()const{
 	return v;
 }
 
-
 template<typename T>
 void  Field3D<T>::normalize(){
 	T minV,maxV;

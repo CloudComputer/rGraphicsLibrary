@@ -21,6 +21,9 @@ option(BUILD_TOOLS "Build tools" OFF)
 
 #SET(OPENEXRLIBS "Half Iex IlmImf IlmThread Imath")
 
+
+SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
+
 include_directories("${PROJECT_SOURCE_DIR}/ext/")
 include_directories("${PROJECT_SOURCE_DIR}/ext/im/include")
 include_directories("${PROJECT_SOURCE_DIR}/ext/eigen")

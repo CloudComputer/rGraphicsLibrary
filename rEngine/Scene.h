@@ -22,6 +22,8 @@ class Scene : public IDObject{
 	ShaderProgram *_LightsShader;
 	ShaderProgram *_CombieShader;
 
+	std::string mainTex_;
+
 	std::vector<rObject*> _objects;
 	std::vector<Light*> _lights;
 	void createLight(tinyxml2::XMLElement *light);
@@ -41,7 +43,14 @@ public:
 
 	void update(float dt);
 	void render();
+	void postDraw();
+	
+	void screenshot(const char *filename);
 
+	int getNumberOfObjects(){return _objects.size();}
+	int getNumberOfLights(){return _lights.size();}
+
+	void addObject(rObject* r){_objects.push_back(r);}
 
 	static Scene* CreateScene(tinyxml2::XMLElement *ele);
 };

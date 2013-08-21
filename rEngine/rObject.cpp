@@ -15,6 +15,7 @@
 #include "CSGReader.h"
 
 rObject::rObject(){
+	_shader = 0;
 }
 
 
@@ -26,6 +27,8 @@ rObject::~rObject(){
 
 void rObject::draw(Scene *s){
 	chkGLErr();	
+	if(!_shader)
+		return;
 	_shader->bind();chkGLErr();
 	
 	_shader->setUniform("projection", s->getCamera()->getProjectionMatrix());chkGLErr();
