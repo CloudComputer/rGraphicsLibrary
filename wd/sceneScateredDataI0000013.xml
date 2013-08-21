@@ -1,0 +1,73 @@
+<rEngine>
+<loging>
+  <console logLevel="debug" useTimmers="on" />
+  <file file="I0000013.txt" logLevel="debug" useTimmers="on" />
+</loging>
+<texturePath>
+	<path>textures</path>
+</texturePath>
+<window id="win1">
+	<size>800 600</size>
+	<title>Main window</title>
+	<viewport type="fullscreen">
+		<texture name="scene_combine" />
+	</viewport>
+</window>
+
+  <scene id="scene" window="win1">
+    <camera type="trackball">
+      <projection type="perspective" near="0.1" far="10" fov="45" />
+      <direction>0 0 1</direction>
+      <focus>0.5 0.5 0.5</focus>
+      <zoom>1</zoom>
+    </camera>
+
+    <light type="point">
+      <position>0 0 1</position>
+      <color>255 255 255</color>
+    </light>
+
+    <csg>
+      <pointCloud>
+        <points
+          ultrasound="F:\Thesis Data\ContextVision\Volumes for rendering\raw\I0000013-ENH-3_SC-467x255x124.raw"
+          dimensions="467 255 124"
+          alpha="0.3"
+          beta="0.2"
+          gamma="0.87"
+          iso="0.33"
+          w="0.5"
+          uind="0.9"
+          xi="0.5"
+          />
+		<clip min="0 51 6" max="467 255 101" />
+        <hints>
+            <overlap>1.5</overlap>
+            <K>20</K>
+            <minSupportSize>0.0001</minSupportSize>
+            <maxSupportSize>0.07</maxSupportSize>
+            <reg>0.000001</reg>
+            <Tsa>0.0001</Tsa>
+          </hints>
+        </pointCloud>
+      <bounds>
+        <min>0 0 0</min>
+        <max>1 1 0.5</max>
+      </bounds>
+      <resolution>250</resolution>
+
+      <material>
+        <specular>0 0 0</specular>
+        <ambient>255 255 255</ambient>
+        <specularity>110</specularity>
+      </material>
+      <save file="I0000013.obj" />
+    </csg>
+	
+    <ScreenShotFirstScreen file="I0000013.jpg" />
+    <DieAfterFirstScreena	/>
+    
+    
+  </scene>
+    
+</rEngine>

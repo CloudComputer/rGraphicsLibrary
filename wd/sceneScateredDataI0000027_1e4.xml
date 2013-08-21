@@ -1,0 +1,72 @@
+<rEngine>
+<loging>
+  <console logLevel="debug" useTimmers="on" />
+  <file file="sceneScateredDataI0000027_1e4.txt" logLevel="debug" useTimmers="on" />
+</loging>
+<texturePath>
+	<path>textures</path>
+</texturePath>
+<window id="win1">
+	<size>800 600</size>
+	<title>I0000027_1e4</title>
+	<viewport type="fullscreen">
+		<texture name="scene_combine" />
+	</viewport>
+</window>
+
+  <scene id="scene" window="win1">
+    <camera type="trackball">
+      <projection type="perspective" near="0.1" far="10" fov="45" />
+      <direction>0 1 0</direction>
+      <focus>0.5 0.5 0.5</focus>
+      <zoom>1</zoom>
+    </camera>
+
+    <light type="point">
+      <position>0.75 1.5 0.5</position>
+      <color>200 200 200</color>
+    </light>
+
+    <csg>
+      <pointCloud>
+        <points
+          ultrasound="F:\Thesis Data\ContextVision\new volume\I0000027_TEMP-1-ENH-3_ENH-1-467x255x101.raw"
+          dimensions="467 255 101"
+          alpha="0.7"
+          beta="0.2"
+          gamma="0.7"
+          iso="0.6"
+          w="0.75"
+          uind="0.8"
+          xi="0.75"
+          />
+        <hints>
+            <overlap>1.6</overlap>
+            <K>14</K>
+            <minSupportSize>0.0001</minSupportSize>
+            <maxSupportSize>0.07</maxSupportSize>
+            <reg>0.000001</reg>
+            <Tsa>0.0001</Tsa>
+          </hints>
+        </pointCloud>
+      <bounds>
+        <min>0 0 0</min>
+        <max>1 1 0.5</max>
+      </bounds>
+      <resolution>200</resolution>
+
+      <material>
+        <diffuse>239 208 207</diffuse>
+        <specular>128 128 128</specular>
+        <ambient>255 255 255</ambient>
+        <specularity>1100</specularity>
+      </material>
+      <save file="I0000027.obj" />
+    </csg>
+    
+    <ScreenShotFirstScreen file="sceneScateredDataI0000027_1e4.jpg" />
+    <DieAfterFirstScreena />
+    
+  </scene>
+    
+</rEngine>

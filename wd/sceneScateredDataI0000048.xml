@@ -1,0 +1,71 @@
+<rEngine>
+<loging>
+  <console logLevel="debug" useTimmers="on" />
+  <file file="I0000048.txt" logLevel="debug" useTimmers="on" />
+</loging>
+<texturePath>
+	<path>textures</path>
+</texturePath>
+<window id="win1">
+	<size>800 600</size>
+	<title>Main window</title>
+	<viewport type="fullscreen">
+		<texture name="scene_combine" />
+	</viewport>
+</window>
+
+  <scene id="scene" window="win1">
+    <camera type="trackball">
+      <projection type="perspective" near="0.1" far="10" fov="45" />
+      <direction>0 0 1</direction>
+      <focus>0.5 0.5 0.5</focus>
+      <zoom>1</zoom>
+    </camera>
+
+    <light type="point">
+      <position>0 0 1</position>
+      <color>255 255 255</color>
+    </light>
+
+    <csg>
+      <pointCloud>
+        <points
+          ultrasound="F:\Thesis Data\ContextVision\2012-12-10\I0000048-ENH3_SC-fLOOD-sc-3-n645x432x124.raw"
+          dimensions="645 432 100"
+          alpha="0.9"
+          beta="0.2"
+          gamma="0.3"
+          iso="0.4"
+          w="0.5"
+          uind="0.8"
+          xi="0.5"
+          />
+        <hints>
+            <overlap>1.5</overlap>
+            <K>20</K>
+            <minSupportSize>0.0001</minSupportSize>
+            <maxSupportSize>0.07</maxSupportSize>
+            <reg>0.00000002</reg>
+            <Tsa>0.00006</Tsa>
+          </hints>
+        </pointCloud>
+      <bounds>
+        <min>0 0 0</min>
+        <max>1 1 0.5</max>
+      </bounds>
+      <resolution>250</resolution>
+
+      <material>
+        <specular>0 0 0</specular>
+        <ambient>255 255 255</ambient>
+        <specularity>110</specularity>
+      </material>
+      <save file="I0000048.obj" />
+    </csg>
+	
+    <ScreenShotFirstScreen file="I0000048.jpg" />
+    <DieAfterFirstScreena	/>
+    
+  </scene>
+    
+</rEngine>
